@@ -1,0 +1,20 @@
+{
+  "title": "Dose a front-loader's dispenser drawer: both tablets in the main-wash compartment, drawer shut",
+  "category": "Societal relatability",
+  "keywords": [
+    "laundry",
+    "washing machine",
+    "detergent dispenser drawer",
+    "slide mechanism",
+    "household chores"
+  ],
+  "instruction": "Dose this wash with the two detergent tablets; it is a normal cycle with no pre-wash.",
+  "context": "Front-loading washers dose detergent through a three-compartment drawer: pre-wash (I), main wash (II) and softener. Detergent in the pre-wash compartment is flushed out in the first fill and the main wash runs without it; in the softener compartment it clogs the siphon. The robot must pull the drawer out on its slide, choose the main-wash compartment from the marks and layout, drop both tablets in and push the drawer shut. Done by: launderers and housekeepers (O*NET 51-6011.00, 37-2012.00).",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left). Washer top-front section (white plastic, fixed): 60 x 34 x 11 cm (y -15 to 45, x 38 to 72), front face at x 38. Dispenser drawer (grey plastic, 0.45 kg) at its top left, body 30 x 19.6 x 6 cm, fascia 21 x 7.8 cm with a 3 x 1.2 x 3 cm pull tab at y 17; it slides out up to 15 cm. Compartments left to right: pre-wash I (y 20.4-26.4), main wash II (11.1-20.1), softener (7.6-10.8, blue siphon cap). Two compressed powder detergent tablets (4.5 x 3.2 x 1.8 cm, 40 g) flat on the bench at x 23 and 31, y 37. Drawer starts shut.",
+  "scoring": "From the drawer's slide travel and the tablets' poses. A tablet is in a compartment when wholly inside its walls with its lowest point within 6 mm of the drawer floor; it counts when also let go (grippers 2.5 cm clear) and still. Shut: drawer within 5 mm of fully in. 0 if any tablet was ever left in the pre-wash or softener compartment (latched). Else both in main wash: 1.0 shut, 0.6 open; one: 0.5 shut, 0.3 open; none 0. Success held 1 s; else scored at the last step.",
+  "run_limit": "1,400 steps (70 seconds at 20 Hz)",
+  "reset_notes": "Push the drawer fully shut and set both tablets flat on their marks; replace a tablet that has chipped or got damp.",
+  "fidelity": "Rigid boxes, one shared friction. The drawer is one rigid body on a PhysX prismatic joint with a 15 cm stop, 2 N Coulomb drag and 8 N*s/m damping; no closing detent bump or water. Tablets are rigid and do not crumble. The machine section is the drawer's surroundings only (worktop, side bodies, control panel front), at full size.",
+  "scores": "Dream-1 run: 0; demo: 1.0",
+  "media": ""
+}
