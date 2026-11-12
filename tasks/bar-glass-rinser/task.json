@@ -16,5 +16,5 @@
   "reset_notes": "Stand the glass rim-down on its mark, flats facing the arms' sides. The rinse plate springs back to its stop; the bowl and mat do not move.",
   "fidelity": "Rigid boxes, default contact friction. The glass is one rigid body of 14 boxes, rendered opaque pale blue-grey; no breakage. The rinse plate is a square plate (a real one is a star) on a PhysX prismatic joint with a spring drive and stops; the spray is not simulated, only the valve state. Rinse time is counted per 20 Hz control step.",
   "scores": "Dream-1 run: 0; demo: 1.0",
-  "media": ""
+  "media": "M-D2EUC9"
 }
