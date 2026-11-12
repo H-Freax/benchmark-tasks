@@ -29,6 +29,8 @@ Public API (angles in the API are degrees unless the name says rad; lengths m; f
              twist_axis=None, twist_release_deg=None, twist_stiffness=1.0)   # N, N*m about the child, N*m/rad
     kit.on_step(fn)                                          # fn(objects) every control step, sim only
     kit.release(name)                                        # switch a bond off now (sim; re-glued at reset)
+    kit.catch(name, child, child_T, parent=None, parent_T=None)  # a disarmed weld; kit.engage(name) closes it
+    kit.drive(name, target)                                  # move a sprung joint's rest point now (deg / m, sim)
     OBJECTS = [*kit.objects(), ...]
 
     kit.q(objects, joint) / kit.q_deg(objects, hinge) / kit.joints(objects)   # joint values from body poses
@@ -236,6 +238,7 @@ class Kit:
         self.joints_: dict[str, _Joint] = {}
         self._steps: list = []
         self._released: set = set()
+        self.catches: dict = {}
         self.id = len(_KITS)
         _KITS.append(self)
 
@@ -500,6 +503,64 @@ class Kit:
         _set_joint_enabled(self, name, False)
 
 
+    def catch(self, name: str, child: str, child_T, parent: str | None = None, parent_T=None) -> None:
+        """A catch that snaps shut (e.g. a padlock shackle): a weld, authored disarmed when the scene is built, that
+        holds ``child`` in pose ``child_T`` (4x4, world) relative to ``parent`` posed at ``parent_T`` (or to the
+        world). ``engage(name)`` closes it in sim; it opens again at every reset."""
+        self.catches[name] = (child, np.asarray(child_T, float), parent,
+                              None if parent_T is None else np.asarray(parent_T, float))
+
+    def engage(self, name: str) -> None:
+        """Close catch ``name`` now (sim)."""
+        path = _SIM["catch_paths"].get((self.id, name))
+        if path and _SIM["stage"] is not None:
+            from pxr import UsdPhysics
+
+            UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(True)
+
+    def drive(self, name: str, target: float) -> None:
+        """Set the spring rest point of hinge (deg) or slider (m) ``name`` now (sim only; joints without friction)."""
+        j = self.joints_[name]
+        path = _SIM["joint_paths"].get((self.id, name))
+        if not path or _SIM["stage"] is None or j.kind == "bond":
+            return
+        from pxr import UsdPhysics
+
+        drive = UsdPhysics.DriveAPI(_SIM["stage"].GetPrimAtPath(path), "angular" if j.kind == "hinge" else "linear")
+        drive.GetTargetPositionAttr().Set(float(target))
+
+
+def _author_catch(stage, kit: Kit, name: str, paths: dict, env_T: np.ndarray) -> str | None:
+    from pxr import Gf, Sdf, UsdPhysics
+
+    child, ct, parent, pt = kit.catches[name]
+    if child not in paths:
+        return None
+    pfree = parent is not None and kit.parts[parent].free and parent in paths
+    rel = _inv(pt) @ ct if pfree else env_T @ ct
+    path = f"{paths[child].rsplit('/', 1)[0]}/mechkit_joints/catch_{name}"
+    joint = UsdPhysics.FixedJoint.Define(stage, path)
+    joint.CreateBody0Rel().SetTargets([Sdf.Path(paths[child])])
+    if pfree:
+        joint.CreateBody1Rel().SetTargets([Sdf.Path(paths[parent])])
+    x, y, z, w = mat_to_quat(rel[:3, :3])
+    joint.CreateLocalPos0Attr().Set(Gf.Vec3f(0.0, 0.0, 0.0))
+    joint.CreateLocalRot0Attr().Set(Gf.Quatf(1.0, Gf.Vec3f(0.0, 0.0, 0.0)))
+    joint.CreateLocalPos1Attr().Set(Gf.Vec3f(*[float(v) for v in rel[:3, 3]]))
+    joint.CreateLocalRot1Attr().Set(Gf.Quatf(float(w), Gf.Vec3f(float(x), float(y), float(z))))
+    joint.CreateCollisionEnabledAttr().Set(False)
+    joint.CreateExcludeFromArticulationAttr().Set(True)
+    joint.CreateJointEnabledAttr().Set(False)
+    return path
+
+
+def _open_catches() -> None:
+    from pxr import UsdPhysics
+
+    for path in _SIM["catch_paths"].values():
+        UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(False)
+
+
 def _world_aabb(t, lo, hi):
     pts = np.array([[x, y, z] for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])])
     w = pts @ t[:3, :3].T + t[:3, 3]
@@ -686,7 +747,7 @@ def _friction_reset() -> None:
         drive.GetTargetPositionAttr().Set(float(_drive_target(j, j.start) * scale))
 
 
-_SIM: dict = {"stage": None, "paths": {}, "env_T": np.eye(4), "joint_paths": {}, "gen": 0, "stick": {}}
+_SIM: dict = {"stage": None, "paths": {}, "env_T": np.eye(4), "joint_paths": {}, "gen": 0, "stick": {}, "catch_paths": {}}
 
 
 def _author_all(stage, env_path: str) -> None:
@@ -704,6 +765,10 @@ def _author_all(stage, env_path: str) -> None:
             p = _author_joint(stage, k, j, paths, env_T)
             if p:
                 _SIM["joint_paths"][(k.id, j.name)] = p
+        for name in k.catches:
+            p = _author_catch(stage, k, name, paths, env_T)
+            if p:
+                _SIM["catch_paths"][(k.id, name)] = p
     print(f"[mechkit {__version__}] parts {sorted(paths)}; joints {sorted(n for _, n in _SIM['joint_paths'])}",
           flush=True)
 
@@ -827,6 +892,7 @@ def _patch_embodiment(ie) -> None:
 
     def reset(self, *a, **k):
         if _SIM["stage"] is not None:
+            _open_catches()
             _friction_reset()
         obs = reset0(self, *a, **k)
         _reglue()

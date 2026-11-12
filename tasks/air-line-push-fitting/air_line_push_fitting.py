@@ -1,7 +1,9 @@
 """On the bench is an aluminium air manifold with three push-in ports on top. Two are already blanked with stem
 plugs; the middle one has an 8 mm polyurethane air line pushed into its push-to-connect fitting. The line rises out
 of the fitting, bends over and runs along the bench to a small pneumatic cylinder on the right, whose own fitting it
-is pushed into. A parts tray on the left holds one spare 8 mm stem plug standing head up. The air is off.
+is pushed into. A parts tray on the left holds one spare 8 mm stem plug standing head up. The manifold is fed
+through a lockable 3-way exhaust ball valve (open, 6 bar on the line); a lockout padlock stands in a holder behind
+the tray, and the manifold carries a pressure gauge and a dump (bleed) button.
 
 The job is to take the line off the manifold (the cylinder is being swapped) and blank the open port with the
 plug. A push-to-connect fitting grips the tube with a toothed collet: the tube only comes out while the collet ring
@@ -10,7 +12,7 @@ is held pressed down against the fitting body, so one hand holds the collet down
 Mechanism parts come from mechkit.py (in this folder), which adds joints to the stock runtime in memory.
 
 Run it:  inspect-robots run --embodiment yam_arena -E task=tasks/air-line-push-fitting/air_line_push_fitting.py \\
-           -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \\
+           -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 --max-steps 1600 \\
            --instruction "<the instruction in task.json>" --scorer task_score ...
 """
 
@@ -101,21 +103,84 @@ for _i in range(N_RUN):
 TUBE_PARTS = ["tube_end", *[f"tube_{i}" for i in range(N_RUN)]]
 CYL_PORT_X = PORT[0] + N_RUN * SEG  # where the run ends (in the cylinder's fitting)
 
-# Lockout ball valve on the manifold's supply: lever in line with the pipe = open (6 bar on the line), turned a
-# quarter turn across it = closed and the downstream side exhausted (a 3-way lockout valve).
+# Lockable 3-way exhaust ball valve on the manifold's supply: lever in line with the pipe = open (6 bar on the
+# line), turned a quarter turn across it = closed, supply side shut and its exhaust port open. Lockout: the lever's
+# end has an 8 mm hole that, with the valve closed, lines up over the hole of a lock plate fixed to the valve body;
+# the padlock's shackle drops through both and snaps shut (a latch: lever and padlock welded where they are).
 VALVE_XY = (0.250, 0.095)  # on the supply line, at the manifold's left end
 VALVE = 0.025
 VALVE_TOP = TOP + VALVE
-LEVER_L = 0.060
+LEVER_L = 0.057
+LOCK_R = 0.050  # lever hole centre from the valve stem
 CLOSED_DEG = 80.0
+LOCK_DEG = 85.0
+LOCK_HOLE = (VALVE_XY[0] + LOCK_R, VALVE_XY[1])  # where the lever's hole sits with the valve closed
+PLATE_TOP = VALVE_TOP - 0.006
+RED = (0.85, 0.12, 0.10)
+
+
+def _ring_at(cx, cy, outer, inner, h, z0, color=None):
+    return [mk.box(b.size, at=(b.at[0] + cx, b.at[1] + cy, b.at[2]), color=color)
+            for b in _square_ring(outer, inner, h, z0)]
+
+
 kit.part("valve_body", (VALVE_XY[0], VALVE_XY[1], TOP), [mk.box((VALVE, VALVE, VALVE), at=(0, 0, VALVE / 2))],
          mass=None, color=BRASS)
 kit.part("valve_lever", (VALVE_XY[0], VALVE_XY[1], VALVE_TOP),
          [mk.box((0.006, 0.006, 0.006), at=(0, 0, 0.003)),
-          mk.box((0.012, LEVER_L, 0.005), at=(0, LEVER_L / 2, 0.0085), color=(0.85, 0.12, 0.10))],
+          mk.box((0.012, LOCK_R - 0.007, 0.005), at=(0, (LOCK_R - 0.007) / 2, 0.0085), color=RED),
+          *_ring_at(0, LOCK_R, 0.014, 0.008, 0.005, 0.006, color=RED)],
          mass=0.030, color=(0.6, 0.6, 0.62))
 kit.hinge("valve_turn", "valve_body", "valve_lever", anchor=(VALVE_XY[0], VALVE_XY[1], VALVE_TOP), axis=(0, 0, -1),
           lower_deg=0.0, upper_deg=90.0, friction=0.08)
+
+# Lockout padlock (simplified): red body 26 x 16 x 30 mm on a 6 mm square shackle pin 28 mm long, chamfered end.
+# Frame at the pin's end. It stands pin-down in a holder.
+PIN_L = 0.030
+LOCKBODY = (0.026, 0.016, 0.030)
+STAND_XY = (0.200, 0.205)
+STAND_H = 0.025
+kit.part("padlock", (STAND_XY[0], STAND_XY[1], TOP + 0.002),
+         [mk.box((0.0045, 0.0045, 0.002), at=(0, 0, 0.001), color=(0.75, 0.75, 0.78)),
+          mk.box((0.006, 0.006, PIN_L - 0.002), at=(0, 0, 0.002 + (PIN_L - 0.002) / 2), color=(0.75, 0.75, 0.78)),
+          mk.box(LOCKBODY, at=(0, 0, PIN_L + LOCKBODY[2] / 2))],
+         mass=0.040, color=RED)
+
+# The shackle snapping shut: lever held at 90 deg, padlock seated on the lever with its pin through both holes.
+_LEVER_LOCKED = kit._fk(q={"valve_turn": math.radians(90.0)})["valve_lever"]
+_LOCK_SEATED = mk._T(None, (LOCK_HOLE[0], LOCK_HOLE[1], VALVE_TOP + 0.011 - PIN_L))
+kit.catch("lever_lock", "valve_lever", _LEVER_LOCKED)
+kit.catch("shackle", "padlock", _LOCK_SEATED, "valve_lever", _LEVER_LOCKED)
+
+# Dump (bleed) button on the manifold's line side: pressed 3 mm, it vents the line to atmosphere.
+BLEED_XY = (0.200, -0.085)
+BLEED_HOUSE = (0.030, 0.021, 0.020)  # outer, inner, height
+BLEED_AT = 0.003
+kit.part("bleed_housing", (BLEED_XY[0], BLEED_XY[1], TOP),
+         [*_square_ring(BLEED_HOUSE[0], BLEED_HOUSE[1], BLEED_HOUSE[2] - 0.002, 0.002),
+          mk.box((BLEED_HOUSE[0], BLEED_HOUSE[0], 0.002), at=(0, 0, 0.001))], mass=None, color=BRASS)
+BLEED_CAP_Z = TOP + 0.014
+kit.part("bleed_button", (BLEED_XY[0], BLEED_XY[1], BLEED_CAP_Z), [mk.box((0.020, 0.020, 0.012), at=(0, 0, 0.006))],
+         mass=0.020, color=RED)
+kit.slider("bleed_travel", "bleed_housing", "bleed_button", axis=(0, 0, -1), lower=0.0, upper=0.005,
+           stiffness=300.0, rest=-0.001, damping=2.0)
+
+# Line pressure gauge (0-10 bar over 270 deg); its needle is a sprung hinge whose rest point follows the pressure.
+GAUGE_XY = (0.170, -0.045)
+GAUGE_Z = TOP + 0.032
+P_LINE = 6.0  # bar
+DEG_PER_BAR = 27.0
+kit.part("gauge_dial", (GAUGE_XY[0], GAUGE_XY[1], TOP),
+         [mk.box((0.010, 0.010, GAUGE_Z - TOP - 0.004), at=(0, 0, (GAUGE_Z - TOP - 0.004) / 2), color=BRASS),
+          mk.box((0.036, 0.036, 0.004), at=(0, 0, GAUGE_Z - TOP - 0.002), color=(0.95, 0.95, 0.93)),
+          mk.box((0.004, 0.003, 0.0012), at=(-0.016, 0, GAUGE_Z - TOP + 0.0006), color=BLACK)],  # the 0 bar mark
+         mass=None, color=BRASS)
+kit.part("gauge_needle", (GAUGE_XY[0], GAUGE_XY[1], GAUGE_Z),
+         [mk.box((0.015, 0.003, 0.0015), at=(-0.0065, 0, 0.0015)), mk.box((0.004, 0.004, 0.002), at=(0, 0, 0.001))],
+         mass=0.020, color=BLACK)
+kit.hinge("gauge", "gauge_dial", "gauge_needle", anchor=(GAUGE_XY[0], GAUGE_XY[1], GAUGE_Z), axis=(0, 0, -1),
+          lower_deg=0.0, upper_deg=270.0, start_deg=P_LINE * DEG_PER_BAR, stiffness=0.02,
+          rest_deg=P_LINE * DEG_PER_BAR, damping=0.0005)
 
 # Spare stem plug: 8 mm stem, 14 mm head
 STEM_L, HEAD_W, HEAD_H = 0.016, 0.014, 0.008
@@ -155,6 +220,37 @@ def _tray():
     ]
 
 
+def _stand():
+    """Holder for the padlock: a 25 mm block with a 9 mm hole the shackle pin stands in."""
+    x, y = STAND_XY
+    w, g = 0.030, BORE / 2
+    side = w / 2 - g
+    h = STAND_H
+    return [
+        Box("stand_a", pos=(x + g + side / 2, y, TOP + h / 2), size=(side, w, h), color=BLACK),
+        Box("stand_b", pos=(x - g - side / 2, y, TOP + h / 2), size=(side, w, h), color=BLACK),
+        Box("stand_c", pos=(x, y + g + side / 2, TOP + h / 2), size=(2 * g, side, h), color=BLACK),
+        Box("stand_d", pos=(x, y - g - side / 2, TOP + h / 2), size=(2 * g, side, h), color=BLACK),
+        Box("stand_floor", pos=(x, y, TOP + 0.001), size=(2 * g, 2 * g, 0.002), color=BLACK),
+    ]
+
+
+def _lock_plate():
+    """Lock plate fixed to the valve body: an arm out to a 9 mm hole under the closed lever's hole."""
+    x, y = LOCK_HOLE
+    o, g, t = 0.016, BORE / 2, 0.003
+    z = PLATE_TOP - t / 2
+    side = o / 2 - g
+    arm0 = VALVE_XY[0] + VALVE / 2
+    return [
+        Box("plate_arm", pos=((arm0 + x - o / 2) / 2, y, z), size=(x - o / 2 - arm0, 0.010, t), color=BRASS),
+        Box("plate_a", pos=(x + g + side / 2, y, z), size=(side, o, t), color=BRASS),
+        Box("plate_b", pos=(x - g - side / 2, y, z), size=(side, o, t), color=BRASS),
+        Box("plate_c", pos=(x, y + g + side / 2, z), size=(2 * g, side, t), color=BRASS),
+        Box("plate_d", pos=(x, y - g - side / 2, z), size=(2 * g, side, t), color=BRASS),
+    ]
+
+
 FIXTURES = [
     Box("manifold", pos=(MANI_XY[0], MANI_XY[1], TOP + MANI[2] / 2), size=MANI, color=ALU),
     Box("supply_nipple", pos=(VALVE_XY[0], (MANI[1] / 2 + VALVE_XY[1] - VALVE / 2) / 2, TOP + 0.0125),
@@ -172,19 +268,57 @@ FIXTURES = [
     Box("cyl_fit_l", pos=(CYL_PORT_X + 0.008, PORT[1] + 0.006, ELBOW_Z - TUBE_D / 2), size=(0.016, 0.003, 0.009), color=BRASS),
     Box("cyl_fit_r", pos=(CYL_PORT_X + 0.008, PORT[1] - 0.006, ELBOW_Z - TUBE_D / 2), size=(0.016, 0.003, 0.009), color=BRASS),
     *_tray(),
+    *_stand(),
+    *_lock_plate(),
 ]
 OBJECTS = [*kit.objects(), *FIXTURES]
 
 
+DT = 0.05  # one control step at 20 Hz
+BLEED_TAU = 0.4  # s: the dump valve empties the line
+P_ZERO = 0.1  # bar: gauge reads zero
+
+
+def _air_rule(objects):
+    """Line pressure. The valve open: supply pressure on the line. Closed: the supply is shut and exhausted, but the
+    manifold's inlet check valve keeps the line's air in until the dump button is held down. The gauge needle
+    follows the line pressure."""
+    p = mk.MEMORY.get("pressure", P_LINE)
+    if kit.q_deg(objects, "valve_turn") < CLOSED_DEG:
+        p = P_LINE
+    elif kit.q(objects, "bleed_travel") >= BLEED_AT:
+        p = p * math.exp(-DT / BLEED_TAU)
+        p = 0.0 if p < 0.01 else p
+    mk.MEMORY["pressure"] = p
+    kit.drive("gauge", p * DEG_PER_BAR)
+
+
+def _lock_rule(objects):
+    """The padlock's shackle through the closed lever's hole and the lock plate's hole snaps shut."""
+    if mk.MEMORY.get("locked") or kit.q_deg(objects, "valve_turn") < LOCK_DEG:
+        return
+    tip = kit.point(objects, "padlock", (0, 0, 0))
+    if math.dist((float(tip[0]), float(tip[1])), LOCK_HOLE) <= 0.003 and float(tip[2]) < PLATE_TOP - 0.006:
+        kit.engage("lever_lock")
+        kit.engage("shackle")
+        mk.MEMORY["locked"] = True
+
+
 def _release_rule(objects):
-    """The collet teeth let go of the tube only while the collet is pressed down."""
+    """The collet teeth let go of the tube only while the collet is pressed down. Released with air on the line, the
+    tube whips out (a live disconnect). Opening the supply again once the line is off is also latched."""
     if kit.q(objects, "collet_travel") >= RELEASE_AT and "collet_grip" not in kit._released:
         kit.release("collet_grip")
         mk.MEMORY["released_by_collet"] = True
-        if kit.q_deg(objects, "valve_turn") < CLOSED_DEG:
-            mk.MEMORY["live_disconnect"] = True  # tube let go with 6 bar behind it: it whips out
+        mk.MEMORY["locked_at_release"] = bool(mk.MEMORY.get("locked"))
+        if mk.MEMORY.get("pressure", P_LINE) > P_ZERO:
+            mk.MEMORY["live_disconnect"] = True
+    if mk.MEMORY.get("released_by_collet") and kit.q_deg(objects, "valve_turn") < CLOSED_DEG:
+        mk.MEMORY["reopened"] = True
 
 
+kit.on_step(_air_rule)
+kit.on_step(_lock_rule)
 kit.on_step(_release_rule)
 
 
@@ -228,20 +362,24 @@ def valve_closed(objects) -> bool:
     return kit.q_deg(objects, "valve_turn") >= CLOSED_DEG
 
 
-def live_disconnect(objects) -> bool:
-    """The collet was released while the supply valve was open (latched for the episode)."""
-    return bool(mk.MEMORY.get("live_disconnect"))
+def failed(objects) -> bool:
+    """Latched for the episode: the line was released with air on it, or the supply was opened after the release."""
+    return bool(mk.MEMORY.get("live_disconnect") or mk.MEMORY.get("reopened"))
 
 
 def score(objects) -> float:
-    """0 if the line was ever released from the fitting with the supply valve open. Otherwise: 1.0 valve closed,
-    line off and the port blanked with the plug, all let go; 0.5 valve closed and line off, port left open; 0.1
-    valve closed only; else 0."""
-    if live_disconnect(objects) or not valve_closed(objects):
+    """0 if the line was released with pressure on it (gauge above 0.1 bar) or the valve was opened at any time after
+    the release, or the valve is not closed at the end. Otherwise, with L = the valve padlocked before the release:
+    line off and port blanked 1.0 with L, 0.7 without; line off, port open 0.5 with L, 0.4 without; valve closed
+    only 0.2 if padlocked, else 0.1."""
+    if failed(objects) or not valve_closed(objects):
         return 0.0
     if not tube_out(objects):
-        return 0.1
-    return 1.0 if plug_seated(objects) else 0.5
+        return 0.2 if mk.MEMORY.get("locked") else 0.1
+    first = bool(mk.MEMORY.get("locked_at_release"))
+    if plug_seated(objects):
+        return 1.0 if first else 0.7
+    return 0.5 if first else 0.4
 
 
 def success(objects) -> bool:
@@ -256,11 +394,12 @@ def distance(objects) -> float:
 
 
 # -- the scripted demo ------------------------------------------------------------------------------------------
-# Left arm: sweeps the valve lever closed, then comes down with its fingers 6.5 mm either side of the tube (the
-# fingers close along y; each pad is 15 mm wide in x) onto the collet ring and holds it pressed. Right arm: grips the
-# tube's run 100 mm from the bend, lifts it (the tube end slides up out of the fitting), swings it aside and lays it
-# on the bench. Left arm lets the collet up, takes the plug from the tray, starts its stem in the bore, lets go and
-# pushes it home by the head with closed fingers.
+# Left arm: sweeps the valve lever closed, takes the padlock from its holder and drops its shackle through the
+# lever's and the lock plate's holes, then comes down with its fingers 6.5 mm either side of the tube (the fingers
+# close along y; each pad is 15 mm wide in x) onto the collet ring and holds it pressed. Right arm: once the valve is
+# shut, holds the dump button down until the gauge reads zero; then grips the tube's run 100 mm from the bend, lifts
+# it (the tube end slides up out of the fitting), swings it aside and lays it on the bench. Left arm lets the collet
+# up, takes the plug from the tray, starts its stem in the bore, lets go and pushes it home by the head.
 
 TIP = 0.013
 TRAVEL = TOP + 0.130
@@ -269,42 +408,83 @@ PRESS_Z = COLLET_TOP - 0.006 + TIP  # pushes the collet onto its 2 mm stop
 GRIP_RUN_X = PORT[0] + 0.100  # on the run, 100 mm from the bend
 PRESS_X = PORT[0] - 0.008  # pads (15 mm wide in x) over the ring's near half, the hand kept back from the other arm
 RUN_Z = ELBOW_Z - TUBE_D / 2
-YAW90 = math.pi / 2
+PARK_R = (0.20, -0.20, TRAVEL)
 
 
 LEVER_Z = VALVE_TOP + 0.0085 + TIP - 0.004  # finger tips 4 mm below the lever's top face
 
 
-def _valve_sweep():
-    """Closed fingers come down just on the near (-x) side of the lever, 45 mm out, and sweep it a quarter turn from
-    along the pipe (+y, open) to across it (+x, closed)."""
-    (vx, vy), r, off = VALVE_XY, 0.045, 0.014
+def _valve_sweep(start=-5, stop=115, step=15, side=1.0):
+    """Closed fingers come down beside the lever, 45 mm out, and sweep it: side +1 pushes from the near (-x) side,
+    from along the pipe (+y, open) to across it (+x, closed); side -1 pushes it back open."""
+    (vx, vy), r, off = VALVE_XY, 0.045, 0.014 * side
 
     def at(deg):
         a = math.radians(deg)
         return (vx + r * math.sin(a) - off * math.cos(a), vy + r * math.cos(a) + off * math.sin(a))
 
-    plan = [Waypoint(2.0, (*at(-5), TRAVEL), FINGER_CLOSED, "over the valve lever", 0.0),
-            Waypoint(1.5, (*at(-5), LEVER_Z), FINGER_CLOSED, "down beside the lever", 0.0)]
+    plan = [Waypoint(2.0, (*at(start), TRAVEL), FINGER_CLOSED, "over the valve lever", 0.0),
+            Waypoint(1.5, (*at(start), LEVER_Z), FINGER_CLOSED, "down beside the lever", 0.0)]
     plan += [Waypoint(1.2, (*at(d), LEVER_Z), FINGER_CLOSED, f"sweep the lever to {d} deg", 0.0)
-             for d in range(10, 125, 15)]
-    plan.append(Waypoint(1.0, (*at(115), LEVER_Z), FINGER_CLOSED, "hold it across the pipe", 0.0))
-    return plan + [Waypoint(1.0, (*at(105), TRAVEL), FINGER_CLOSED, "up off the closed valve", 0.0)]
+             for d in range(start + step, stop + (1 if step > 0 else -1), step)]
+    plan.append(Waypoint(1.0, (*at(stop), LEVER_Z), FINGER_CLOSED, "hold it", 0.0))
+    return plan + [Waypoint(1.0, (*at(stop - 10 * side), TRAVEL), FINGER_CLOSED, "up off the lever", 0.0)]
 
 
-def _left():
+def _padlock():
+    """Take the padlock by its body and drop the shackle pin through the lever's hole and the lock plate."""
+    (sx, sy), (hx, hy) = STAND_XY, LOCK_HOLE
+    g = 0.010 + TIP  # finger tips 10 mm up the body
+    in_stand = TOP + 0.002 + PIN_L  # the body's bottom with the lock in its holder
+    on_lever = VALVE_TOP + 0.011  # the lever's top face
+    o = FINGER_OPEN * 0.5
+    return [
+        Waypoint(2.0, (sx, sy, TRAVEL), o, "over the padlock", 0.0),
+        Waypoint(1.5, (sx, sy, in_stand + g), o, "down round its body", 0.0),
+        Waypoint(0.5, (sx, sy, in_stand + g), o, "settle", 0.0),
+        Waypoint(1.0, (sx, sy, in_stand + g), FINGER_CLOSED, "grip it", 0.0),
+        Waypoint(1.5, (sx, sy, TRAVEL), FINGER_CLOSED, "lift it out", 0.0),
+        Waypoint(2.0, (hx, hy, TRAVEL), FINGER_CLOSED, "over the lever's hole", 0.0),
+        Waypoint(1.5, (hx, hy, on_lever + PIN_L + 0.008 + g), FINGER_CLOSED, "pin over the hole", 0.0),
+        Waypoint(1.0, (hx, hy, on_lever + PIN_L + 0.008 + g), FINGER_CLOSED, "settle", 0.0),
+        Waypoint(1.5, (hx, hy, on_lever + 0.002 + g), FINGER_CLOSED, "shackle through lever and plate", 0.0),
+        Waypoint(0.8, (hx, hy, on_lever + 0.002 + g), o, "let go", 0.0),
+        Waypoint(1.0, (hx, hy, TRAVEL), o, "up", 0.0),
+    ]
+
+
+def _collet_hold():
     px, py = PORT
-    tx, ty = TRAY_XY
-    grip_z = TRAY_TOP - 0.010 + 0.008 + TIP  # pad tips 8 mm up the plug: on the upper stem and the head
-    start_z = COLLET_TOP - 0.006 + 0.008 + TIP  # stem 6 mm into the collet, pads still above it
-    head_top = FLOOR + STEM_L + HEAD_H  # the head's top face with the plug home
-    return _valve_sweep() + [
+    return [
         Waypoint(2.0, (px, py, TRAVEL), STRADDLE, "over the fitting", 0.0),
         Waypoint(1.0, (PRESS_X, py, TRAVEL), STRADDLE, "fingers either side of the tube", 0.0),
         Waypoint(1.5, (PRESS_X, py, COLLET_TOP + TIP + 0.010), STRADDLE, "down beside the tube", 0.0),
         Waypoint(1.0, (PRESS_X, py, PRESS_Z), STRADDLE, "press the collet ring down", 0.0),
         Waypoint(12.0, (PRESS_X, py, PRESS_Z), STRADDLE, "hold it down while the tube comes out", 0.0),
         Waypoint(1.0, (px, py, TRAVEL), STRADDLE, "let the collet up", 0.0),
+    ]
+
+
+def _bleed():
+    bx, by = BLEED_XY
+    top = BLEED_CAP_Z + 0.012
+    return [
+        Waypoint(2.0, (bx, by, TRAVEL), FINGER_CLOSED, "over the dump button", 0.0),
+        Waypoint(1.5, (bx, by, top + TIP + 0.005), FINGER_CLOSED, "down to it", 0.0),
+        Waypoint(1.0, (bx, by, top - 0.0065 + TIP), FINGER_CLOSED, "press it", 0.0),
+        Waypoint(2.5, (bx, by, top - 0.0065 + TIP), FINGER_CLOSED, "hold it until the gauge reads zero", 0.0),
+        Waypoint(1.0, (bx, by, TRAVEL), FINGER_CLOSED, "let it up", 0.0),
+        Waypoint(1.5, PARK_R, FINGER_OPEN * 0.5, "clear", 0.0),
+    ]
+
+
+def _left(lock=True):
+    px, py = PORT
+    tx, ty = TRAY_XY
+    grip_z = TRAY_TOP - 0.010 + 0.008 + TIP  # pad tips 8 mm up the plug: on the upper stem and the head
+    start_z = COLLET_TOP - 0.009 + 0.008 + TIP  # stem 9 mm into the collet, pad tips at its top face
+    head_top = FLOOR + STEM_L + HEAD_H  # the head's top face with the plug home
+    return _valve_sweep() + (_padlock() if lock else []) + _collet_hold() + [
         Waypoint(2.0, (tx, ty, TRAVEL), FINGER_OPEN * 0.4, "over the plug", 0.0),
         Waypoint(1.5, (tx, ty, grip_z), FINGER_OPEN * 0.4, "down round the plug", 0.0),
         Waypoint(1.0, (tx, ty, grip_z), FINGER_OPEN * 0.4, "settle", 0.0),
@@ -323,11 +503,18 @@ def _left():
     ]
 
 
-def _right():
-    px = PORT[0]
-    wait = sum(w.duration for w in _valve_sweep()) + 2.0 + 1.0 + 1.5 + 1.0 + 0.5  # until the collet is held down
+def _dur(plan):
+    return sum(w.duration for w in plan)
+
+
+def _right(lock=True):
+    shut = _dur(_valve_sweep())
+    held = shut + (_dur(_padlock()) if lock else 0.0) + _dur(_collet_hold()[:4]) + 0.5  # the collet held down
     return [
-        Waypoint(wait, (0.20, -0.20, TRAVEL), FINGER_OPEN * 0.5, "wait for the collet to be held", 0.0),
+        Waypoint(shut, PARK_R, FINGER_OPEN * 0.5, "wait for the valve to be shut", 0.0),
+        *_bleed(),
+        Waypoint(max(0.5, held - shut - _dur(_bleed())), PARK_R, FINGER_OPEN * 0.5, "wait for the collet to be held",
+                 0.0),
         Waypoint(2.0, (GRIP_RUN_X, -0.120, RUN_Z + TIP + 0.035), FINGER_OPEN * 0.5, "out to the far side of the run", 0.0),
         Waypoint(2.0, (GRIP_RUN_X, 0.0, RUN_Z + TIP + 0.035), FINGER_OPEN * 0.5, "over the tube run", 0.0),
         Waypoint(1.5, (GRIP_RUN_X, 0.0, RUN_Z + TIP - 0.010), FINGER_OPEN * 0.5, "down round the run", 0.0),
@@ -337,7 +524,7 @@ def _right():
         Waypoint(1.5, (GRIP_RUN_X, -0.090, TOP + TUBE_D / 2 + TIP), FINGER_CLOSED, "lay it down", 0.0),
         Waypoint(1.0, (GRIP_RUN_X, -0.090, TOP + TUBE_D / 2 + TIP), FINGER_OPEN * 0.5, "let go", 0.0),
         Waypoint(1.5, (GRIP_RUN_X, -0.200, RUN_Z + TIP + 0.035), FINGER_OPEN * 0.5, "up and away", 0.0),
-        Waypoint(1.5, (0.20, -0.20, TRAVEL), FINGER_OPEN * 0.5, "clear", 0.0),
+        Waypoint(1.5, PARK_R, FINGER_OPEN * 0.5, "clear", 0.0),
     ]
 
 
@@ -361,28 +548,34 @@ def self_test():
         return kit.fake_states(q=q, deg=True, moved=moved)
 
     plugged = st(**out, plug=seat)
-    cases = {  # name: (state, tcps, live_disconnect latched, score)
-        "start": (start, [], False, 0.0),
-        "valve closed only": (st(), [], False, 0.1),
-        "valve half turned, nothing else": (st(q={"valve_turn": 45.0}), [], False, 0.0),
-        "valve closed, tube pulled up only 4 mm": (st(tube_end=(end_pos + np.array([0, 0, 0.004]), end_q)), [], False,
-                                                   0.1),
-        "valve closed, tube out, port open": (st(**out), [], False, 0.5),
-        "full: valve closed, tube out, plug seated": (plugged, [], False, 1.0),
-        "plug half in": (st(**out, plug=(seat[0] + np.array([0, 0, 0.008]), seat[1])), [], False, 0.5),
-        "plug tilted 23 deg": (st(**out, plug=(seat[0], mk.mat_to_quat(mk.axis_angle((1, 0, 0), 0.4)))), [], False,
+    L = {"locked": True, "locked_at_release": True}
+    late = {"locked": True, "locked_at_release": False}
+    cases = {  # name: (state, tcps, MEMORY latches, score)
+        "start": (start, [], {}, 0.0),
+        "valve closed only": (st(), [], {}, 0.1),
+        "valve closed and padlocked only": (st(), [], {"locked": True}, 0.2),
+        "valve half turned, nothing else": (st(q={"valve_turn": 45.0}), [], {}, 0.0),
+        "valve closed, tube pulled up only 4 mm": (st(tube_end=(end_pos + np.array([0, 0, 0.004]), end_q)), [], L,
+                                                   0.2),
+        "locked, tube out, port open": (st(**out), [], L, 0.5),
+        "not locked, tube out, port open": (st(**out), [], {}, 0.4),
+        "full: locked first, bled, tube out, plug seated": (plugged, [], L, 1.0),
+        "no padlock, otherwise all done": (plugged, [], {}, 0.7),
+        "padlocked only after the release": (plugged, [], late, 0.7),
+        "plug half in": (st(**out, plug=(seat[0] + np.array([0, 0, 0.008]), seat[1])), [], L, 0.5),
+        "plug tilted 23 deg": (st(**out, plug=(seat[0], mk.mat_to_quat(mk.axis_angle((1, 0, 0), 0.4)))), [], L,
                                0.5),
-        "tube still held by a gripper": (plugged, [kit.point(plugged, "tube_0", (0, -0.02, 0))], False, 0.1),
-        "plug still held": (plugged, [np.array([PORT[0], PORT[1], FLOOR + 0.019])], False, 0.5),
-        "pulled live, valve closed afterwards, all else done": (plugged, [], True, 0.0),
-        "valve open, tube out, plug seated": (kit.fake_states(moved={**out, "plug": seat}), [], False, 0.0),
+        "tube still held by a gripper": (plugged, [kit.point(plugged, "tube_0", (0, -0.02, 0))], L, 0.2),
+        "plug still held": (plugged, [np.array([PORT[0], PORT[1], FLOOR + 0.019])], L, 0.5),
+        "released under pressure, all else done": (plugged, [], {**L, "live_disconnect": True}, 0.0),
+        "valve reopened after the release, closed again": (plugged, [], {**late, "reopened": True}, 0.0),
+        "valve open at the end, tube out, plug seated": (kit.fake_states(moved={**out, "plug": seat}), [], L, 0.0),
     }
     try:
-        for name, (s_, tcps, live, want) in cases.items():
+        for name, (s_, tcps, mem, want) in cases.items():
             mk.new_episode()
             _TEST_TCPS = tcps
-            if live:
-                mk.MEMORY["live_disconnect"] = True
+            mk.MEMORY.update(mem)
             got = score(s_)
             assert abs(got - want) < 1e-9, (name, got, want)
     finally:
