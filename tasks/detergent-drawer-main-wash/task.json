@@ -16,5 +16,5 @@
   "reset_notes": "Push the drawer fully shut and set both tablets flat on their marks; replace a tablet that has chipped or got damp.",
   "fidelity": "Rigid boxes, one shared friction. The drawer is one rigid body on a PhysX prismatic joint with a 15 cm stop, 2 N Coulomb drag and 8 N*s/m damping; no closing detent bump or water. Tablets are rigid and do not crumble. The machine section is the drawer's surroundings only (worktop, side bodies, control panel front), at full size.",
   "scores": "Dream-1 run: 0; demo: 1.0",
-  "media": ""
+  "media": "M-E372ET"
 }
