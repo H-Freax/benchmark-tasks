@@ -28,9 +28,9 @@ It asserts the scoring rules on hand-built states and replays both arms' demo pl
 (every joint inside the URDF limits, IK error under 0.5 mm). Expected output:
 
 ```
-scoring: 12 cases pass
-left: 46.4 s plan, worst IK 0.098 mm / 0.013 deg
-right: 39.1 s plan, worst IK 0.096 mm / 0.013 deg
+scoring: 15 cases pass
+left: 46.7 s plan, worst IK 0.098 mm / 0.013 deg
+right: 41.1 s plan, worst IK 0.096 mm / 0.013 deg
 ```
 
 ## Run and score one Dream-1 trial
@@ -56,13 +56,22 @@ inspect-robots run --embodiment yam_arena --policy yam_scripted \
 
 The demo is `demo()` in the task file: open loop and deterministic, about 900 steps to success, inside the run
 limit of 1,600. The left arm sweeps the relief lever into its relieving detent and waits over the coupler; the right
-arm grips the steel line over the male's centre of mass. The left arm then holds the sleeve down on its stop with its
-fingers either side of the male's body while the right arm draws the male out, carries it to the cup holder and
-pushes the nose into the dust cup. The left arm lets the sleeve up, takes the dust plug from the tray and pushes it
+arm grips the steel line over the male's centre of mass. The left arm then holds the sleeve down on its stop (500 N/m spring, 5 N there) with
+its fingers either side of the male's body while the right arm draws the male out; the left lets the sleeve up, opens
+and backs out from round the male before the right arm carries it to the cup holder, pushes the nose into the dust cup
+and leaves it standing upright with its line on the rest. The left arm takes the dust plug from the tray and pushes it
 into the female's mouth.
 
-Degenerate check: the same moves without relieving the line (`DEMO_VARIANT=no_relief` in the environment, same
-command) score 0: the sleeve goes back, but the male stays held, so nothing comes out and neither end can be capped.
+Drawing the nose out of the bore turns the male about 2.2 deg in the two-pad pinch on the line (`SLIP_DEG`, measured
+in sim), so the carry turns the wrist back by that much; the remaining aim offset (`CUP_AIM`, 4 mm / 1.5 mm) is the
+right arm's tracking lag coming down with the male held 15 cm off the wrist.
+
+Degenerate checks (same command, variant in the environment), both score 0:
+
+- `DEMO_VARIANT=no_relief`: the same moves without relieving the line. The sleeve goes back, but the male stays held,
+  so nothing comes out and neither end can be capped.
+- `DEMO_VARIANT=relieve_only`: relieves the line and stops. Relief only counts with the male out and parked upright
+  on its holder and rest, so it earns nothing on its own.
 
 ## Videos and screenshot
 

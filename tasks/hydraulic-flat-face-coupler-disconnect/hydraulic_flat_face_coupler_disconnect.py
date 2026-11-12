@@ -55,6 +55,7 @@ SLEEVE_PROUD = 0.003  # sleeve top stands this far above the mating face at rest
 SLEEVE_TRAVEL = 0.008  # stop
 UNLOCK_AT = 0.006  # sleeve pushed back this far: the locking balls are free
 RELOCK_BELOW = 0.003
+SLEEVE_K = 500.0  # N/m, 2 mm preload: 5 N on the stop (600 N/m and up: the arm no longer holds it on the stop)
 
 
 def _square_ring(outer, inner, h, z0, color=None, cx=0.0, cy=0.0):
@@ -70,13 +71,14 @@ def _square_ring(outer, inner, h, z0, color=None, cx=0.0, cy=0.0):
 
 kit = mk.Kit()
 # female body: square tube round the bore with its flat-face valve (the floor) 14 mm down
-# (the kit part is the body's base; the bore walls and the face valve are plain fixtures below, so the male, which
-# is jointed to the kit part, still collides with them)
+# (the kit part is only the body's base, the bonded parent of the male; the bore walls and the face valve are fixed
+# scene geometry (FIXTURES below), separate from it, so the male, which is jointed to the kit part, still collides
+# with them)
 kit.part("female", (F[0], F[1], TOP), [mk.box((BORE, BORE, 0.008), at=(0, 0, 0.004))], mass=None, color=ZINC)
 # sleeve: slides down 8 mm against its spring; at rest its top is flush with the mating face
 kit.part("sleeve", (F[0], F[1], MOUTH + SLEEVE_PROUD - SLEEVE_H), _square_ring(SLEEVE_OUT, SLEEVE_IN, SLEEVE_H, 0.0), mass=0.060,
          color=STEEL)
-kit.slider("sleeve_travel", "female", "sleeve", axis=(0, 0, -1), lower=0.0, upper=SLEEVE_TRAVEL, stiffness=250.0,
+kit.slider("sleeve_travel", "female", "sleeve", axis=(0, 0, -1), lower=0.0, upper=SLEEVE_TRAVEL, stiffness=SLEEVE_K,
            rest=-0.002, damping=3.0)
 
 # -- male half with its swivel elbow and steel line------------------------------------------------------------------
@@ -336,6 +338,22 @@ def male_out(objects) -> bool:
     return math.dist([float(v) for v in nose], [F[0], F[1], MOUTH]) >= 0.030
 
 
+PARK_NOSE = (HOLDER_XY[0], HOLDER_XY[1], TOP + 0.002 + MCAP_GAP)  # nose end standing in the cup in its holder
+PARK_LINE_END = (HOLDER_XY[0] + (_REACH - 0.020) * DIR[0], HOLDER_XY[1] + (_REACH - 0.020) * DIR[1],
+                 TOP + 0.002 + MCAP_GAP + ARM_Z)
+PARK_TOL, PARK_LINE_TOL, PARK_DEG = 0.008, 0.015, 5.0
+
+
+def male_parked(objects) -> bool:
+    """The male stands upright (axis within 5 deg of vertical) with its nose in the cup holder (within 8 mm) and
+    its line's end on the line rest (within 15 mm)."""
+    nose = [float(v) for v in kit.point(objects, "male", (0, 0, 0))]
+    end = [float(v) for v in kit.point(objects, "male", _along(_REACH - 0.020, ARM_Z))]
+    _, q = kit.pose(objects, "male")
+    return (math.dist(nose, PARK_NOSE) <= PARK_TOL and math.dist(end, PARK_LINE_END) <= PARK_LINE_TOL
+            and _tilt_between(q, (0, 0, 0, 1.0)) <= PARK_DEG)
+
+
 def female_capped(objects) -> bool:
     if not mk.MEMORY.get("female_cap_snapped"):
         return False
@@ -362,14 +380,13 @@ def failed(objects) -> bool:
 
 
 def score(objects) -> float:
-    """0 if failed(). Otherwise the sum of: line relieved 0.15; male out 30 mm 0.35; female capped 0.2; male capped
-    0.2; male out and everything let go and still 0.1."""
+    """0 if failed(). Otherwise the sum of, with the male out 30 mm and parked upright on its holder and rest: line
+    relieved 0.15, male out 0.35, everything let go and still 0.1; and female capped 0.2; male capped 0.2."""
     if failed(objects):
         return 0.0
-    s = 0.15 if mk.MEMORY.get("relieved") else 0.0
-    out = male_out(objects)
-    if out:
-        s += 0.35
+    s = 0.0
+    if male_out(objects) and male_parked(objects):
+        s += 0.50 if mk.MEMORY.get("relieved") else 0.35
         if settled(objects):
             s += 0.10
     if female_capped(objects):
@@ -403,7 +420,8 @@ TRAVEL = TOP + 0.130
 PARK_R = (0.20, -0.20, TRAVEL)
 STRADDLE = -0.0135  # pads' inner faces 12.5 mm off the axis: clear of the 22 mm body, on the sleeve's top
 PRESS_X = F[0] - 0.012
-PRESS_Z = MOUTH + SLEEVE_PROUD - SLEEVE_TRAVEL - 0.003 + TIP  # onto the sleeve's stop
+PRESS_OVER = 0.008  # commanded this far below the sleeve stop: the arm's position error is the push force
+PRESS_Z = MOUTH + SLEEVE_PROUD - SLEEVE_TRAVEL - PRESS_OVER + TIP  # onto the sleeve's stop
 LEVER_Z = VALVE_TOP + 0.0085 + TIP - 0.004
 PULL = 0.044  # the male drawn up this far
 
@@ -430,7 +448,9 @@ def _sleeve_hold(hold_s, wait_s=0.0):
         Waypoint(1.5, (PRESS_X, py, MOUTH + TIP + 0.010), STRADDLE, "down either side of the male", 0.0),
         Waypoint(1.0, (PRESS_X, py, PRESS_Z), STRADDLE, "push the sleeve back", 0.0),
         Waypoint(hold_s, (PRESS_X, py, PRESS_Z), STRADDLE, "hold it back while the male comes out", 0.0),
-        Waypoint(1.0, (PRESS_X, py, TRAVEL), STRADDLE, "let the sleeve up", 0.0),
+        Waypoint(0.5, (PRESS_X, py, PRESS_Z + 0.004), -0.020, "let the sleeve up, open clear of the male", 0.0),
+        Waypoint(1.0, (PRESS_X - 0.045, py, PRESS_Z + 0.004), -0.020, "back out from round the male", 0.0),
+        Waypoint(1.0, (PRESS_X - 0.045, py, TRAVEL), -0.020, "up", 0.0),
     ]
 
 
@@ -463,16 +483,21 @@ GRIP_DZ = ARM_Z - 0.004 + TIP  # TCP above the nose end with the elbow arm gripp
 PRE_PULL = 7.0  # right arm: from its start to gripping the elbow
 
 
-CUP_AIM = (0.0133, 0.0030)
+# Measured in sim, not tuned by eye: drawing the nose out of the bore turns the male about 2.2 deg (counter-clockwise
+# seen from above) in the two-pad pinch on the 10 mm line (pad friction torque is small next to the drag on the nose),
+# so the carry turns the wrist back by that much. What is left, CUP_AIM, is the right arm's tracking lag as it comes
+# down with the 120 g male held 15 cm off the wrist: the nose lands about 4 mm short in x and 1.5 mm in y.
+SLIP_DEG = 2.2
+CUP_AIM = (0.0040, 0.0015)
 
 
 def _right_pull():
     gx, gy = F[0] + GRIP_R * DIR[0], F[1] + GRIP_R * DIR[1]
     z0 = NOSE_Z + GRIP_DZ
-    # the male hangs a few degrees nose-back in the pinch after the pull; aim its nose, not the grip, over the cup
     hx, hy = HOLDER_XY[0] + GRIP_R * DIR[0] + CUP_AIM[0], HOLDER_XY[1] + GRIP_R * DIR[1] + CUP_AIM[1]
     cup_floor = TOP + 0.002
     Y = ARM_YAW
+    Yc = ARM_YAW - math.radians(SLIP_DEG)  # turn the wrist back by the yaw the male slipped in the pinch
     return [
         Waypoint(2.0, (gx, gy, z0 + 0.045), -0.014, "above the elbow", Y),
         Waypoint(1.5, (gx, gy, z0 + 0.025), -0.014, "over the elbow arm", Y),
@@ -481,15 +506,15 @@ def _right_pull():
         Waypoint(1.0, (gx, gy, z0), FINGER_CLOSED, "grip it", Y),
     ], [
         Waypoint(2.5, (gx, gy, z0 + PULL), FINGER_CLOSED, "draw the male straight out", Y),
-        Waypoint(0.5, (gx, gy, z0 + PULL), FINGER_CLOSED, "hold", Y),
-        Waypoint(2.5, (hx, hy, z0 + PULL), FINGER_CLOSED, "over the dust cup", Y),
-        Waypoint(1.5, (hx, hy, cup_floor + 0.014 + GRIP_DZ), FINGER_CLOSED, "nose over the cup", Y),
-        Waypoint(0.5, (hx, hy, cup_floor + 0.014 + GRIP_DZ), FINGER_CLOSED, "settle", Y),
+        Waypoint(2.5, (gx, gy, z0 + PULL), FINGER_CLOSED, "hold while the other hand backs out", Y),
+        Waypoint(2.5, (hx, hy, z0 + PULL), FINGER_CLOSED, "over the dust cup", Yc),
+        Waypoint(1.5, (hx, hy, cup_floor + 0.014 + GRIP_DZ), FINGER_CLOSED, "nose over the cup", Yc),
+        Waypoint(0.5, (hx, hy, cup_floor + 0.014 + GRIP_DZ), FINGER_CLOSED, "settle", Yc),
         Waypoint(1.5, (hx, hy, cup_floor + MCAP_GAP - 0.001 + GRIP_DZ), FINGER_CLOSED, "push the nose into the cup",
-                 Y),
-        Waypoint(0.6, (hx, hy, cup_floor + MCAP_GAP - 0.001 + GRIP_DZ), FINGER_CLOSED, "hold", Y),
-        Waypoint(1.0, (hx, hy, cup_floor + MCAP_GAP - 0.001 + GRIP_DZ), -0.014, "let go", Y),
-        Waypoint(1.5, (hx, hy - 0.040, TRAVEL), -0.014, "up and away", Y),
+                 Yc),
+        Waypoint(0.6, (hx, hy, cup_floor + MCAP_GAP - 0.001 + GRIP_DZ), FINGER_CLOSED, "hold", Yc),
+        Waypoint(1.0, (hx, hy, cup_floor + MCAP_GAP - 0.001 + GRIP_DZ), -0.014, "let go", Yc),
+        Waypoint(1.5, (hx, hy - 0.040, TRAVEL), -0.014, "up and away", Yc),
         Waypoint(1.5, PARK_R, -0.014, "clear", Y),
     ]
 
@@ -500,7 +525,7 @@ def _plans(relieve=True):
     t_grip = _dur(sweep) + 0.5 + _dur(grip)  # right hand on the elbow, after the left has left the valve
     hover = 8.0
     t_press = _dur(sweep) + _dur(_sleeve_hold(0, hover)[:4]) + 0.5  # the sleeve held back from here
-    hold = 2.5 + 0.5 + 1.0  # until the male is out and clear
+    hold = 2.5 + 0.3  # until the male is drawn out
     left = sweep + _sleeve_hold(hold + 0.5, hover) + _plug_female()
     right = [Waypoint(_dur(sweep) + 0.5, PARK_R, -0.014, "wait", 0.0), *grip,
              Waypoint(max(0.5, t_press - t_grip), grip[-1].pos, FINGER_CLOSED, "wait for the sleeve", ARM_YAW), *pull]
@@ -510,7 +535,13 @@ def _plans(relieve=True):
 def demo():
     # DEMO_VARIANT=no_relief runs the degenerate check (same moves without relieving the line)
     import os
-    return demo_no_relief() if os.environ.get("DEMO_VARIANT") == "no_relief" else _plans()
+    v = os.environ.get("DEMO_VARIANT")
+    return demo_no_relief() if v == "no_relief" else demo_relieve_only() if v == "relieve_only" else _plans()
+
+
+def demo_relieve_only():
+    """Degenerate: relieves the line, then both arms park."""
+    return {"left": _valve_sweep(), "right": [Waypoint(2.0, PARK_R, -0.014, "wait", 0.0)]}
 
 
 def demo_no_relief():
@@ -531,6 +562,7 @@ def self_test():
     in_cup = {"male": (hold_p, male_q), "male_cap": (np.array([HOLDER_XY[0], HOLDER_XY[1], TOP]), male_q)}
     fseat = (np.array([F[0], F[1], FCAP_SEAT_Z]), np.array([0, 0, 0, 1.0]))
     tilt5 = mk.mat_to_quat(mk.axis_angle((1, 0, 0), math.radians(5)))
+    tilt20 = mk.mat_to_quat(mk.axis_angle((1, 0, 0), math.radians(20)))
 
     def st(**moved):
         return kit.fake_states(moved=moved)
@@ -540,13 +572,16 @@ def self_test():
     SN = {"relieved": True, "female_cap_snapped": True, "male_cap_snapped": True}
     cases = {  # name: (state, tcps, MEMORY, score)
         "start": (start, [], {}, 0.0),
-        "relieved only": (start, [], R, 0.15),
-        "relieved, male out, held": (st(**out), [kit.point(start, "male", (GRIP_R * DIR[0], GRIP_R * DIR[1], ARM_Z + PULL))], R, 0.5),
-        "relieved, male out, let go": (st(**out), [], R, 0.6),
-        "male out 25 mm only": (st(male=(male_p + np.array([0, 0, 0.037]), male_q)), [], R, 0.15),
+        "relieved only": (start, [], R, 0.0),
+        "relieved, male out in the air, held": (st(**out), [kit.point(start, "male", (GRIP_R * DIR[0], GRIP_R * DIR[1], ARM_Z + PULL))], R, 0.0),
+        "relieved, male out in the air, let go": (st(**out), [], R, 0.0),
+        "relieved, male parked uncapped, let go": (st(male=(hold_p, male_q)), [], R, 0.6),
+        "relieved, male parked, held": (st(male=(hold_p, male_q)), [kit.point(st(male=(hold_p, male_q)), "male", (0, 0, 0.03))], R, 0.5),
+        "male tipped 20 deg on the holder": (st(male=(hold_p, tilt20), female_cap=fseat), [], SN, 0.2),
+        "male out 25 mm only": (st(male=(male_p + np.array([0, 0, 0.037]), male_q)), [], R, 0.0),
         "everything done": (full, [], SN, 1.0),
         "female cap not snapped": (full, [], {**SN, "female_cap_snapped": False}, 0.8),
-        "male not capped": (st(**out, female_cap=fseat), [], {**SN, "male_cap_snapped": False}, 0.8),
+        "male not capped": (st(male=(hold_p, male_q), female_cap=fseat), [], {**SN, "male_cap_snapped": False}, 0.8),
         "female cap tilted 5 deg after snap": (st(**in_cup, female_cap=(fseat[0], tilt5)), [], SN, 0.8),
         "male still held at the end": (full, [kit.point(full, "male", (0, 0, 0.03))], SN, 0.9),
         "male dropped off the bench": (full, [], {**SN, "dropped": True}, 0.0),
