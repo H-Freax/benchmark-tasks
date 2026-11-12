@@ -129,7 +129,7 @@ FIXTURES = [Box("drip_tray", pos=(TRAY_XY[0], TRAY_XY[1], TOP + TRAY[2] / 2), si
 OBJECTS = [*kit.objects(), *FIXTURES]
 
 DT = 0.05  # one control step at 20 Hz
-ENGAGE_XY, ENGAGE_Z, ENGAGE_TILT, ENGAGE_YAW = 0.005, 0.003, 5.0, 20.0
+ENGAGE_XY, ENGAGE_Z, ENGAGE_TILT, ENGAGE_YAW = 0.005, 0.003, 5.0, 10.0
 TURNED, FORCED_TURN, FORCED_HANDLE = 85.0, 80.0, 30.0
 KEG_MOVE, KEG_TILT, DROP_TILT = 0.010, 5.0, 30.0
 STILL_S = 1.0
@@ -382,7 +382,7 @@ def self_test():
             got = score(s_)
             assert abs(got - want) < 1e-9, (name, got, want)
         mk.new_episode()
-        assert abs(turn_deg(st(turn=37.0)) - 37.0) < 1e-6 and seated(st(turn=10.0)) and not seated(st(turn=30.0))
+        assert abs(turn_deg(st(turn=37.0)) - 37.0) < 1e-6 and seated(st(turn=8.0)) and not seated(st(turn=12.0))
         assert not seated(kit.fake_states(moved={"coupler": coupler_at(0.0, dx=0.008)}))
         assert seat_T is _SEAT_T
     finally:
