@@ -16,6 +16,6 @@
   "run_limit": "1,200 steps (60 seconds at 20 Hz)",
   "reset_notes": "Pull the peg and the rail out, stand the peg in its block and lay the rail on its marks; the stile stays clamped.",
   "fidelity": "Rigid boxes, one shared friction (1.2 static, 1.0 dynamic); wood is not compressible, so the tenon is a sliding fit (1 mm a side) rather than a tight one and the peg a 1 mm-clearance fit rather than a drawbored interference fit. The mortise, holes and chamfer are built from boxes; the peg is square, not riven or round. The stile is fixed in place, standing in for bench clamps.",
-  "scores": "Dream-1 run: ; demo: 1.0",
+  "scores": "Dream-1 run: 0; demo: 1.0",
   "media": ""
 }

@@ -31,7 +31,7 @@ right: 19.7 s plan, worst IK 0.093 mm / 0.013 deg
 inspect-robots run --embodiment yam_arena --policy dream \
   -E task=tasks/frame-corner-pegged-tenon/frame_corner_pegged_tenon.py -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
   --instruction "Assemble the frame corner and peg it." \
-  --scorer task_score --max-steps 1200 --seed 0 --no-prompt --store-frames --log-dir ~/yam-eval/frame-corner-pegged-tenon-dream
+  --scorer task_score --max-steps 1200 --seed 0 --no-prompt --store-frames --log-dir logs/frame-corner-pegged-tenon-dream
 ```
 
 ## Run and score the full-score demo
@@ -40,7 +40,7 @@ inspect-robots run --embodiment yam_arena --policy dream \
 inspect-robots run --embodiment yam_arena --policy yam_scripted \
   -E task=tasks/frame-corner-pegged-tenon/frame_corner_pegged_tenon.py -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
   --instruction "Assemble the frame corner and peg it." \
-  --scorer task_score --max-steps 1200 --seed 0 --no-prompt --store-frames --log-dir ~/yam-eval/frame-corner-pegged-tenon-demo
+  --scorer task_score --max-steps 1200 --seed 0 --no-prompt --store-frames --log-dir logs/frame-corner-pegged-tenon-demo
 ```
 
 `task_score` is 1.0 when `success()` has held for 1 s, otherwise `score()` at the last step. The demo is open
