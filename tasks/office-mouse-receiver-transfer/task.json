@@ -1,0 +1,21 @@
+{
+  "title": "Take a wireless mouse's USB receiver out of its slot and plug it into a laptop",
+  "category": "Impact on jobs",
+  "keywords": [
+    "office IT",
+    "bimanual",
+    "hold and pull",
+    "USB-A insertion",
+    "small parts",
+    "peg in hole"
+  ],
+  "instruction": "Plug the mouse's USB receiver into the laptop.",
+  "context": "Setting up a desk for a new starter: the wireless mouse ships with its USB receiver stowed in a slot in the mouse. The receiver is held by a detent that takes more force than the light mouse's grip on the desk, so one hand must hold the mouse while the other pulls; the plug then goes into a USB-A port with about 1 mm of play. Done by: computer user support specialists (O*NET 15-1232.00).",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left). Mouse: 95 g grey plastic, 11.8 x 6.2 x 3.9 cm, free on the desk, centre x 30, y 10, nose forward. Receiver: 20 g, a 1.2 x 1.2 x 0.45 cm metal USB-A plug on a 2.8 x 1.5 x 0.75 cm black body; plug pushed into the slot in the back of the mouse (axis 1 cm above the desk), body sticking out toward the robot, held by a 3 N detent. Laptop: fixed aluminium, 30 x 21 x 2 cm base from x 30 to 60, y -4.5 to -25.5, screen open along its y -25.5 edge; a USB-A port 1.4 x 0.55 cm, 1.4 cm deep, in its side facing the robot, axis at y -10, 1 cm above the desk.",
+  "scoring": "From the parts' poses. 1.0: plug in the port: plug centre within 1.5 mm of the port axis, receiver axis within 8 deg of it, plug tip at least 9 mm inside the face, let go (grippers 2.5 cm clear) and still; success when held 1 s. 0.3: receiver at least 15 mm from its stowed position. Else 0. Always 0 if at any step the mouse moved more than 20 mm across the desk or fell off it. Scored at the last step. Possible scores: 0, 0.3, 1.0.",
+  "run_limit": "1,000 steps (50 seconds at 20 Hz)",
+  "reset_notes": "Push the receiver back into the mouse's slot (the detent re-engages) and put the mouse on its mark; the laptop does not move.",
+  "fidelity": "Rigid boxes. The detent is a fixed joint that breaks at 3 N; mouse and receiver do not collide with each other. The receiver is heavier (20 g vs about 2-6 g) and its body longer than a real nano receiver so the simulated grippers can hold it. The port is a solid-walled box hole with no inner tongue, 1 mm clear of the plug across and 0.5 mm top and bottom.",
+  "scores": "Dream-1 run: 0; demo: 1.0",
+  "media": "M-BGLKMB"
+}
