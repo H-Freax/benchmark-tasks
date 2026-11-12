@@ -1,0 +1,20 @@
+{
+  "title": "Uncover a cake slice and serve it onto a dessert plate",
+  "category": "Impact on jobs",
+  "keywords": [
+    "food service",
+    "bimanual",
+    "transparent cover",
+    "sequencing",
+    "damage avoidance"
+  ],
+  "instruction": "Lift the clear dome off the cake plate by its knob and set it down on the table, then move the slice of cake onto the dessert plate.",
+  "context": "Counter staff in bakeries and cafes (food preparation and serving workers) uncover display cakes and plate slices many times a shift. The dome is clear, so its rim is easy to misjudge, and it has to come off cleanly before the slice can be reached; a slice that tips over or a dome that is dropped is a lost sale.",
+  "setup": "Table coordinates in metres: x forward from the line through the two arm bases, y left from the midline, z up from the table top; arm bases at y = +0.305 (left) and -0.305 (right). Cake plate (fixed): a clear glass plate 290 mm across and 8 mm thick on a wooden foot 180 mm across and 4 mm tall, centred at (0.270, -0.080), with a 6 mm tall seating ring (290 mm outside, 260 mm inside) on its rim for the dome; its deck is 12 mm above the table. Slice (loose, 60 g): a wedge of layer cake 110 mm long, 78 mm across its cut face and 70 mm tall (two yellow sponge layers, a pink filling layer and an ivory icing layer) on a 1.5 mm gold card 112 x 82 mm, standing on the cake plate centred at (0.270, -0.080), its point toward the robot and its cut face away. Dome (loose, 180 g): a clear glass cloche 305 mm across with a 74 mm tall, 3 mm wall, open at the bottom, resting on the seating ring over the slice; on top, a wooden knob (a 72 mm bar 24 mm thick, its long axis along x) on an 18 mm stem, the bar's centre 94 mm above the dome's rim. Dessert plate (fixed): white ceramic, 200 mm across and 14 mm tall with a raised rim, a basin 190 mm across whose surface is 11 mm above the table, centred at (0.285, 0.200). Nothing else is on the table.",
+  "scoring": "End state, judged after the arms have let go and nothing moves (in simulation: speed under 10 mm/s and spin under 0.5 rad/s). Dome set aside (0.3): its rim flat on the table (within 5 mm), tilted no more than 12 degrees, its centre at least 300 mm from the cake plate's centre (so its rim is clear of the cake plate), not held. Slice served (0.7): its card on the dessert plate's basin (card bottom between 3 mm below and 6 mm above the basin surface), its centre within 55 mm of the plate's centre, tilted no more than 12 degrees, not held. Score = 0.3 x dome set aside + 0.7 x slice served: 0, 0.3, 0.7 or 1.0. The score is 0 whatever the end state if at any point the slice tipped more than 30 degrees (it fell over), was let fall (moving down faster than 0.35 m/s, about 6 mm of free fall, rather than set down), ended up on the table, or the dome tipped more than 45 degrees (it was dropped). Success, which ends the trial, is 1.0 held for 1 s. On a real rig, measure with a ruler and a phone level after the arms park; a top photo shows where the dome and slice are.",
+  "run_limit": "1,200 steps (1 minute at 20 Hz)",
+  "reset_notes": "Stand the slice back on the centre of the cake plate, point toward the robot, and set the dome back on its seating ring with the knob's bar pointing forward. On a real rig use a foam cake prop and an acrylic dome.",
+  "fidelity": "Approximate: the slice is one rigid body, so it cannot be squashed, crumble or lose icing; a gripper squeezing a real slice would mark it, which is why a real rig uses a firm foam prop. The dome is rigid with faceted collision approximating its curved wall; glass breakage is stood in for by the 45 degree drop rule. Friction: 1.35 on the slice, 2.0 on the dome, 0.9 on the cake plate, 0.75 on the dessert plate.",
+  "scores": "Dream-1 run: 0; demo: 1.0",
+  "media": "M-RPCA6S"
+}
