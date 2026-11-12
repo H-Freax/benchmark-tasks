@@ -17,5 +17,5 @@
   "reset_notes": "Turn the valve lever back to open (along the pipe), push the tube back into the middle fitting with the run laid into the cylinder's port, and stand the plug head up in the tray's hole.",
   "fidelity": "Rigid boxes, one shared friction. No air is simulated: a disconnect with the valve open does not whip the line; it only latches a score of 0. The collet is a spring-loaded slider, and its grip on the tube is a joint that is removed for the rest of the episode once the ring is pressed down 1.5 mm; the plug is held in the bore only by fit and gravity (no collet teeth on it). The tube is a chain of rigid square segments on spring hinges, its far end resting in the cylinder's port rather than gripped. The bore has 0.5 mm of play on each side of the tube. Fittings, plug and tube have square sections.",
   "scores": "Dream-1 run: 0.0; demo: 1.0",
-  "media": ""
+  "media": "M-XF6XS5"
 }
