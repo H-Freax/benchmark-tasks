@@ -62,6 +62,7 @@ TRAVEL_DOWN, TRAVEL_UP = 0.064, 0.060
 POST_L = TRAVEL_DOWN - 0.003  # inner post under the bracket: never reaches the bench
 TILT_K = 250.0  # N*m/rad: the column and bracket's give when the top is leaned on
 TILT_DEG = 4.0
+TILT_OK_DEG = 1.0  # the top must end up level to within this to earn any height credit
 
 kit = mk.Kit()
 # fixed outer column on its foot (the H-base on castors on the floor in a ward; here bolted to the bench)
@@ -184,9 +185,11 @@ def _watch_rule(objects):
         m["since"] = None
     if os.environ.get("OVERBED_DEBUG") and round(m["t"] / DT) % 5 == 0:
         print(f"[overbed] t={m['t']:.2f} q={q*1000:.1f}mm h_err={(height(objects)-TARGET)*1000:.1f}mm "
+              f"corner_err={(corner_height(objects)-TARGET)*1000:.1f}mm "
               f"pull={kit.q_deg(objects, 'paddle_pull'):.1f} tilt={kit.q_deg(objects, 'tilt'):.2f} "
               f"leg={leg_force(objects):.1f}N mode={m.get('mode')} since={m.get('since')} "
-              f"drift={m.get('drift')} score={score(objects):.3f}", flush=True)
+              f"drift={m.get('drift')} surge={m.get('surge')} tilted={m.get('tilted')} "
+              f"leg_hit={m.get('leg_hit')} score={score(objects):.3f}", flush=True)
 
 
 kit.on_step(_column_rule)
@@ -207,7 +210,13 @@ def _released(st, margin=0.020) -> bool:
 
 
 def height(objects) -> float:
-    """Top-surface height beside the measuring post."""
+    """The top's set height: its surface height at the start plus the column's travel. Leaning the top over on the
+    column's give does not count."""
+    return S0 + kit.q(objects, "lift")
+
+
+def corner_height(objects) -> float:
+    """Top-surface height beside the measuring post (for the debug print only)."""
     lx, ly = MEASURE[0] - TOP_C[0], MEASURE[1] - TOP_C[1]
     return float(kit.point(objects, "top", (lx, ly, TOP_SIZE[2]))[2])
 
@@ -224,11 +233,13 @@ def failed(objects) -> bool:
 
 
 def score(objects) -> float:
-    """0 if, at any time, the top sprang up 40 mm above the lowest point it had reached, tilted more than 4 deg,
-    or pressed the shins with more than 30 N. Otherwise, with e the top's height error at the post: 0.6 for e
-    under 10 mm, falling linearly to 0 at 40 mm (the start); with e under 20 mm, +0.3 if the column is locked and
-    the top, let go, has stayed within 3 mm for 2 s, and +0.1 if the top and paddle are let go and the top is still."""
-    if failed(objects):
+    """0, latched, if at any time the column sprang up 40 mm above the lowest point it had reached, the top tilted
+    more than 4 deg, or the shins were pressed with more than 30 N. 0 also if the top now tilts more than 1 deg.
+    Otherwise, with e = |column height - mark| (start height plus the column's travel, not a corner of the top):
+    0.6 for e of 10 mm or less, falling linearly to 0 at 33 mm (the start is 40 mm off); with e of 20 mm or less,
+    +0.3 if the column is locked and the top, let go (no gripper within 2 cm of top or paddle), has stayed within
+    3 mm for 2 s, and +0.1 if the top and paddle are let go and the top is still."""
+    if failed(objects) or abs(kit.q_deg(objects, "tilt")) > TILT_OK_DEG:
         return 0.0
     e = abs(height(objects) - TARGET)
     s = 0.6 * min(1.0, max(0.0, (0.033 - e) / (0.033 - TOL)))
@@ -287,8 +298,18 @@ def _left(variant):
                        Waypoint(1.0, (GRIP_X, PIVOT[1], pz), OPEN, "let go", 0.0),
                        Waypoint(1.0, (GRIP_X, PIVOT[1], up), OPEN, "up", 0.0),
                        Waypoint(2.0, PARK_L, OPEN, "clear", 0.0)]
-    if variant == "press_only":
+    if variant in ("press_only", "press_far_end"):
         return [Waypoint(16.0, PARK_L, OPEN, "stay clear", 0.0)]
+    if variant == "release_top_first":  # still holding the paddle up after the right hand has let the top go
+        return plan + [
+            Waypoint(T_DOWN - 5.5, (GRIP_X, PIVOT[1], pz), FINGER_CLOSED, "hold it", 0.0),
+            Waypoint(DESCENT, (GRIP_X, PIVOT[1], pz - DROP), FINGER_CLOSED, "follow the top down", 0.0),
+            Waypoint(1.0, (GRIP_X, PIVOT[1], pz - DROP), FINGER_CLOSED, "hold", 0.0),
+            Waypoint(1.5, (GRIP_X, PIVOT[1], pz + 0.020), FINGER_CLOSED, "let the top ride up, paddle held", 0.0),
+            Waypoint(1.0, (GRIP_X, PIVOT[1], pz + 0.020), OPEN, "let the paddle go", 0.0),
+            Waypoint(1.0, (GRIP_X, PIVOT[1], pz + 0.023), OPEN, "up", 0.0),
+            Waypoint(1.5, PARK_L, OPEN, "clear", 0.0),
+        ]
     return plan + [
         Waypoint(T_DOWN - 5.5, (GRIP_X, PIVOT[1], pz), FINGER_CLOSED, "hold it", 0.0),
         Waypoint(DESCENT, (GRIP_X, PIVOT[1], pz - DROP), FINGER_CLOSED, "follow the top down", 0.0),
@@ -316,6 +337,18 @@ def _right(variant):
     ]
     if variant == "press_only":
         plan[3:4] = []
+    if variant == "release_top_first":  # lift off as soon as the top is down, before the paddle is let go
+        plan[5] = Waypoint(0.5, (x, y, on - DROP - PRESS_IN), FINGER_CLOSED, "brief hold", 0.0)
+    if variant == "press_far_end":  # one hand on the far (right) end, column still locked
+        fx, fy = 0.250, RIGHT_Y + 0.040
+        plan = [
+            Waypoint(2.0, (fx, fy, on + 0.015), FINGER_CLOSED, "over the far end of the top", 0.0),
+            Waypoint(1.5, (fx, fy, on + 0.002), FINGER_CLOSED, "fingers on the top", 0.0),
+            Waypoint(DESCENT, (fx, fy, on - DROP - PRESS_IN), FINGER_CLOSED, "press the far end down", 0.0),
+            Waypoint(3.0, (fx, fy, on - DROP - PRESS_IN), FINGER_CLOSED, "hold", 0.0),
+            Waypoint(1.5, (fx, fy, on + 0.030), FINGER_CLOSED, "lift off", 0.0),
+            Waypoint(1.5, PARK_R, FINGER_CLOSED, "clear", 0.0),
+        ]
     return plan
 
 
@@ -352,7 +385,9 @@ def self_test():
         "sprang up 40 mm": (st(lift=D), [], {**good, "surge": True}, 0.0),
         "tilted": (st(lift=D), [], {**good, "tilted": True}, 0.0),
         "pressed onto the shins": (st(lift=D), [], {**good, "leg_hit": True}, 0.0),
-        "tilted 3 deg at the mark (measured end lower)": (st(lift=D + 0.0, tilt=3.0), [], good, None),
+        "column at the mark, top tilted 3 deg": (st(lift=D, tilt=3.0), [], good, 0.0),
+        "column at the mark, top tilted 0.8 deg": (st(lift=D, tilt=0.8), [], good, 1.0),
+        "column locked at start, far end leaned 1 deg down": (st(tilt=-1.0), [], good, 0.0),
     }
     try:
         n = 0

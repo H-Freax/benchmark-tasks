@@ -7,6 +7,7 @@ up, and then it pushes the top up. Lowering the top takes both hands: one holds 
 down, and the other presses the top down near its middle. The paddle is let go first, which locks the column, and
 the top second. The instruction does not say any of this. The score latches to 0 in three cases: the top springs
 up 40 mm, the top tilts more than 4 deg, or it is pushed onto the patient's shins with more than 30 N.
+Height is read from the column's travel, not a corner of the top, and the top must end within 1 deg of level.
 
 Files: `task.json`, `overbed_table_lower.py` (the scene, `success()`, the partial-credit `score()`, the scripted
 `demo()` and an offline self-test) and `mechkit.py` (joints, sliders and sprung drives added to the stock runtime
@@ -25,7 +26,7 @@ python tasks/overbed-table-lower/overbed_table_lower.py
 ```
 
 ```
-scoring: 13 cases pass
+scoring: 15 cases pass
 left: 18.5 s plan, worst IK 0.091 mm / 0.013 deg
 right: 20.5 s plan, worst IK 0.087 mm / 0.012 deg
 ```
@@ -49,7 +50,9 @@ the paddle's tip and lifts it while the right arm rests its closed fingers on th
 then go down 4 cm together. The left arm lets the paddle go, which locks the column, and backs away. Then the
 right arm lifts off. Two failure variants of the demo can be run by adding an environment variable:
 `OVERBED_DEMO=press_only` presses without the paddle (score 0) and `OVERBED_DEMO=lever_only` lifts the paddle
-without pressing, so the top springs up (score 0). `OVERBED_DEBUG=1` prints the column state every 5 steps.
+without pressing, so the top springs up (score 0). `OVERBED_DEMO=press_far_end` leans one hand on the
+far end with the column locked (score 0), and `OVERBED_DEMO=release_top_first` lets the top go while the paddle
+is still held, so it springs up (surge latch, score 0). `OVERBED_DEBUG=1` prints the column state every 5 steps.
 
 ## Videos and screenshot
 
