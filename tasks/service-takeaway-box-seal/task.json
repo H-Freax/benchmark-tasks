@@ -1,0 +1,20 @@
+{
+  "title": "Match and seal the correct takeaway box",
+  "category": "Impact on jobs",
+  "keywords": [
+    "food service",
+    "order matching",
+    "tamper seal",
+    "irreversible action",
+    "bimanual"
+  ],
+  "instruction": "Seal the order with the tamper label.",
+  "context": "At a restaurant or delivery-kitchen expo counter, each bagged or boxed order gets a single-use tamper-evident seal printed with its order code; sealing the wrong box sends one customer's food under another's order and the seal cannot be moved once stuck. The robot must uncover the seal to read its code, match it to the box with the same code and apply it on that box's seal panel. Done by: food preparation and serving workers and expo staff (O*NET 35-2021.00, 35-3023.00).",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left). Service mat: fixed grey nitrile mat 62 x 50 x 0.4 cm centred at x 33, y 0, with a steel counter edge behind it. Takeaway boxes: two fixed closed moulded-fibre clamshell boxes 24 x 18 x 7 cm (tapered shell, lid with rim, hinge, latch), centred at x 39, y 18 (left) and y -18 (right). Each lid has a flush blue seal panel 10 x 12 cm centred at x 35 and a black printed order code behind it at x 45.5: A17 on the left box, B24 on the right. Release backing: fixed white paper sheet 5 x 7 x 0.06 cm centred at x 20, y 0. Tamper seal: one blue paper label 4.5 x 6.4 cm (10 g, simulated 1.5 mm thick) lying on the backing, centred at x 20, y 0, printed with the order code B24, with a folded pull tab 1.4 x 3 cm, 1.8 cm tall, at its front edge (x 17). Napkin: a folded white paper napkin 7 x 6.4 x 1 cm (20 g) lying on the seal centred at x 21.4, y 0, covering its printed code; the pull tab stays uncovered.",
+  "scoring": "From the seal's pose (the trial video on a real rig). A seal touches a box when its centre is over that box's footprint and its lowest corner is within 4 mm of the lid top. If the seal ever touches the A17 box (the wrong order), the score is 0 for the rest of the episode. Otherwise: 1.0 when all four corners of the seal's paper lie inside the B24 box's blue panel, the seal is face up and tilted under 12 deg, both grippers are 2.5 cm or more clear of it, and it is still (under 1 cm/s); success when held 1 s. 0.5 when it lies that way on the B24 lid but over the panel's edge; 0.2 when it has been peeled (lifted 1 cm above its backing at some point) but is not placed; else 0. Scored at the last step. Possible scores: 0, 0.2, 0.5, 1.0.",
+  "run_limit": "1,200 steps (60 seconds at 20 Hz)",
+  "reset_notes": "Put a fresh seal on its backing at the mark, tab toward the robot, and lay the folded napkin over its printed code; the boxes, backing and mat do not move. A used seal is not reused.",
+  "fidelity": "Rigid boxes, one shared friction. The boxes are static compounds of boxes; the seal is a rigid 1.5 mm plate with a stiff tab (real label stock is about 0.1 mm and flexible) and the napkin a rigid folded slab. Adhesive is not simulated: the seal simply rests where it is placed, and 'stuck' is applied by the scoring rule (any touch on the wrong lid is final). Seven-segment printed codes.",
+  "scores": "Dream-1 run: 0; demo: 1.0",
+  "media": "M-GFLPL7"
+}
