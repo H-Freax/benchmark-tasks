@@ -2,7 +2,7 @@
 across the back of the machine; in front of it a product carriage (the tray the meat rides on, 1.6 kg) sits on a
 rail running left-right, parked mid-stroke in front of the knife. The gauge plate, which sets the slice thickness,
 is open at 12 mm, so a strip of the knife's edge is bare where the carriage passes. The gauge knob (left, on its
-pedestal) closes the plate: 12 detents of 2 mm, 7 deg each. The carriage is locked to its rail by a threaded
+pedestal) closes the plate: 7 deg of knob per mm, 12 detents of 2 mm (14 deg each). The carriage is locked to its rail by a threaded
 tilt-release knob on the right (three turns out frees it), and it lifts off only at the right-hand end of its
 stroke, and only with the gauge at zero: the interlock bar under the carriage arm catches it otherwise, as on real
 slicers. A drain tray stands on the bench to the right.
@@ -145,10 +145,14 @@ FIXTURES = [
 ]
 OBJECTS = [*kit.objects(), *FIXTURES]
 
-# Bare-edge zone: in front of the knife's lower front arc, where the plate opens. Only dangerous with the gauge open.
-EDGE_LO = np.array([BLADE_X - 0.045, BLADE_C[1] - BLADE_R + 0.010, TOP + 0.015])
-EDGE_HI = np.array([BLADE_X + 0.010, BLADE_C[1] + BLADE_R * 0.6, TOP + 0.200])
-OPEN_MM = 1.0  # gauge above this: the edge is bare
+# Blade zone: a box 45 mm deep in front of the whole knife disc (x 31.5-37, y -4.7 to 20.7, 2.3-27.7 cm up).
+# The plate's window (y -6.5 to 5.5, 3-12 cm up) is covered only while the gauge reads 1 mm or less; the rest of the
+# disc stays exposed with the gauge closed, so an arm there fails at any time.
+EDGE_LO = np.array([BLADE_X - 0.045, BLADE_C[1] - BLADE_R, BLADE_C[2] - BLADE_R])
+EDGE_HI = np.array([BLADE_X + 0.010, BLADE_C[1] + BLADE_R, BLADE_C[2] + BLADE_R])
+COVER_LO = np.array([PLATE_AT[1] - PLATE[1] / 2, PLATE_AT[2] - PLATE[2] / 2])  # y, z of the plate
+COVER_HI = np.array([PLATE_AT[1] + PLATE[1] / 2, PLATE_AT[2] + PLATE[2] / 2])
+OPEN_MM = 1.0  # gauge above this: the plate window is bare too
 
 
 def _unwrap(key, raw_deg, start_deg):
@@ -184,9 +188,14 @@ def robot_points() -> list:
     return out + list(mk.tcps())
 
 
-def _in_edge(p) -> bool:
+def _in_edge(p, gauge=None) -> bool:
+    """In front of bare blade: the blade zone, minus the plate's window while the gauge is closed."""
     p = np.asarray(p, float)
-    return bool(np.all(p >= EDGE_LO) and np.all(p <= EDGE_HI))
+    if not (np.all(p >= EDGE_LO) and np.all(p <= EDGE_HI)):
+        return False
+    g = gauge_mm() if gauge is None else gauge
+    covered = g <= OPEN_MM and bool(np.all(p[1:] >= COVER_LO) and np.all(p[1:] <= COVER_HI))
+    return not covered
 
 
 def _tilt(q) -> float:
@@ -219,7 +228,7 @@ def _mechanism_rule(objects):
             mk._set_joint_enabled(kit, "rail", False)
         elif abs(float(p[0]) - CX) > 0.010 or abs(float(p[2]) - DECK_Z) > 0.010:
             M["forced"] = True  # off its rail against the interlock
-    if gauge_mm() > OPEN_MM and any(_in_edge(pt) for pt in robot_points()):
+    if any(_in_edge(pt) for pt in robot_points()):
         M["cut"] = True
     if _tilt(q) > 45.0:
         M["tipped"] = True
@@ -280,20 +289,22 @@ def gauge_closed(objects) -> bool:
 
 
 def score(objects) -> float:
-    """0 if failed(), or unless the gauge was at 0 before the carriage first moved 5 mm and the carriage is off its
-    rail and over the drain tray. Then: carriage clear 0.2; gauge at 0 and still 0.25; release knob backed out 0.15;
-    carriage flat on the tray, let go (no gripper within 2 cm) and still 0.4."""
-    if failed(objects) or not mk.MEMORY.get("order_ok") or not off_rail(objects) or not over_tray(objects):
+    """0 if failed() or the carriage moved 5 mm before the gauge was at 0. Otherwise staged, each stage needing the
+    ones before: gauge at 0 (0.5 mm or less) and still 0.2; carriage freed (interlock released) 0.4; carriage
+    lifted off, 30 mm or more from its seat 0.6; flat on the drain tray, let go (no gripper within 2 cm) and
+    still 1.0."""
+    if failed(objects) or mk.MEMORY.get("order_ok") is False:
         return 0.0
-    s = 0.2
-    if gauge_closed(objects):
-        s += 0.25
-    if release_deg() >= RELEASE_OUT_DEG:
-        s += 0.15
+    if not gauge_closed(objects):
+        return 0.0
+    if not mk.MEMORY.get("rail_free"):
+        return 0.2
+    if not off_rail(objects):
+        return 0.4
     st = objects["carriage"]
-    if on_tray(objects) and _released(st) and st.resting(max_speed=0.01, max_spin=0.2):
-        s += 0.4
-    return round(s, 4)
+    if over_tray(objects) and on_tray(objects) and _released(st) and st.resting(max_speed=0.01, max_spin=0.2):
+        return 1.0
+    return 0.6
 
 
 def success(objects) -> bool:
@@ -460,18 +471,18 @@ def self_test():
     grip = [kit.point(st(on_tray_p), "carriage", (FIN_X, FIN_Y, DECK[2] + FIN[2] - 0.010 + TIP))]
     cases = {  # name: (state, tcps, MEMORY, score)
         "start": (start, [], {}, 0.0),
-        "gauge zeroed only": (start, [], {"gauge_deg": 0.0}, 0.0),
-        "gauge zeroed, release out, carriage at the end": (st(seat), [], {**ok, "rail_free": False}, 0.0),
-        "lifted 25 mm over the rail": (st(lifted), [], ok, 0.0),
+        "gauge zeroed only": (start, [], {"gauge_deg": 0.0}, 0.2),
+        "gauge zeroed, release out, carriage at the end": (st(seat), [], {**ok, "rail_free": False}, 0.2),
+        "freed at the end, not lifted": (st(seat), [], ok, 0.4),
+        "lifted 25 mm over the rail": (st(lifted), [], ok, 0.4),
         "held over the tray": (st(over_p), grip, ok, 0.6),
         "on the tray, still held": (st(on_tray_p), grip, ok, 0.6),
         "on the tray, let go": (st(on_tray_p), [], ok, 1.0),
         "on the tray, tilted 8 deg": (st((on_tray_p[0] + np.array([0, 0, 0.003]), tilt)), [], ok, 0.6),
-        "on the tray, gauge reopened": (st(on_tray_p), [], {**ok, "gauge_deg": 50.0}, 0.75),
-        "on the tray, release knob 2.5 turns": (st(on_tray_p), [], {**ok, "release_deg": 900.0}, 0.85),
+        "on the tray, gauge reopened": (st(on_tray_p), [], {**ok, "gauge_deg": 50.0}, 0.0),
         "on the tray, carriage moved before zeroing": (st(on_tray_p), [], {**ok, "order_ok": False}, 0.0),
-        "set back down on the slicer": (st(on_body_p), [], ok, 0.0),
-        "dragged off forward onto the bench": (st(floor), [], ok, 0.0),
+        "set back down on the slicer": (st(on_body_p), [], ok, 0.4),
+        "dragged off forward onto the bench": (st(floor), [], ok, 0.6),
         "edge touched with the gauge open": (st(on_tray_p), [], {**ok, "cut": True}, 0.0),
         "forced off the rail": (st(on_tray_p), [], {**ok, "forced": True}, 0.0),
         "tipped": (st(on_tray_p), [], {**ok, "tipped": True}, 0.0),
@@ -486,7 +497,10 @@ def self_test():
         # geometry: the start carriage is clear of every fixture and of the knife; the edge zone check
         c = kit.fake_states()["carriage"]
         assert c.high[0] < BLADE_X - 0.02 and c.low[2] > TOP + RAIL_H, (c.low, c.high)
-        assert _in_edge((BLADE_X - 0.01, 0.0, TOP + 0.06)) and not _in_edge((CX + FIN_X, CY0 + FIN_Y, GRIP_Z))
+        assert _in_edge((BLADE_X - 0.01, 0.0, TOP + 0.06), gauge=12.0)
+        assert not _in_edge((BLADE_X - 0.01, 0.0, TOP + 0.06), gauge=0.0)  # behind the closed plate
+        assert _in_edge((BLADE_X - 0.01, 0.10, TOP + 0.22), gauge=0.0)  # upper arc: bare with the gauge closed
+        assert not _in_edge((CX + FIN_X, CY0 + FIN_Y, GRIP_Z), gauge=12.0)
         assert not _in_edge(RK) and not _in_edge(GK)
         assert abs(kit.q(start, "rail")) < 1e-9 and abs(kit.q(st(seat), "rail") - RAIL_LO) < 1e-9
     finally:
