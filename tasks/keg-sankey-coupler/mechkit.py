@@ -31,6 +31,7 @@ Public API (angles in the API are degrees unless the name says rad; lengths m; f
     kit.release(name)                                        # switch a bond off now (sim; re-glued at reset)
     kit.catch(name, child, child_T, parent=None, parent_T=None)  # a disarmed weld; kit.engage(name) closes it
     kit.hinge_catch(name, child, child_T, anchor, axis, lower_deg, upper_deg, parent, parent_T)  # disarmed revolute
+    kit.tie(name, child, local_xyz, break_force, slip_mm)    # loop-closing weld of a chain's end to the world
     kit.drive(name, target)                                  # move a sprung joint's rest point now (deg / m, sim)
     OBJECTS = [*kit.objects(), ...]
 
@@ -240,6 +241,7 @@ class Kit:
         self._steps: list = []
         self._released: set = set()
         self.catches: dict = {}
+        self.ties: dict = {}
         self.id = len(_KITS)
         _KITS.append(self)
 
@@ -512,7 +514,7 @@ class Kit:
                               None if parent_T is None else np.asarray(parent_T, float))
 
     def hinge_catch(self, name: str, child: str, child_T, anchor, axis, lower_deg: float, upper_deg: float,
-                    parent: str | None = None, parent_T=None, damping: float = 0.0) -> None:
+                    parent: str | None = None, parent_T=None, damping: float = 0.0, stiffness: float = 0.0) -> None:
         """Like :meth:`catch`, but the catch is a revolute joint (e.g. a bayonet): authored disarmed, it holds
         ``child`` (posed at ``child_T``) to ``parent`` (posed at ``parent_T``, or the world) about world ``axis``
         through world ``anchor`` (both in those poses), free to turn between the limits measured from that pose,
@@ -520,7 +522,39 @@ class Kit:
         self.catches[name] = (child, np.asarray(child_T, float), parent,
                               None if parent_T is None else np.asarray(parent_T, float),
                               dict(anchor=np.asarray(anchor, float), axis=_unit(axis), lower=float(lower_deg),
-                                   upper=float(upper_deg), damping=float(damping)))
+                                   upper=float(upper_deg), damping=float(damping), stiffness=float(stiffness)))
+
+    def tie(self, name: str, child: str, local_xyz=(0.0, 0.0, 0.0), break_force: float = INF,
+            slip_mm: float = 5.0) -> None:
+        """Weld the point ``local_xyz`` of ``child`` (a part that already has its parent joint, e.g. the far end
+        of a hose chain) to the world where it is at spawn: a loop-closing FixedJoint authored with the scene,
+        enabled all episode, that breaks above ``break_force`` (N). ``tie_off()`` reports it pulled off."""
+        self.ties[name] = (child, np.asarray(local_xyz, float), float(break_force), slip_mm / 1000.0)
+
+    def tie_point(self, name: str) -> np.ndarray:
+        child, loc, _, _ = self.ties[name]
+        t = self._spawn_poses()[child]
+        return t[:3, :3] @ loc + t[:3, 3]
+
+    def tie_off(self, objects, name: str) -> bool:
+        """The tied point has moved more than slip_mm from its anchor, now or earlier this episode."""
+        key = ("mechkit_tie_off", self.id, name)
+        if MEMORY.get(key):
+            return True
+        child, loc, _, slip = self.ties[name]
+        if float(np.linalg.norm(self.point(objects, child, loc) - self.tie_point(name))) > slip:
+            MEMORY[key] = True
+            return True
+        return False
+
+    def drive_catch(self, name: str, target_deg: float) -> None:
+        """Move a sprung hinge catch's rest angle now (sim only; no-op offline)."""
+        path = _SIM["catch_paths"].get((self.id, name))
+        if not path or _SIM["stage"] is None:
+            return
+        from pxr import UsdPhysics
+
+        UsdPhysics.DriveAPI(_SIM["stage"].GetPrimAtPath(path), "angular").GetTargetPositionAttr().Set(float(target_deg))
 
     def engage(self, name: str) -> None:
         """Close catch ``name`` now (sim)."""
@@ -591,15 +625,39 @@ def _author_hinge_catch(stage, name, paths, env_T, child, ct, parent, pt, h) -> 
     joint.CreateAxisAttr().Set("X")
     joint.CreateLowerLimitAttr().Set(h["lower"])
     joint.CreateUpperLimitAttr().Set(h["upper"])
-    if h["damping"] > 0:
+    if h["damping"] > 0 or h.get("stiffness", 0.0) > 0:
         drive = UsdPhysics.DriveAPI.Apply(joint.GetPrim(), "angular")
         drive.CreateTypeAttr().Set("force")
-        drive.CreateStiffnessAttr().Set(0.0)
+        drive.CreateStiffnessAttr().Set(float(h.get("stiffness", 0.0) * math.pi / 180.0))
+        drive.CreateTargetPositionAttr().Set(0.0)
         drive.CreateDampingAttr().Set(float(h["damping"] * math.pi / 180.0))
         drive.CreateTargetVelocityAttr().Set(0.0)
     joint.CreateCollisionEnabledAttr().Set(True)
     joint.CreateExcludeFromArticulationAttr().Set(True)
     joint.CreateJointEnabledAttr().Set(False)
+    return path
+
+
+def _author_tie(stage, kit: Kit, name: str, paths: dict, env_T: np.ndarray, suffix: str = "") -> str | None:
+    from pxr import Gf, Sdf, UsdPhysics
+
+    child, loc, bf, _ = kit.ties[name]
+    if child not in paths:
+        return None
+    t = env_T @ kit._spawn_poses()[child]
+    w = t[:3, :3] @ loc + t[:3, 3]
+    x, y, z, qw = mat_to_quat(t[:3, :3])
+    path = f"{paths[child].rsplit('/', 1)[0]}/mechkit_joints/tie_{name}{suffix}"
+    joint = UsdPhysics.FixedJoint.Define(stage, path)
+    joint.CreateBody0Rel().SetTargets([Sdf.Path(paths[child])])
+    joint.CreateLocalPos0Attr().Set(Gf.Vec3f(*[float(v) for v in loc]))
+    joint.CreateLocalRot0Attr().Set(Gf.Quatf(1.0, Gf.Vec3f(0.0, 0.0, 0.0)))
+    joint.CreateLocalPos1Attr().Set(Gf.Vec3f(*[float(v) for v in w]))
+    joint.CreateLocalRot1Attr().Set(Gf.Quatf(float(qw), Gf.Vec3f(float(x), float(y), float(z))))
+    joint.CreateBreakForceAttr().Set(float(min(bf, _BIG)))
+    joint.CreateBreakTorqueAttr().Set(float(_BIG))
+    joint.CreateCollisionEnabledAttr().Set(False)
+    joint.CreateExcludeFromArticulationAttr().Set(True)
     return path
 
 
@@ -796,7 +854,8 @@ def _friction_reset() -> None:
         drive.GetTargetPositionAttr().Set(float(_drive_target(j, j.start) * scale))
 
 
-_SIM: dict = {"stage": None, "paths": {}, "env_T": np.eye(4), "joint_paths": {}, "gen": 0, "stick": {}, "catch_paths": {}}
+_SIM: dict = {"stage": None, "paths": {}, "env_T": np.eye(4), "joint_paths": {}, "gen": 0, "stick": {}, "catch_paths": {},
+        "tie_paths": {}}
 
 
 def _author_all(stage, env_path: str) -> None:
@@ -814,6 +873,10 @@ def _author_all(stage, env_path: str) -> None:
             p = _author_joint(stage, k, j, paths, env_T)
             if p:
                 _SIM["joint_paths"][(k.id, j.name)] = p
+        for name in k.ties:
+            p = _author_tie(stage, k, name, paths, env_T)
+            if p:
+                _SIM["tie_paths"][(k.id, name)] = p
         for name in k.catches:
             p = _author_catch(stage, k, name, paths, env_T)
             if p:
@@ -837,6 +900,14 @@ def _reglue() -> None:
     if stage is None:
         return
     for k in _KITS:
+        for name in k.ties:
+            key = (k.id, name)
+            if key in _SIM["tie_paths"] and MEMORY.get(("mechkit_tie_off", k.id, name)):
+                stage.RemovePrim(_SIM["tie_paths"][key])
+                _SIM["gen"] += 1
+                p = _author_tie(stage, k, name, _SIM["paths"], _SIM["env_T"], suffix=f"_r{_SIM['gen']}")
+                if p:
+                    _SIM["tie_paths"][key] = p
         for j in k.joints_.values():
             key = (k.id, j.name)
             if j.kind != "bond" or key not in _SIM["joint_paths"]:

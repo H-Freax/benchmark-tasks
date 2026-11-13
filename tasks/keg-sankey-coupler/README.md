@@ -38,9 +38,13 @@ inspect-robots run --embodiment yam_arena --policy dream \
 ## Run and score the full-score demo
 
 Same command with `--policy yam_scripted` (log dir `~/yam-eval/keg-sankey-coupler-demo`). The demo is `demo()`:
-open loop and deterministic. The right arm grips the coupler's body, carries it over the chime and sets it over the
-valve neck, ears on the lugs, and lets go; the left arm comes down beside the handle's root and sweeps the coupler a
+open loop and deterministic. The right arm grips the coupler's body, carries it (beer and gas lines trailing) over the
+chime and sets it over the valve neck, ears on the lugs, lets go and presses it down by the beer outlet; the left arm comes down beside the handle's root and sweeps the coupler a
 quarter turn clockwise to the stop, then rides the handle's top face down past over centre to its stop and clears.
+
+The beer and gas lines are chains of rigid segments on soft spring joints, hung from the coupler's outlet and inlet
+and welded at their far ends to a fixed tap tower and regulator (`kit.tie` in mechkit.py, authored with the scene;
+no joint is created during a run). Pulling either end more than 5 mm off its fitting latches the score to 0.
 
 Degenerate check: `KEG_DEMO=no_turn` runs the same demo without the quarter turn (seat, then press the handle);
 it scores 0. `KEG_DEBUG=1` prints the coupler's state every second.
