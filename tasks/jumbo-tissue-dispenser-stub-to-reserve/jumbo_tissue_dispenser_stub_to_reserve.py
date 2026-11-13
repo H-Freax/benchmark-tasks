@@ -163,7 +163,7 @@ FIXTURES = [
 OBJECTS = [*kit.objects(), *FIXTURES]
 
 # -- rules ------------------------------------------------------------------------------------------------------
-DROP_RAD_S = 0.5
+DROP_RAD_S = 0.45  # the spring and damper alone close it at 0.31 rad/s at most; faster means pushed or slammed
 DT = 0.05  # one control step at 20 Hz
 
 
@@ -241,10 +241,14 @@ def _latch_rule(objects):
         mk.MEMORY["trashed"] = True
 
 
-kit.on_step(_hub_rule)
-kit.on_step(_gate_rule)
-kit.on_step(_cover_rule)
-kit.on_step(_latch_rule)
+def _push_rule(objects):
+    """Remember each hub's sprung half drawn in (its tab held) while its new core was down over that spindle."""
+    for k, n in (("r", "stub"), ("p", "roll")):
+        c = kit.point(objects, n, (0, 0, 0))
+        hx, hy = HUBS[k]
+        if (kit.q(objects, f"jaw_{k}_slide") >= JAW_OPEN_AT and math.hypot(float(c[0]) - hx, float(c[1]) - hy) < 0.040
+                and float(c[2]) < ZP + 0.040):
+            mk.MEMORY[f"pushed_{k}"] = True
 
 
 def _debug_rule(objects):
@@ -253,12 +257,17 @@ def _debug_rule(objects):
         print(f"[jumbo] n={mk.MEMORY.get('n')} stub={f(kit.point(objects, 'stub', (0, 0, 0)))} "
               f"roll={f(kit.point(objects, 'roll', (0, 0, 0)))} gate={kit.q_deg(objects, 'gate_turn'):.1f} "
               f"cover={kit.q_deg(objects, 'cover_hinge'):.1f} jaw_p={kit.q(objects, 'jaw_p_slide'):.4f} "
-              f"jaw_r={kit.q(objects, 'jaw_r_slide'):.4f} tab_p={kit.q(objects, 'tab_p_push'):.4f} "
-              f"tab_r={kit.q(objects, 'tab_r_push'):.4f} stay={kit.q(objects, 'stay_push'):.4f} mem={ {k: v for k, v in mk.MEMORY.items() if k != 'n'} } "
-              f"tcps={[f(t) for t in mk.tcps()]} score={score(objects)} sv={[round(float(v), 4) for v in (*objects['stub'].lin_vel, *objects['stub'].ang_vel)]} tilt={_tilt(kit.pose(objects, 'stub')[1]):.2f} rest={[(n, _released(objects[n]), objects[n].resting(max_speed=0.01, max_spin=0.1)) for n in ('stub', 'roll', 'cover', 'stay_btn')]}", flush=True)
+              f"jaw_r={kit.q(objects, 'jaw_r_slide'):.4f} mem={ {k: v for k, v in mk.MEMORY.items() if k not in ('n', 'q_hist')} } "
+              f"score={score(objects)}", flush=True)
 
 
+kit.on_step(_hub_rule)
+kit.on_step(_push_rule)
+kit.on_step(_gate_rule)
+kit.on_step(_cover_rule)
+kit.on_step(_latch_rule)
 kit.on_step(_debug_rule)
+
 
 SUCCESS_HOLD_S = 1.0
 SCORE_OVER = "end"
@@ -268,6 +277,10 @@ _TEST_TCPS = None
 # a core flat on the plate with its axis within 25 mm of the spindle's middle has the spindle through its 75 mm bore
 # (any further off, its wall would sit up on the spindle)
 SEAT_AXIAL, SEAT_LAT, SEAT_DEG, HUB_DX = 0.003, 0.025, 3.0, -0.001
+# the stub, held by the sprung half against the fixed half, sits with its axis within 6 mm of hub + SEAT_DX; one
+# set down to -x of that takes only the fixed half in its bore and the sprung half never touches it
+STUB_PUSHED_TOL = 0.006
+JAW_CONTACT = 0.005  # a sprung half resting on a core stops at least this far in; with no core it rests at 0
 
 
 def _tilt(q) -> float:
@@ -276,8 +289,8 @@ def _tilt(q) -> float:
 
 
 def seated(objects, part, hub) -> bool:
-    """Core bottom within 3 mm of the plate, its axis within 4 mm of the hub's seat and within 3 deg of the spindle:
-    the core is all the way on and the roll turns freely clear of the housing and the other roll."""
+    """Core bottom within 3 mm of the plate, its axis within 25 mm of the spindle's middle (any further off, the
+    core wall would sit up on the hub) and within 3 deg of vertical: the core is all the way on the spindle."""
     hx, hy = HUBS[hub]
     b = kit.point(objects, part, (0, 0, 0))
     _, q = kit.pose(objects, part)
@@ -286,8 +299,16 @@ def seated(objects, part, hub) -> bool:
 
 
 def engaged(objects, hub) -> bool:
-    """The sprung hub half is out against the core (its tab let go)."""
-    return kit.q(objects, f"jaw_{hub}_slide") < JAW_OPEN_AT
+    """The sprung hub half was drawn in (tab held) while the core went down over the spindle, and is now out
+    against the core (tab let go): held back by the core by 5 mm or more, but less than its open position."""
+    q = kit.q(objects, f"jaw_{hub}_slide")
+    return bool(mk.MEMORY.get(f"pushed_{hub}")) and JAW_CONTACT <= q < JAW_OPEN_AT
+
+
+def stub_pushed(objects) -> bool:
+    """The stub's axis is within 6 mm of where the sprung half pushes a seated core, on the reserve hub."""
+    c = kit.point(objects, "stub", (0, 0, 0))
+    return math.hypot(float(c[0]) - RES[0] - SEAT_DX, float(c[1]) - RES[1]) <= STUB_PUSHED_TOL
 
 
 def gate_clear(objects) -> bool:
@@ -318,18 +339,26 @@ def inverted(objects) -> bool:
     return seated(objects, "roll", "r") and seated(objects, "stub", "p")
 
 
+def discarded(objects) -> bool:
+    """The stub is not in the dispenser footprint (on the bench, in the bin, in a hand outside the housing)."""
+    c = kit.point(objects, "stub", (0, 0, 0))
+    return not (X0 < float(c[0]) < X1 and -YH < float(c[1]) < YH)
+
+
 def score(objects) -> float:
-    """0 if failed() or inverted(). Otherwise: stub seated on the reserve hub, engaged, gate clear 0.25; new roll
-    seated on the primary hub, engaged 0.3; gate in its clear detent 0.05; with both seated: cover shut and latched
-    0.3, grippers off and everything still 0.1."""
-    if failed(objects) or inverted(objects):
+    """0 if failed(), inverted() or the stub is discarded. Otherwise: stub seated on the reserve hub, engaged, gate
+    clear 0.3; only with that: new roll seated on the primary hub, engaged 0.3; with both: cover shut and latched
+    0.3, then grippers off and everything still 0.1."""
+    if failed(objects) or inverted(objects) or discarded(objects):
         return 0.0
-    gate = gate_clear(objects)
-    stub_ok = seated(objects, "stub", "r") and engaged(objects, "r") and gate
-    roll_ok = seated(objects, "roll", "p") and engaged(objects, "p")
-    s = 0.25 * stub_ok + 0.30 * roll_ok + 0.05 * gate
-    if stub_ok and roll_ok:
-        s += 0.30 * cover_locked(objects) + 0.10 * settled(objects)
+    stub_ok = (seated(objects, "stub", "r") and stub_pushed(objects) and engaged(objects, "r")
+               and gate_clear(objects))
+    if not stub_ok:
+        return 0.0
+    s = 0.30
+    if seated(objects, "roll", "p") and engaged(objects, "p"):
+        locked = cover_locked(objects)
+        s += 0.30 + 0.30 * locked + 0.10 * (locked and settled(objects))
     return round(s, 4)
 
 
@@ -354,6 +383,7 @@ TAB_Z = ZP + 0.022 - TAB_TRAVEL - 0.006 + TIP  # pushed onto the tab's stop and 
 TAB_UP = 0.800
 AIM_X = 0.278  # cores are lowered over the spindle's middle, the sprung half drawn in (the hand lags a few mm)
 GRIP_LIFT_DX = 0.0
+BENCH_STUB = (0.080, 0.300)  # bench_stub variant: the stub stood on the bench, outside the dispenser
 
 
 class _Seq:
@@ -410,6 +440,8 @@ def _plans(variant=""):
     tmp = (0.290, 0.000)
     pick = (0.295, 0.0075)  # where the stub ends up after it is set down at tmp (the hand lags it a few mm)
     rx, ry = AIM_X, RES[1]
+    if variant == "offset_seat":  # the stub's bore over the fixed half only, clear of the sprung half; no tab held
+        rx = RES[0] + 0.012  # the stub hangs ~19 mm -x of the hand: its axis lands ~7 mm -x of the hub axis
     if variant == "close_only":
         L.go(2.0, (0.20, 0.35, 0.92), 0.0, "park")
         R.go(1.0, (0.20, -0.33, TRAVEL), 0.0, "start")
@@ -431,6 +463,12 @@ def _plans(variant=""):
         L.go(2.5, (BIN_XY[0], BIN_XY[1], ZP + GRIP_DZ + 0.06), F_GRIP, "over the bin")
         L.go(0.8, (BIN_XY[0], BIN_XY[1], ZP + GRIP_DZ + 0.06), F_IN, "drop the stub in")
         L.go(1.0, (BIN_XY[0], BIN_XY[1], TRAVEL), F_IN, "up")
+    elif variant == "bench_stub":
+        bx, by = BENCH_STUB
+        L.go(2.5, (bx, by, TOP + GRIP_DZ + 0.03), F_GRIP, "over the bench beside the dispenser")
+        L.go(1.0, (bx, by, TOP + GRIP_DZ + 0.001), F_GRIP, "down")
+        L.go(0.8, (bx, by, TOP + GRIP_DZ + 0.001), F_IN, "let go")
+        L.go(1.0, (bx, by, TRAVEL), F_IN, "up")
     else:
         L.go(2.0, (*tmp, ZP + GRIP_DZ + LIFT), F_GRIP, "set it aside on the plate")
         L.go(1.0, (*tmp, ZP + GRIP_DZ + 0.001), F_GRIP, "down")
@@ -455,7 +493,10 @@ def _plans(variant=""):
         t_r_off = R.t
         R.go(1.0, (rx, ry, TRAVEL), F_IN, "up")
         L.until(t_res_tab - 5.0)
-        _press_tab(L, "r", t_r_off + 0.2)
+        if variant != "offset_seat":
+            _press_tab(L, "r", t_r_off + 0.2)
+        else:
+            L.until(t_r_off + 3.0, "wait, the reserve tab not touched")
     # L: the new roll onto the primary while R holds the primary tab (loose_roll: without the tab)
     nx, ny = NEW0[0], NEW0[1]
     lz = NEW0[2] + GRIP_DZ
@@ -484,7 +525,7 @@ def _plans(variant=""):
 
 
 def demo():
-    # DEMO_VARIANT: close_only | trash_stub | loose_roll (degenerate checks; all score 0)
+    # DEMO_VARIANT: close_only | trash_stub | bench_stub | offset_seat | loose_roll (degenerate checks; all score 0)
     return _plans(os.environ.get("DEMO_VARIANT", ""))
 
 
@@ -502,17 +543,26 @@ def self_test():
     def st(q=None, **moved):
         return kit.fake_states(q=q, moved=moved)
 
-    closed = {"cover_hinge": 0.0, "gate_turn": math.radians(90)}
+    J = {"jaw_r_slide": 0.009, "jaw_p_slide": 0.020}  # sprung halves resting on the seated cores
+    closed = {"cover_hinge": 0.0, "gate_turn": math.radians(90), **J}
+    gate = {"gate_turn": math.radians(90), **J}
     done = st(closed, stub=at("r"), roll=at("p"))
-    L = {"latched": True}
+    P = {"pushed_r": True, "pushed_p": True}
+    L = {"latched": True, **P}
+    off = (np.array([RES[0] - 0.015, RES[1], ZP]), I)
     tilt = mk.mat_to_quat(mk.axis_angle((1, 0, 0), math.radians(5)))
     cases = {
         "start": (st(), [], {}, 0.0),
-        "gate only": (st({"gate_turn": math.radians(90)}), [], {}, 0.05),
+        "start, both tabs pressed earlier": (st(), [], P, 0.0),
+        "gate only": (st({"gate_turn": math.radians(90)}), [], {}, 0.0),
         "closed untouched": (st({"cover_hinge": 0.0}), [], L, 0.0),
-        "stub on reserve, gate clear": (st({"gate_turn": math.radians(90)}, stub=at("r")), [], {}, 0.30),
-        "stub on reserve, gate shut": (st(stub=at("r")), [], {}, 0.0),
-        "both seated, cover open": (st({"gate_turn": math.radians(90)}, stub=at("r"), roll=at("p")), [], {}, 0.7),
+        "stub on reserve, gate clear": (st(gate, stub=at("r")), [], P, 0.30),
+        "stub on reserve, gate shut": (st(J, stub=at("r")), [], P, 0.0),
+        "stub on reserve, tab never held": (st(gate, stub=at("r")), [], {"pushed_p": True}, 0.0),
+        "stub offset -x, sprung half untouched": (st({**gate, "jaw_r_slide": 0.0}, stub=off), [], P, 0.0),
+        "stub offset -x, sprung half nudged": (st(gate, stub=off), [], P, 0.0),
+        "both seated, cover open": (st(gate, stub=at("r"), roll=at("p")), [], P, 0.6),
+        "roll seated, its tab never held": (st(closed, stub=at("r"), roll=at("p")), [], {**L, "pushed_p": False}, 0.3),
         "both seated, latched, held": (done, [kit.point(done, "roll", (0, 0, 0.08))], L, 0.9),
         "everything done": (done, [], L, 1.0),
         "roll 4 mm high": (st(closed, stub=at("r"), roll=at("p", 0.004)), [], L, 0.30),
@@ -521,6 +571,8 @@ def self_test():
         "inverted": (st(closed, stub=at("p"), roll=at("r")), [], L, 0.0),
         "dropped cover": (done, [], {**L, "dropped": True}, 0.0),
         "stub in the bin": (done, [], {**L, "trashed": True}, 0.0),
+        "roll seated, stub on the bench": (st(closed, stub=(np.array([0.30, 0.40, TOP]), I), roll=at("p")), [], L, 0.0),
+        "roll seated, stub left on the primary area": (st(closed, roll=at("p")), [], L, 0.0),
         "cover forced on a loose roll": (done, [], {**L, "crushed": True}, 0.0),
         "roll on the floor": (done, [], {**L, "floor": True}, 0.0),
     }
@@ -547,7 +599,7 @@ if __name__ == "__main__":
     print(f"scoring: {self_test()} cases pass")
     task = load(__file__)
     hz = 20.0
-    for v in ("", "close_only", "trash_stub", "loose_roll"):
+    for v in ("", "close_only", "trash_stub", "bench_stub", "offset_seat", "loose_roll"):
         os.environ["DEMO_VARIANT"] = v
         for arm, waypoints in task.demo().items():
             plan = ArmPlan(list(waypoints), station.BASES[arm])

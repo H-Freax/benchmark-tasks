@@ -27,7 +27,7 @@ python tasks/jumbo-tissue-dispenser-stub-to-reserve/jumbo_tissue_dispenser_stub_
 
 This asserts the scoring rules on hand-built states. It also replays every demo variant through the kinematics at
 20 Hz and checks that each joint stays inside its URDF limits and the IK error stays under 0.5 mm. It prints
-`scoring: 16 cases pass` and then one line per arm and variant.
+`scoring: 23 cases pass` and then one line per arm and variant.
 
 ## Run and score one Dream-1 trial
 
@@ -55,6 +55,12 @@ Degenerate checks use the same command with a variable set in the environment. E
 - `DEMO_VARIANT=close_only` releases the cover over the untouched dispenser. The cover points need both rolls
   seated.
 - `DEMO_VARIANT=trash_stub` drops the stub into the bin and loads the new roll on the primary. This trips the bin latch.
+- `DEMO_VARIANT=bench_stub` stands the stub on the bench beside the dispenser and loads the new roll on the primary.
+  Points for the new roll count only once the stub is seated on the reserve, and a stub left outside the dispenser
+  scores 0.
+- `DEMO_VARIANT=offset_seat` sets the stub on the reserve spindle about 7 mm to -x of its axis (26 mm short of the pushed position) without holding the reserve
+  tab, so its bore takes only the fixed half and the sprung half never moves. The stub needs the sprung half to have
+  been drawn in over it and to rest against it, with its axis within 6 mm of the pushed position.
 - `DEMO_VARIANT=loose_roll` moves the stub correctly, then sets the new roll on the primary without holding its
   tab, so the roll rests on the hub unseated. Closing the cover onto it trips the forced-cover latch.
 
