@@ -1,0 +1,21 @@
+{
+  "title": "Set all four legs of a folding walker to the marked height",
+  "category": "Impact on jobs",
+  "keywords": [
+    "home health care",
+    "mobility aid",
+    "walker height adjustment",
+    "push-button detent",
+    "press and pull bimanual",
+    "telescoping legs"
+  ],
+  "instruction": "Raise the walker to the height shown by the band.",
+  "context": "Home health and personal care aides (O*NET 31-1122.00; 3,689,350 US jobs, BLS OEWS May 2023) set walkers to a client's height. Each leg's spring pin must be held down while the leg is pulled, and must snap back into a hole on every leg, or the walker stands uneven or a leg collapses under load.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left), heights above the bench top. Wooden fixture board 32 x 39 x 0.6 cm centred at x 27.75, y 3.5. Folded aluminium walker lying flat on it, legs pointing -y (toward the right arm): four 2.54 cm square outer tubes at x 18, 24.5, 31, 37.5 running from y 20 (frame bend and cross bar) to their mouths at y 4, axes 3.2 cm up, on grey saddles. Each leg: 1.9 cm inner tube, 27 cm long, 0.3 kg, with a black 3.5 x 4 x 4 cm rubber foot; holes every 2.5 cm (holes 1-5); all start at hole 1, foot spanning y -11.5 to -8. Push pin: 6 mm square button standing 6 mm proud of the outer tube top at y 7, 3 mm travel, sprung up. Red band 0.8 cm wide across the board at y -13.8 to -13: a foot's inner edge sits on it at hole 3.",
+  "scoring": "A leg counts 0.25 when its pin has snapped up into hole 3 (pin less than 1 mm down), the leg is within 2 mm of hole 3 (5.0 cm out from hole 1), no gripper is within 2 cm of its foot or pin, and the leg moves under 1 cm/s. Score 0, latched, if any leg is pulled out past 11.8 cm (it leaves its tube). A pin let go between holes stays down on the tube wall and that leg counts 0 until it is moved into a hole. Going past hole 3 and back still counts. Success: 1.0 held for 1 s. Scored at the last step.",
+  "run_limit": "1,400 steps (70 seconds at 20 Hz)",
+  "reset_notes": "Press each pin and push every leg back to hole 1.",
+  "fidelity": "Rigid boxes; tubes are square. The pin lock is a weld switched on when the pin is up at a hole and off while it is pressed; between holes the pin is held down (riding the wall). Leg sliding has 1.5 N friction. Pin spring 1.8 N, lighter than a real 15 N pin. Legs 0.3 kg. Junior walker width (31 cm) to fit the arms' reach.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-89GH9Q"
+}
