@@ -1,0 +1,22 @@
+{
+  "title": "Load a new paper roll into a clamshell receipt printer: old core out, paper off the bottom toward the tear bar, leader out the slot, lid latched",
+  "category": "Impact on jobs",
+  "keywords": [
+    "retail",
+    "point of sale",
+    "receipt printer",
+    "roll orientation",
+    "leader routing",
+    "spring-loaded lid",
+    "latch"
+  ],
+  "instruction": "The receipt printer is out of paper. Load the new roll.",
+  "context": "Changing the receipt roll is a routine duty of cashiers (O*NET 41-2011.00; 3,298,660 US jobs, BLS OEWS May 2023). A thermal roll prints only on one side, so it has to drop into the cradle with the paper coming off the bottom toward the tear bar, and the end has to be pulled out past the slot before the lid is pressed shut, or the printer feeds nothing. The instruction says none of this.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left), heights above the bench top. Printer: dark grey housing 12 (x) x 12 (y) x 4.5 cm at x 23-35, y -6.5 to 5.5; paper bay inside (10 x 9.5 cm, floor 0.8 cm up) with four grey cradle pads (1 x 0.8 cm, 2.1 cm up) at y -2.25 and 1.75 under the roll's ends; front block y -6.5 to -5 with a black platen strip and a grey tear bar along its top. Lid: grey shell 12 x 12.2 x 4.2 cm, 100 g, hinged along the rear top edge, latched shut at the start; its front skirt leaves a 10 mm paper exit slot over the tear bar; a spring (0.06 N*m/rad) lifts it to its 100 deg stop once released. Release button: blue 1.4 cm button (6 mm travel) on a 1.8 cm boss at x 18, y -3, left of the printer. Latch pawl: grey 1 cm block under the lid's near front corner (x 23.6, y -5.75), sprung up with 7 N; pushing the lid home takes about 10 N. Old core: brown 8 cm long, 1.8 cm across, 20 g, lying in the cradle. New roll: white 6 cm across, 8 cm wide, 12 mm hole, 150 g, lying on the bench at x 29, y -17, axis along x; its leader is a chain of four 2.4 x 5.2 x 0.3 cm plates (20 g each) hinged to the bottom of the roll and lying flat toward -y.",
+  "scoring": "Score 0, latched, if the lid comes within 5 deg of shut over a roll in the bay that is turned so its paper would leave the bottom away from the slot, or with less than 15 mm of leader past the tear bar (measured along the leader); or if the roll or core falls 5 cm below the bench. Otherwise: 0.2 old core outside the printer (1 cm margin), resting on the bench, no gripper within 2 cm; 0.3 new roll seated (axis within 8 mm of the cradle axis, 2.8 cm above the floor, and within 6 deg of it), let go, and the right way round (direction the paper leaves the bottom of the roll dotted with the way out of the slot > 0.8); with that, 0.2 leader end past the platen (beyond its inner edge, inside the printer's width); with both, 0.3 lid opened and then latched (pressed within 0.5 deg of shut), under 1 deg, with 15 mm or more of leader past the tear bar, no gripper within 2 cm of the lid, roll, leader or button, and roll and lid still (under 1 cm/s, 0.25 rad/s). Scored at the last step; 1.0 held for 1 s ends the run.",
+  "run_limit": "1,400 steps (70 seconds at 20 Hz)",
+  "reset_notes": "Press the release button, take the roll out and put it back at its mark with the leader laid flat toward the right arm, put the old core back in the cradle, press the lid shut.",
+  "fidelity": "Rigid boxes; roll is a 12-sided prism. Paper does not unwind: the leader is a fixed 9.6 cm chain of four rigid plates, heavier and stiffer than paper. The latch is a weld that opens while the button is pressed and closes when the lid is pressed within 0.5 deg against a sprung pawl. No print head or feed; routing is judged from plate positions.",
+  "scores": "Dream-1 run: 0; demo: 1.0",
+  "media": "M-YX5AKE"
+}
