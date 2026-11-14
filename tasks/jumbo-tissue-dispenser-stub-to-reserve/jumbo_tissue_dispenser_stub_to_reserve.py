@@ -6,7 +6,10 @@ slide gate lever. A new 230 mm jumbo roll lies on the bench to the left, a waste
 The job: the stub goes onto the reserve spindle (so it is used up first), the new roll onto the primary, and the
 cover is lowered shut until its latch clicks. Each hub only lets a core on or off while its release tab beside it
 is held down (the sprung hub half retracts), so one hand holds the tab while the other slides the core along the
-spindle. The cover (0.5 kg) has a soft-close damper: once pushed over it lowers itself; slammed, it counts as dropped.
+spindle. Each hub turns on a bearing boss, so a loaded roll spins as tissue is pulled. The cover
+(0.5 kg) has a soft-close damper: once its stay is released it lowers itself; it may also be closed by hand, but
+slammed shut (over 6 rad/s near closed) it fails. Its front panel has a tissue outlet window over each roll; a red
+changeover shutter covers the primary's window so the stub on the reserve is pulled first.
 
 Mechanism parts come from mechkit.py (in this folder), which adds joints to the stock runtime in memory.
 
@@ -72,9 +75,17 @@ JAW_TRAVEL, JAW_OPEN_AT = 0.048, 0.036
 TAB_TRAVEL, TAB_PRESSED = 0.006, 0.004
 HUBS = {"p": PRIM, "r": RES}
 TABS = {"p": (0.150, 0.015), "r": (0.150, -0.015)}
+HUB_SPIN_DAMP = 0.05  # N*m*s/rad: the hub bearing drag (the roll brake; a 2 N tissue pull turns a full roll at ~4 rad/s)
 for k, (hx, hy) in HUBS.items():
-    kit.part(f"hub_fix_{k}", (hx, hy, ZP), [mk.box((0.015, 0.024, 0.030), at=(-0.0085, 0, 0.015))], mass=None,
+    # each hub turns on a bearing about the seated core's axis (hub + SEAT_DX): a flat bearing boss on the back plate
+    # (it stays below the hub halves, so the sprung half can draw in across the axis), and the hub (fixed half +
+    # sprung half) on a free revolute joint round it, so a loaded roll spins
+    ax = (hx + SEAT_DX, hy)
+    kit.part(f"spindle_{k}", (*ax, ZP), [mk.box((0.020, 0.020, 0.0008), at=(0, 0, 0.0004))], mass=None, color=SMOKE)
+    kit.part(f"hub_fix_{k}", (hx, hy, ZP), [mk.box((0.015, 0.024, 0.029), at=(-0.0085, 0, 0.0155))], mass=0.040,
              color=GREY)
+    kit.hinge(f"hub_{k}_spin", f"spindle_{k}", f"hub_fix_{k}", anchor=(*ax, ZP), axis=(0, 0, 1),
+              lower_deg=-math.inf, upper_deg=math.inf, damping=HUB_SPIN_DAMP)
     kit.part(f"jaw_{k}", (hx, hy, ZP), [mk.box((0.011, 0.024, 0.029), at=(0.0565, 0, 0.0155))], mass=0.020, color=GREY)
     kit.slider(f"jaw_{k}_slide", f"hub_fix_{k}", f"jaw_{k}", axis=(-1, 0, 0), lower=0.0, upper=JAW_TRAVEL,
                start=0.003 if k == "p" else 0.0, stiffness=500.0, rest=-0.004, damping=8.0)
@@ -108,7 +119,15 @@ kit.part("roll", NEW0, _ring(ROLL_RO, ROLL_H, PAPER), mass=0.90, color=PAPER)
 HINGE = (X1, -YH, RIM)
 CW, CL, CD = X1 - X0, 2 * YH, 0.074
 OPEN_DEG = 100.0
-_cover = [mk.box((CW, CL, 0.004), at=(-CW / 2, CL / 2, CD - 0.002)),
+# the front panel has two tissue outlet windows along its bottom (hinge) edge, one over each roll; the changeover
+# shutter (below) covers the primary's window so tissue is drawn from the stub (reserve) roll first
+OUT_X = (0.010, 0.065)  # window from 1 to 6.5 cm in from the hinge edge
+OUT_Y = ((0.045, 0.205), (0.285, 0.445))  # cover-local y (from the -y rim): reserve (stub) window, primary window
+_ow = OUT_X[1] - OUT_X[0]
+_cover = [mk.box((CW - OUT_X[1], CL, 0.004), at=(-(CW + OUT_X[1]) / 2, CL / 2, CD - 0.002)),
+          mk.box((OUT_X[0], CL, 0.004), at=(-OUT_X[0] / 2, CL / 2, CD - 0.002)),
+          *[mk.box((_ow, b - a, 0.004), at=(-(OUT_X[0] + OUT_X[1]) / 2, (a + b) / 2, CD - 0.002))
+            for a, b in ((0.0, OUT_Y[0][0]), (OUT_Y[0][1], OUT_Y[1][0]), (OUT_Y[1][1], CL))],
           mk.box((WALL, CL, CD - 0.005), at=(-WALL / 2, CL / 2, 0.001 + (CD - 0.005) / 2)),
           mk.box((WALL, CL, CD - 0.005), at=(-CW + WALL / 2, CL / 2, 0.001 + (CD - 0.005) / 2)),
           mk.box((CW, WALL, CD - 0.005), at=(-CW / 2, WALL / 2, 0.001 + (CD - 0.005) / 2)),
@@ -118,6 +137,14 @@ kit.part("cover", HINGE, _cover, mass=0.50, color=SMOKE)
 kit.hinge("cover_hinge", None, "cover", anchor=HINGE, axis=(0, 1, 0), lower_deg=0.0, upper_deg=OPEN_DEG,
           start_deg=OPEN_DEG, stiffness=0.5, rest_deg=-10.0, damping=3.0)
 kit.catch("cover_latch", "cover", kit.parts["cover"].ref)
+# changeover shutter: a plate sliding along the outside of the front panel, detents over the primary window (0, as
+# set: the stub feeds first) and over the reserve window (24 cm toward -y, switched once the stub is used up)
+SHUT_TRAVEL = OUT_Y[1][0] - OUT_Y[0][0]
+_sy = (OUT_Y[1][0] + OUT_Y[1][1]) / 2
+kit.part("shutter", HINGE, [mk.box((_ow + 0.008, OUT_Y[1][1] - OUT_Y[1][0] + 0.010, 0.003),
+                                   at=(-(OUT_X[0] + OUT_X[1]) / 2, _sy, CD + 0.002))], mass=0.020, color=RED)
+kit.slider("shutter_slide", "cover", "shutter", axis=(0, -1, 0), lower=0.0, upper=SHUT_TRAVEL, stiffness=60.0,
+           rest=-0.003, damping=1.0)
 
 
 def _open_pose():
@@ -163,7 +190,11 @@ FIXTURES = [
 OBJECTS = [*kit.objects(), *FIXTURES]
 
 # -- rules ------------------------------------------------------------------------------------------------------
-DROP_RAD_S = 0.45  # the spring and damper alone close it at 0.31 rad/s at most; faster means pushed or slammed
+# a slam: the cover still closing at over 6 rad/s within 15 deg of shut, i.e. its front edge (30 cm from the hinge)
+# meets the rim at over 1.8 m/s. Its spring and damper alone close it at about 0.3 rad/s; a hand closing it, even
+# briskly (1 to 3 rad/s), is far below this; reaching 6 rad/s against the 3 N*m*s/rad damper takes a blow of
+# 60 N or more at the front edge.
+SLAM_RAD_S, SLAM_ZONE_DEG = 6.0, 15.0
 DT = 0.05  # one control step at 20 Hz
 
 
@@ -182,6 +213,13 @@ def _gate_rule(objects):
     if mk.MEMORY.get("gate_det") != det:
         mk.MEMORY["gate_det"] = det
         kit.drive("gate_turn", det)
+
+
+def _shutter_rule(objects):
+    det = SHUT_TRAVEL + 0.003 if kit.q(objects, "shutter_slide") >= SHUT_TRAVEL / 2 else -0.003
+    if mk.MEMORY.get("shut_det") != det:
+        mk.MEMORY["shut_det"] = det
+        kit.drive("shutter_slide", det)
 
 
 def _cover_under_z(q_deg, x):
@@ -210,12 +248,11 @@ def _cover_rule(objects):
         m["stay_off"] = True
     if m.get("latched"):
         return
-    hist = m.setdefault("q_hist", [])
-    hist.append(q)
-    del hist[:-4]
-    w = math.radians(abs(hist[-1] - hist[0])) / (DT * (len(hist) - 1)) if len(hist) > 1 else 0.0
-    if m["n"] > 10 and 2.0 < q < OPEN_DEG - 3.0 and w > DROP_RAD_S:
-        m["dropped"] = True
+    prev = m.get("q_prev")
+    m["q_prev"] = q
+    w = math.radians(prev - q) / DT if prev is not None else 0.0  # closing speed, rad/s
+    if m["n"] > 10 and q < SLAM_ZONE_DEG and w > SLAM_RAD_S:
+        m["slammed"] = True  # the front edge hits the rim at over 1.8 m/s: a slam, not a hand closing it
     if q < 1.5:
         kit.engage("cover_latch")
         m["latched"] = True
@@ -257,13 +294,14 @@ def _debug_rule(objects):
         print(f"[jumbo] n={mk.MEMORY.get('n')} stub={f(kit.point(objects, 'stub', (0, 0, 0)))} "
               f"roll={f(kit.point(objects, 'roll', (0, 0, 0)))} gate={kit.q_deg(objects, 'gate_turn'):.1f} "
               f"cover={kit.q_deg(objects, 'cover_hinge'):.1f} jaw_p={kit.q(objects, 'jaw_p_slide'):.4f} "
-              f"jaw_r={kit.q(objects, 'jaw_r_slide'):.4f} mem={ {k: v for k, v in mk.MEMORY.items() if k not in ('n', 'q_hist')} } "
+              f"jaw_r={kit.q(objects, 'jaw_r_slide'):.4f} hubs={kit.q_deg(objects, 'hub_p_spin'):.1f},{kit.q_deg(objects, 'hub_r_spin'):.1f} mem={ {k: v for k, v in mk.MEMORY.items() if k not in ('n', 'q_prev')} } "
               f"score={score(objects)}", flush=True)
 
 
 kit.on_step(_hub_rule)
 kit.on_step(_push_rule)
 kit.on_step(_gate_rule)
+kit.on_step(_shutter_rule)
 kit.on_step(_cover_rule)
 kit.on_step(_latch_rule)
 kit.on_step(_debug_rule)
@@ -332,7 +370,7 @@ def settled(objects) -> bool:
 
 def failed(objects) -> bool:
     m = mk.MEMORY
-    return bool(m.get("dropped") or m.get("floor") or m.get("trashed") or m.get("crushed"))
+    return bool(m.get("slammed") or m.get("floor") or m.get("trashed") or m.get("crushed"))
 
 
 def inverted(objects) -> bool:
@@ -569,7 +607,7 @@ def self_test():
         "roll tilted 5 deg": (st(closed, stub=at("r"), roll=(at("p")[0], tilt)), [], L, 0.30),
         "roll hub still squeezed": (st({**closed, "jaw_p_slide": 0.040}, stub=at("r"), roll=at("p")), [], L, 0.3),
         "inverted": (st(closed, stub=at("p"), roll=at("r")), [], L, 0.0),
-        "dropped cover": (done, [], {**L, "dropped": True}, 0.0),
+        "slammed cover": (done, [], {**L, "slammed": True}, 0.0),
         "stub in the bin": (done, [], {**L, "trashed": True}, 0.0),
         "roll seated, stub on the bench": (st(closed, stub=(np.array([0.30, 0.40, TOP]), I), roll=at("p")), [], L, 0.0),
         "roll seated, stub left on the primary area": (st(closed, roll=at("p")), [], L, 0.0),
@@ -584,6 +622,27 @@ def self_test():
             got = score(s_)
             assert abs(got - want) < 1e-9, (name, got, want)
         assert seated(st(), "stub", "p")
+
+        def close_at(rad_s):  # the cover swung shut by hand at a steady rad_s over seated rolls
+            mk.new_episode()
+            mk.MEMORY.update({**P, "n": 20})
+            q = 60.0
+            while q > 0.0:
+                _cover_rule(st({**gate, "cover_hinge": math.radians(q)}, stub=at("r"), roll=at("p")))
+                q -= math.degrees(rad_s * DT)
+            _cover_rule(st({**closed}, stub=at("r"), roll=at("p")))
+            return bool(mk.MEMORY.get("slammed")), bool(mk.MEMORY.get("latched"))
+
+        for w in (0.3, 1.0, 3.0, 5.0):  # spring alone, slow, brisk and fast hand closes: none fails
+            assert close_at(w) == (False, True), w
+        assert close_at(8.0)[0], "slam"
+        # the hubs turn: a seated roll turned 90 deg about the spindle with its hub still scores the same
+        mk.new_episode()
+        _TEST_TCPS = []
+        mk.MEMORY.update(L)
+        turn = mk.mat_to_quat(mk.axis_angle((0, 0, 1), math.radians(90)))
+        spun = st({**closed, "hub_p_spin": math.radians(90)}, stub=at("r"), roll=(at("p")[0], turn))
+        assert abs(score(spun) - 1.0) < 1e-9, score(spun)
         assert _cover_under_z(0.0, 0.0) > ZP + ROLL_H + 0.005
     finally:
         mk.new_episode()

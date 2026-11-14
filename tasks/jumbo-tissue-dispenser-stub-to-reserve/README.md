@@ -2,12 +2,17 @@
 
 Instruction given to the policy: `This dispenser is almost empty. Restock it with the new roll so the old one gets used up first, and lock it.`
 
-The instruction leaves the order and the handling unstated. The stub has to come off the primary spindle and go
-onto the reserve spindle, which a slide gate blocks until it is turned clear. The new roll then goes onto the
-primary. Each spindle's sprung split hub lets a core on or off only while the release tab beside it is held down,
-so one hand holds the tab while the other slides the core along the spindle. Last, the cover's stay is released
-with its button; the closing spring and damper lower the cover until the latch clicks. Closing it over a core that
-is not seated scores 0.
+The instruction leaves the order and the handling unstated. The dispenser is modelled on a wall-mounted twin
+jumbo-roll unit, lying on its back. Each spindle is a bearing boss on the back plate carrying a split hub that turns
+freely on it, so a loaded roll spins as tissue is pulled. The cover's front panel has a tissue outlet window over each
+roll along its bottom (hinge) edge, and a red changeover shutter covers the primary's window, so tissue comes from the
+roll on the reserve spindle first. That is why the stub has to come off the primary spindle and go onto the reserve
+spindle, which a slide gate blocks until it is turned clear. The new roll then goes onto the primary. Each sprung
+split hub lets a core on or off only while the release tab beside it is held down, so one hand holds the tab while the
+other slides the core along the spindle. Last, the cover's stay is released with its button; the closing spring and
+damper lower the cover until the latch clicks (closing it by hand is fine too). Closing it over a core that is not
+seated scores 0, and so does slamming it: still closing at over 6 rad/s within 15 deg of shut, an edge impact of over
+1.8 m/s, well above a brisk hand close.
 
 Files: `task.json`, `jumbo_tissue_dispenser_stub_to_reserve.py` (the scene, `success()`, the partial-credit
 `score()`, the scripted `demo()` with its degenerate variants, and an offline self-test) and `mechkit.py`
@@ -27,7 +32,7 @@ python tasks/jumbo-tissue-dispenser-stub-to-reserve/jumbo_tissue_dispenser_stub_
 
 This asserts the scoring rules on hand-built states. It also replays every demo variant through the kinematics at
 20 Hz and checks that each joint stays inside its URDF limits and the IK error stays under 0.5 mm. It prints
-`scoring: 23 cases pass` and then one line per arm and variant.
+`scoring: 23 cases pass`, after also checking that hand closes at 0.3 to 5 rad/s pass, an 8 rad/s slam fails and a roll turned on its hub still scores 1.0, and then one line per arm and variant.
 
 ## Run and score one Dream-1 trial
 
@@ -84,4 +89,4 @@ ffmpeg -y -i ~/yam-eval/jumbo-dispenser-demo/frames/<run>/*top_cam.mp4 -frames:v
 
 Press the latch, open the cover to 100 deg and set its stay. Hold the reserve tab and take the stub off, then hold the
 primary tab and take the new roll off. Put the stub back on the primary and lay the new roll at its mark on the
-bench. Turn the gate back over the reserve hub.
+bench. Turn the gate back over the reserve hub and slide the changeover shutter back over the primary window.
