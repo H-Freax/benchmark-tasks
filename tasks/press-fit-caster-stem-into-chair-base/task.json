@@ -1,0 +1,21 @@
+{
+  "title": "Press five casters into an upturned office-chair base, holding the base steady",
+  "category": "Impact on jobs",
+  "keywords": [
+    "furniture assembly",
+    "press fit",
+    "axial force",
+    "bimanual brace",
+    "snap ring",
+    "office chair"
+  ],
+  "instruction": "Fit the five wheels to this chair base.",
+  "context": "Miscellaneous assemblers and fabricators (SOC 51-2090; 1,489,280 US jobs, BLS OEWS May 2023) assemble office chairs, and every one starts with five casters pressed into the base. A caster stem's split ring only goes past its groove when pushed hard straight down the socket; pushed at an angle it cams out or the stem bends, and an upturned base rocks unless the other hand holds it. The instruction says none of this.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left); heights above the bench top. Chair base: black glass-filled nylon 5-star, 2.0 kg, lying upside down on its hub at x 26.2, y 0. Hub 7.2 x 7.2 cm, 6 cm tall, with a 2.8 cm square column bore 4.5 cm deep. Five arms 3 cm wide and 2.8 cm thick, their undersides 3 cm off the bench, end in caster sockets 16.5 cm from the hub centre (36 cm across the sockets' outer faces) at (9.7, 0), (21.1, -15.7), (39.5, -9.7), (39.5, 9.7) and (21.1, 15.7). Each socket boss is 3.4 cm square, its top 6.2 cm up, with a 1.5 cm bore 2.6 cm deep. Casters (5): steel stem 1.1 cm square, 2.2 cm long, a 3.6 cm square steel swivel plate 0.5 cm thick, and a dark grey twin-wheel block 4 x 2.6 x 4 cm, 70 g each, wheels up. They stand stem-down in five open orange plastic racks (3.4 cm square, 1.8 cm tall walls) at (20, 33), (27.5, 33), (35, 33), (23, -33) and (30.5, -33).",
+  "scoring": "A stem set in a socket stops 6 mm in, on its split ring. It goes past the ring only when the axial load reaches 35 N with the stem within 5 deg of the socket axis and the socket within 5 deg of vertical, and then goes home to 22 mm. A sideways load at the ring above 8 N (axial load x sin of the angle) cams it out: that push counts for nothing until the load comes off. Over 30 N with the stem more than 12 deg off the axis bends it, and that caster scores 0 for the rest of the trial. Score 0, latched, if the base's hub moves more than 10 cm, drops 3 cm below the bench top or tips more than 45 deg. Otherwise 0.2 per socket holding a caster that went past that socket's ring and is home (within 2 mm of full depth, within 2 mm and 3 deg of the axis), counted only with no gripper within 1.5 cm of any caster and the base and casters moving under 1 cm/s. Casters resting on the ring or dropped in the hub bore score nothing. Scored at the last step; success is 1.0 held for 1 s.",
+  "run_limit": "2,400 steps (120 seconds at 20 Hz)",
+  "reset_notes": "Pull the five casters out of the base (they come out with a firm pull) and stand them back in the racks; set the base back on its hub at its mark.",
+  "fidelity": "Rigid boxes; round parts are square. The split ring is a sprung stop under the stem (12 N preload, 6 N/mm), so the axial load is read from its travel; at 35 N within 5 deg it drops away and a weld holds the stem home. The push counts as straight down: its angle is the larger of the stem's tilt in its bore and the socket's tilt off vertical. Cam-out and bending are rules on load and angle. Casters do not swivel. The base rocks on its hub by contact physics.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-HJWDQG"
+}
