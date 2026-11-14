@@ -1,0 +1,21 @@
+{
+  "title": "Tip in a tilt-sash window to clean its outside, then shut and lock it",
+  "category": "Impact on jobs",
+  "keywords": [
+    "housekeeping",
+    "window cleaning",
+    "double-hung tilt sash",
+    "spring latches",
+    "bimanual concurrency",
+    "sash lock"
+  ],
+  "instruction": "Tip this window in so its outside can be wiped, then shut it again.",
+  "context": "Cleaning windows is routine work for maids and housekeeping cleaners (O*NET 37-2012.00; 836,230 US jobs, BLS OEWS May 2023). The outside of a double-hung tilt window is reached from the room by drawing both tilt latches in at once and tipping the lower sash in, then the sash has to go back with both latches engaged, down and locked. The instruction says none of this.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left), heights above the bench top. A white vinyl double-hung tilt window unit lies on its back, room side up, sill end away from the robot. Lower sash: 36 (y) x 25 (x, sill to top rail) x 3 cm, 1.6 kg, 3 cm stiles and rails round a 30 x 19 cm glass pane; its faces 2.0 and 5.0 cm up; it starts raised 3 cm, spanning x 12.5-37.5 (down on the sill it spans 15.5-40.5). It slides 0-6 cm in the tracks against 25 N of balance-shoe friction and tips up about pivot bars 1.5 cm in from its bottom (sill) edge, 0-85 deg. Tilt latches: two grey bolts (1.2 x 5 x 1 cm, 50 g each) in the top rail, noses 8 mm past the stiles under the front stops; each has a blue tab 1.2 (x) x 0.8 (y) x 2 cm standing 1.8 cm above the face on the top rail's centre line (x 14 at the start), y +15 and -15; 12 mm travel, spring 500 N/m (6 N drawn fully in). Sash lock: brass thumb-turn, 4 x 0.6 x 1.2 cm bar on a 1.8 cm square base (30 g) at y 0 on the top rail, bar at +45 deg (open); shut is -45 deg, with detents at both. Frame: sill 2.5 x 45 x 7 cm at x 40.5-43; jambs 36.5 x 2 x 7 cm at x 6.5-43, y 20.5-22.5 each side; tracks 2.2 cm wide (y 18.3-20.5) with floors 2.4 cm high and front stops 4.2-6.7 cm up over them from x 6.5 to 40.5; the fixed upper sash's meeting rail (13 x 36 x 1.8 cm, x 6.5-19.5) lies under the lower sash's top rail, with a brass keeper 1.2 x 3 cm at x 14.9.",
+  "scoring": "Tilt is the angle of the sash above the frame plane. Score 0 unless the run ends with the sash back in the frame (within 1.5 deg), down on the sill (pivot bars within 2 mm of the sill position), the lock turned at least 80 deg toward shut, no gripper within 2 cm of the sash, sash and lock still (under 1 cm/s; 0.2 and 0.3 rad/s), and the sash was tipped in past 30 deg at some time in the run. Then: tipped in past 30 deg (the cleaning position) 0.4; locked down 0.3; both latches out in their tracks (each drawn in less than 1.5 mm) 0.3. Score 0, latched, if the sash tips past 80 deg (its pivot bars jump the shoes) or its top comes back into the frame (under 5 deg) faster than 0.5 m/s. Scored at the last step; 1.0 held for 1 s ends the run.",
+  "run_limit": "1,400 steps (70 seconds at 20 Hz)",
+  "reset_notes": "Turn the lock open (bar at +45 deg), raise the sash 3 cm from the sill and check that both latches are out.",
+  "fidelity": "Rigid boxes. The unit lies on its back because the arms cannot reach the top of an upright 0.25 m sash, so gravity pulls a tipped sash shut, not open. The two balance shoes are one body on a slide with 25 N friction and the two pivots one hinge. Latch bolts are spring sliders that catch under box front stops by contact. The lock is judged by angle; the keeper is visual. The sash is 1.6 kg so pad friction can hold it.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-4MKH2J"
+}
