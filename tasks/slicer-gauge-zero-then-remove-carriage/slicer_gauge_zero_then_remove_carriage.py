@@ -188,6 +188,104 @@ def robot_points() -> list:
     return out + list(mk.tcps())
 
 
+# -- arm collision surfaces -----------------------------------------------------------------------------------------
+# Every collision piece of the YAM URDF (the convex STLs PhysX collides with), reduced to the 8 corners of its box in
+# its link's frame. At every step the corners are posed with the link and the piece's world box is tested against
+# the blade zone: a box that encloses the piece, so no finger pad or link surface can enter the zone unseen.
+
+
+def _rpy(rpy):
+    r_, p_, y_ = rpy
+    cx, sx, cy, sy, cz, sz = math.cos(r_), math.sin(r_), math.cos(p_), math.sin(p_), math.cos(y_), math.sin(y_)
+    return (np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]]) @ np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+            @ np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]]))
+
+
+def _stl_points(path):
+    raw = Path(path).read_bytes()
+    if raw[:5] == b"solid" and b"facet" in raw[:400]:
+        return np.array([[float(v) for v in ln.split()[1:4]] for ln in raw.decode().splitlines()
+                         if ln.strip().startswith("vertex")])
+    n = int.from_bytes(raw[80:84], "little")
+    tri = np.frombuffer(raw[84:84 + n * 50], dtype=np.dtype([("n", "<3f4"), ("v", "<9f4"), ("a", "<u2")]))
+    return tri["v"].reshape(-1, 3).astype(float)
+
+
+def _link_corners():
+    """{link: (k*8, 3) corner points in the link frame}, from the URDF's collision elements."""
+    import xml.etree.ElementTree as ET
+    from yam_arena import YAM_URDF
+    out = {}
+    root = ET.parse(YAM_URDF).getroot()
+    for link in root.iter("link"):
+        pts = []
+        for col in link.iter("collision"):
+            o = col.find("origin")
+            xyz = np.array([float(v) for v in (o.get("xyz", "0 0 0") if o is not None else "0 0 0").split()])
+            R = _rpy([float(v) for v in (o.get("rpy", "0 0 0") if o is not None else "0 0 0").split()])
+            mesh = col.find("geometry/mesh")
+            if mesh is None:
+                continue
+            sc = np.array([float(v) for v in mesh.get("scale", "1 1 1").split()])
+            v = _stl_points(Path(YAM_URDF).parent / mesh.get("filename")) * sc
+            lo, hi = v.min(0), v.max(0)
+            c = np.array([[a, b, d] for a in (lo[0], hi[0]) for b in (lo[1], hi[1]) for d in (lo[2], hi[2])])
+            pts.append(c @ R.T + xyz)
+        if pts:
+            out[link.get("name")] = np.concatenate(pts)
+    return out
+
+
+LINK_CORNERS = _link_corners()
+
+
+def _quat_wxyz_mat(q):
+    w, x, y, z = (float(v) for v in q)
+    return np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+                     [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+                     [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]])
+
+
+_TEST_BOXES = None
+
+
+def robot_boxes() -> list:
+    """World boxes (lo, hi) enclosing every collision piece of both arms, finger pads included."""
+    env = mk._EP["env"]
+    if env is None:
+        return list(_TEST_BOXES or [])
+    base = env.unwrapped
+    origin = base.scene.env_origins[0]
+    out = []
+    for key in ("left_robot", "right_robot"):
+        art = base.scene[key]
+        rp, rq = art.data.body_pos_w, art.data.body_quat_w
+        pos = (getattr(rp, "torch", rp)[0] - origin).detach().cpu().numpy().astype(float)
+        quat = getattr(rq, "torch", rq)[0].detach().cpu().numpy().astype(float)
+        for i, name in enumerate(art.body_names):
+            c = LINK_CORNERS.get(name)
+            if c is None:
+                continue
+            w = c.reshape(-1, 8, 3) @ _quat_wxyz_mat(quat[i]).T + pos[i]
+            out.extend(zip(w.min(1), w.max(1)))
+            if os.environ.get("SLICER_DEBUG"):
+                for lo, hi in zip(w.min(1), w.max(1)):
+                    if _box_in_edge(lo, hi) and not mk.MEMORY.get("cut"):
+                        print(f"[slicer] step {mk._EP['step']} {key} {name} box {np.round(lo, 3)} {np.round(hi, 3)}"
+                              f" pos {np.round(pos[i], 3)}", flush=True)
+    return out
+
+
+def _box_in_edge(lo, hi, gauge=None) -> bool:
+    """A world box overlaps bare blade: the blade zone, less the plate window while the gauge is closed."""
+    lo, hi = np.maximum(np.asarray(lo, float), EDGE_LO), np.minimum(np.asarray(hi, float), EDGE_HI)
+    if np.any(lo > hi):
+        return False
+    g = gauge_mm() if gauge is None else gauge
+    covered = g <= OPEN_MM and bool(np.all(lo[1:] >= COVER_LO) and np.all(hi[1:] <= COVER_HI))
+    return not covered
+
+
 def _in_edge(p, gauge=None) -> bool:
     """In front of bare blade: the blade zone, minus the plate's window while the gauge is closed."""
     p = np.asarray(p, float)
@@ -228,8 +326,12 @@ def _mechanism_rule(objects):
             mk._set_joint_enabled(kit, "rail", False)
         elif abs(float(p[0]) - CX) > 0.010 or abs(float(p[2]) - DECK_Z) > 0.010:
             M["forced"] = True  # off its rail against the interlock
-    if any(_in_edge(pt) for pt in robot_points()):
+    boxes = robot_boxes()
+    if any(_in_edge(pt) for pt in robot_points()) or any(_box_in_edge(lo, hi) for lo, hi in boxes):
         M["cut"] = True
+    if os.environ.get("SLICER_DEBUG") and boxes:  # closest approach of any collision box to the blade zone
+        gap = min(float(np.max(np.maximum(EDGE_LO - hi, lo - EDGE_HI))) for lo, hi in boxes)
+        M["min_gap"] = min(M.get("min_gap", 1.0), gap)
     if _tilt(q) > 45.0:
         M["tipped"] = True
     if float(p[2]) < TOP - 0.050:
@@ -237,7 +339,7 @@ def _mechanism_rule(objects):
     if os.environ.get("SLICER_DEBUG") and mk._EP["step"] % 20 == 0:
         print(f"[slicer] step {mk._EP['step']} gauge {gauge_mm():.2f} mm release {release_deg():.0f} deg "
               f"rail {travel * 1000:.1f} mm carriage {np.round(p, 4)} tilt {_tilt(q):.1f} "
-              f"flags { {k: v for k, v in M.items() if k in ('order_ok', 'rail_free', 'cut', 'forced', 'tipped', 'dropped')} }"
+              f"flags { {k: v for k, v in M.items() if k in ('order_ok', 'rail_free', 'cut', 'forced', 'tipped', 'dropped', 'min_gap')} }"
               f" score {score(objects)}", flush=True)
 
 
@@ -366,7 +468,8 @@ def _gauge_down():
 
 def _release_out():
     s = _twist(RK, -60.0, RELEASE_TURNS_DEG + 80.0 - 60.0, +1, "release knob")
-    return s
+    # draw back toward the robot before crossing to the carriage, so the forearm stays clear of the knife
+    return s + [Waypoint(1.0, (0.230, RK[1], RK[2] + GRASP_Z + 0.030), KNOB_OPEN, "back off toward you", 0.0)]
 
 
 def _dur(plan):
@@ -452,7 +555,7 @@ def demo():
 
 
 def self_test():
-    global _TEST_TCPS, _TEST_POINTS
+    global _TEST_TCPS, _TEST_POINTS, _TEST_BOXES
     up = mk.mat_to_quat(np.eye(3))
     seat = (LIFT_SEAT.copy(), up)
     lifted = (LIFT_SEAT + np.array([0, 0, LIFT]), up)
@@ -488,6 +591,20 @@ def self_test():
         "tipped": (st(on_tray_p), [], {**ok, "tipped": True}, 0.0),
     }
     try:
+        # a finger pad reaches into the bare upper arc while the TCP and every link origin stay outside: fails, latched
+        mk.new_episode()
+        _TEST_TCPS, _TEST_POINTS = [], [np.array([BLADE_X - 0.060, 0.10, TOP + 0.22])]
+        pad = (np.array([BLADE_X - 0.052, 0.095, TOP + 0.215]), np.array([BLADE_X - 0.040, 0.105, TOP + 0.235]))
+        _TEST_BOXES = [pad]
+        assert not any(_in_edge(p) for p in _TEST_POINTS) and _box_in_edge(*pad, gauge=0.0)
+        mk.MEMORY.update({**ok, "gauge_deg": 0.0})
+        _mechanism_rule(st(on_tray_p))
+        _TEST_BOXES = None
+        _mechanism_rule(st(on_tray_p))
+        assert mk.MEMORY.get("cut") and score(st(on_tray_p)) == 0.0, "finger surface in the blade zone not caught"
+        # the same pad inside the plate window with the gauge closed is covered; with the gauge open it fails
+        win = (np.array([BLADE_X - 0.044, -0.02, TOP + 0.06]), np.array([BLADE_X - 0.040, 0.00, TOP + 0.08]))
+        assert not _box_in_edge(*win, gauge=0.0) and _box_in_edge(*win, gauge=12.0)
         for name, (s_, tcps, mem, want) in cases.items():
             mk.new_episode()
             _TEST_TCPS = tcps
@@ -505,8 +622,8 @@ def self_test():
         assert abs(kit.q(start, "rail")) < 1e-9 and abs(kit.q(st(seat), "rail") - RAIL_LO) < 1e-9
     finally:
         mk.new_episode()
-        _TEST_TCPS = _TEST_POINTS = None
-    return len(cases)
+        _TEST_TCPS = _TEST_POINTS = _TEST_BOXES = None
+    return len(cases) + 2
 
 
 if __name__ == "__main__":
