@@ -1,11 +1,11 @@
 # Lower a gas-spring hospital overbed table to a marked height
 
-Instruction given to the policy: `Lower the overbed table to the marked height.`
+Instruction given to the policy: `Lower the overbed table to the marked height. Its single column is a locking gas spring, released by the paddle under the front edge of the top.`
 
 The column is a locking gas spring. It moves only while the release paddle under the top's front edge is held
 up, and then it pushes the top up. Lowering the top takes both hands: one holds the paddle up and follows it
 down, and the other presses the top down near its middle. The paddle is let go first, which locks the column, and
-the top second. The instruction does not say any of this. The score latches to 0 in three cases: the top springs
+the top second. The instruction names the mechanism but not this two-handed sequence. The score latches to 0 in three cases: the top springs
 up 40 mm, the top tilts more than 4 deg, or it is pushed onto the patient's shins with more than 30 N.
 Height is read from the column's travel, not a corner of the top, and the top must end within 1 deg of level.
 
@@ -36,7 +36,7 @@ right: 20.5 s plan, worst IK 0.087 mm / 0.012 deg
 ```bash
 inspect-robots run --embodiment yam_arena --policy dream \
   -E task=tasks/overbed-table-lower/overbed_table_lower.py -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
-  --instruction "Lower the overbed table to the marked height." \
+  --instruction "Lower the overbed table to the marked height. Its single column is a locking gas spring, released by the paddle under the front edge of the top." \
   --scorer task_score --max-steps 900 --seed 0 --no-prompt --store-frames --log-dir ~/yam-eval/overbed-table-lower-dream
 ```
 

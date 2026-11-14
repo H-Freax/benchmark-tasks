@@ -9,7 +9,7 @@ Mechanism parts come from mechkit.py (in this folder), which adds joints to the 
 
 Run it:  inspect-robots run --embodiment yam_arena -E task=tasks/overbed-table-lower/overbed_table_lower.py \\
            -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 --max-steps 900 \\
-           --instruction "Lower the overbed table to the marked height." --scorer task_score ...
+           --instruction "Lower the overbed table to the marked height. Its single column is a locking gas spring, released by the paddle under the front edge of the top." --scorer task_score ...
 """
 
 import math
