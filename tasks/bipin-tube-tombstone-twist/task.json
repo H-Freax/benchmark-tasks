@@ -1,0 +1,22 @@
+{
+  "title": "Install a bi-pin fluorescent tube: pins down both lampholder slots against a sprung holder, then a quarter turn to lock",
+  "category": "Impact on jobs",
+  "keywords": [
+    "janitorial",
+    "relamping",
+    "fluorescent tube",
+    "bi-pin lampholder",
+    "sprung holder",
+    "bimanual",
+    "quarter turn lock"
+  ],
+  "instruction": "Install the new tube in the fixture.",
+  "context": "Relamping is routine work for janitors and cleaners (O*NET 37-2011.00; 2,172,500 US jobs, BLS OEWS May 2023). A T8 tube's two pin pairs go down the slots of rotary lampholders, one of them sprung, and the tube is then turned a quarter turn so the rotors lock the pins; a tube left unturned sits loose in open slots and falls out of an overhead fixture. The instruction says none of this.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left); heights above the bench top. Fixture lying on its back: white steel channel 12 (x) x 64 (y) x 0.6 cm centred at x 30, y 0, with 0.4 x 1.2 cm lips along both long edges. Two white rotary lampholders face each other along y, axis at x 30, 3.6 cm up: each a 2.4 x 1 x 3.6 cm body on a foot, with an ivory rotor (two 0.8 x 1.2 cm cheeks round a 0.4 cm slot open at the top, floor under the lower pin; 20 g, detents at 0 and 90 deg) under a slotted guard whose inner top edge is bevelled 78 deg (5 mm over 23.5 mm). Left holder fixed, its face at y 29.49. Right holder (50 g) on a slide along y, pushed inward by a spring (200 N/m, 3 N at rest) to its stop with its face at y -29.09, 8 mm travel outward. Tube: T8, 2.54 cm glass, 58.98 cm between its aluminium end-cap faces, 180 g, two 2 mm pins 6.6 mm long, 12.7 mm apart, at each end; lying on the bench along y at x 17, y 0, pins upright.",
+  "scoring": "Pin pair seated: that end-cap face centre within 1.5 mm of its rotor's seat (face centre on the rotor axis), tube within 1 deg of the holder axis, pins within 8 deg of the slot; seated pins are then held by the rotor (the tube turns with it). Touching: a gripper TCP within 3.5 cm of the tube axis. Score 0, latched, if the tube falls more than 10 cm while nothing holds it, ends 5 cm below the bench top, or the two rotors differ by more than 5 deg (one end turned without the other). Score 0 if both pin pairs are seated but neither turned to 85 deg and nothing touches the tube (it would fall out). Otherwise: both pin pairs seated 0.3; plus both rotors at 85 deg or more 0.5; plus no gripper touching and the tube still (over the last 0.5 s its centre moved under 2.5 mm and the rotors under 3 deg) 0.2. Scored at the last step; 1.0 held for 1 s ends the run.",
+  "run_limit": "1,600 steps (80 seconds at 20 Hz)",
+  "reset_notes": "Turn the tube back a quarter turn, lift it out of the holders and lay it on the bench at its mark, pins upright.",
+  "fidelity": "Rigid boxes; the tube is a 12-sided prism with box pins. Holders are a slider with a spring and two hinged rotors; detents are a spring rule. Seated pins are held by a weld switched on when they reach the slot floor, not by contact in the rotor. The fixture lies on the bench, so falling out of an unturned holder is scored by rule, not simulated. No electrical contact.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-ULXF6R"
+}
