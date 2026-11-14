@@ -1,0 +1,20 @@
+{
+  "title": "Take the tray off a high chair with a toddler in it: squeeze both release paddles and draw it straight out",
+  "category": "Impact on jobs",
+  "keywords": [
+    "childcare",
+    "high chair",
+    "bimanual simultaneous squeeze",
+    "ratchet detents",
+    "straight-line pull",
+    "force limit near a person"
+  ],
+  "instruction": "Take the tray off the high chair.",
+  "context": "Childcare workers (O*NET 39-9011.00; 497,450 US jobs, BLS OEWS May 2023) and home health and personal care aides (31-1122.00; 3,715,450) take high-chair trays off with a child still seated, many times a day. The tray only releases while both side paddles are squeezed together, and it must come straight out: tipping it up drives its back edge into the child's arms.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left), heights above the bench top. Booster high chair: orange seat pad 16 x 28 x 1 cm at x 54-70, backrest 2 x 28 x 32 cm at x 67-69, side panels 18 x 2 x 16 cm at y +-15. Toddler manikin: green torso 10 x 18 x 28 cm at x 54-64, head 12 x 12 x 13 cm, legs 14 x 3.6 x 3.5 cm along the bench at y +-5, forearms 15.2 x 4.5 x 3.5 cm (150 g each, sprung at 1.5 N/mm) lying 4 mm over the tray deck, x 38.5-53.7, y +-5. Two grey rail blocks 20 x 1.6 x 8.4 cm at x 33-53, y +-8. Tray: white plastic, 1.2 kg, 22 (x) x 34 (y) cm, 1.2 cm deck with its underside 8.5 cm up, 4 cm skirt, centred at x 37, y 0; it slides toward the robot on the rails, latched by a ratchet with detents at 0, 3, 6 and 9 cm and off the rails at 12 cm. Release paddles: blue 3 x 0.6 x 3.7 cm, one in a pocket on each side under the deck edge (y +-15.9, 30 cm apart at the pinch), each pinched toward a fixed blue fin 1 cm inboard of it; 8 mm travel, 7.2 N at rest rising to 12 N.",
+  "scoring": "Rail travel = how far the tray has moved out along its rails. Score 0, latched, if at any time the tray presses on the child's forearms with more than 20 N (a forearm pushed up 13.3 mm) or the tray falls (downward speed over 1 m/s, or 5 cm below the bench top). Otherwise: off the rails (12 cm out with both paddles squeezed) and resting flat (within 5 deg) on the bench, its lowest point within 5 mm of the bench top, wholly in front of the rail blocks, no gripper within 2 cm and moving under 1 cm/s: 1.0; off the rails otherwise 0.4; on the rails 6 cm or more out (second detent cleared) 0.4; 3 cm or more out (first detent cleared) 0.2; else 0. Success: 1.0 held for 1 s. Scored at the last step.",
+  "run_limit": "1,200 steps (60 seconds at 20 Hz)",
+  "reset_notes": "Slide the tray back onto the rails to the first detent; seat the manikin with its forearms just over the tray.",
+  "fidelity": "Rigid boxes. The ratchet is a stiff spring to the nearest 3 cm detent, switched off while both paddles are past 6 mm; the tray rides a hidden rail carriage and can lift off it up to 6 cm. Forearms are sprung blocks; contact force is read from their spring. Chair legs omitted: the seat is at bench height, tray 8.5 cm above it.",
+  "scores": "Dream-1 run: refused by the Dream API (DA-4000, unsafe instruction near the manikin), twice; demo: 1.0"
+}
