@@ -1,0 +1,21 @@
+{
+  "title": "Raise a folded ironing board to its working height and lock it there",
+  "category": "Impact on jobs",
+  "keywords": [
+    "housekeeping",
+    "ironing board",
+    "ratchet",
+    "release trigger",
+    "bimanual lift",
+    "squeeze while lifting"
+  ],
+  "instruction": "Put the board up at its working height.",
+  "context": "Maids and housekeeping cleaners (O*NET 37-2012.00; 836,230 US jobs, BLS OEWS May 2023) set up ironing boards daily in hotels and homes. The height ratchet only moves while its release trigger is squeezed, so one hand must hold the trigger while both lift, then let go so the pawl drops in. Board dropped or tipped is a common injury cause.",
+  "setup": "Positions in cm from the midpoint between the arm bases (x forward, y left); heights above the bench top. Base: steel, 0.8 kg, free on the bench: two feet 14 x 1.6 x 1 cm along x at y +-15 (centred x 27), a 1.6 x 30 x 1 cm spine at x 34.8, two 1.6 x 1.6 x 9 cm guide columns at x 34.8, y +-15; a blue tag on the columns marks notch 3. Board: 12 x 45 x 1 cm, 1.2 kg (with handles), centred x 27, y 0, lying folded with its underside 1.2 cm up, long axis along y, nose at y +22.5. Black end handles 4 x 1 x 3 cm stand up 2 cm above the board top at both ends. Release trigger: red 4 x 0.6 x 2.8 cm paddle behind the nose handle, pivoted at its bottom, top 1.8 cm out from the handle at rest, about 10 N to squeeze shut. Height rack: steel brackets riding the columns; notches at 0, 1.5, 3, 4.5 and 6 cm of lift.",
+  "scoring": "Lift = board underside height above its folded height. Score 0, latched, if the board or base tilts over 25 deg; the board falls more than 6 mm in one 50 ms step while the pawl is out; or the board is forced 9 mm or more (about 36 N) against a locked pawl, which strips it. At the last step, 0 if the board or base is tilted over 5 deg or lift is 3.3 cm or less. Otherwise 0.4; 1.0 if the pawl is in notch 3, the trigger is let go (over 8 deg open), lift is within 5 mm of 4.5 cm, no gripper within 2 cm of the board or trigger, and the board and base are still (under 1 cm/s). Success: 1.0 held for 1 s.",
+  "run_limit": "1,200 steps (60 seconds at 20 Hz)",
+  "reset_notes": "Squeeze the trigger, lower the board to folded (notch 0), let go.",
+  "fidelity": "Rigid boxes. A 1:2.2 tabletop model with 1:10 height travel; the scissor legs are a straight rack on two guide columns. The pawl is a weld switched on at a notch when the trigger is open, the board rides it on a stiff spring, and stripping is set by spring deflection. Trigger spring is a hinge drive. Board cover has no padding.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-7NGLMP"
+}
