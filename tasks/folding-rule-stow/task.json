@@ -1,0 +1,20 @@
+{
+  "title": "Fold a full-size wooden rule into its storage recess",
+  "category": "Societal relatability",
+  "instruction": "Put the folding rule into its storage recess.",
+  "context": "A folding rule is a normal full-size hand tool for household and workshop measurements. Stowing the partly extended tool requires folding its real spring-jointed leaves and keeping the complete tool together; a rigid straight rule cannot fit the short recess. This is a general everyday tool task, not a scaled industrial assembly.",
+  "setup": "The calibrated YAM station table is1.10x1.30m, top z0.7475m; arm bases at(0,+/-0.305,0.75)m. Axes:x forward,y left,z up. Ten200mm-pitch lacquered-wood leaves,204x16x3mm each including2mm end overlap per side, form a nominal2m folding rule. Each leaf6.3648g, density650kg/m3; mass and density are engineering estimates. Nine real revolute hinges have3.4mm layer spacing and0..180deg stops. Springs are an engineered over-center model:k0.012Nm/rad, rest-20deg below90/200deg above90, damping0.0003Nms/rad, dry-joint friction0.002Nm. Base origin(0.36,0.205,0.7493), local length axis toward-y. The first seven hinges start180deg and the last two start0deg, leaving two200mm leaves open toward+y; whole-tool starting envelope approximately x0.352..0.368,y0.003..0.607,z0.7478..0.7814. A fixed polymer storage recess is centered(0.32,-0.18): clear inside224x36x50mm, floor4mm above tabletop,4mm thick walls. All ten leaves and all nine joints remain physical; no reduced-size proxy. Coated wood and pocket materials use static/dynamic friction0.4/0.3, zero restitution, average combine; robot rubber-pad material is unchanged. No other loose task objects. All primitive geometry is authored locally; OEM dimensions and engineering assumptions are distinguished in README.",
+  "scoring": "Latch 0 for a real leaf falling more than 30 mm below tabletop. Otherwise 0.25 when the maximum 3D distance between any pair of all 80 live collision corners is at most sqrt(222^2+34^2+50^2) mm (about 230 mm): orientation-independent compactness progress, not a claim of pocket fit. 0.5 when every corner of all 10 leaves is inside the actual 224x36x50 mm recess volume (floor tolerance 0.6 mm) and measured target-floor contact reaction exceeds 0.05 N. 1.0 also requires every actual URDF arm/palm/finger collision piece at least 5 mm from every leaf, leaf speed below 15 mm/s and angular speed below 0.1 rad/s, continuously for 1 s. No required hand, fold order, joint-angle target or return path. Real counterpart uses whole-tool dimensions, visible floor support, and video of released stability; contact force is a support diagnostic.",
+  "run_limit": "1,200 control steps (60seconds at20Hz)",
+  "fidelity": "Full-size10rigid wood leaves,9native contact-enabled revolute hinges. Engineered mass, coated-wood friction and over-center spring/dry-friction parameters; no wood flexibility, fracture, ruler accuracy or measured OEM joint-torque claim. Native contact processing is explicitly enabled. No runtime object pose writes or gripper attachments.",
+  "scores": "Dream-1: 0.0 after the full 1,200-control limit (normal max_steps termination, no errored trials). Scripted reference: 1.0 in 872 controls (43.6 s), repeated twice on identical final Python source. Same-source diagnostic controls: already-stowed STOP 1.0; incorrectly stopping on the unfinished fixture 0.0; folding/carrying but keeping the tool grasped above the recess 0.25. These are one task family.",
+  "media": "M-HQCGFY",
+  "keywords": [
+    "folding rule",
+    "passive hinges",
+    "articulated compaction",
+    "regrasp",
+    "storage"
+  ],
+  "reset_notes": "With the robot parked, restore all10leaves and9hinges. The first7hinges are folded180deg; the last2are open0deg. Place the rule at the documented coordinates and leave the storage recess empty. Reset clears failure and stability history. Task objects are never pose-corrected, welded to grippers or captured by a distance threshold during a scored trial."
+}
