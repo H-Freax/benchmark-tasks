@@ -1,0 +1,19 @@
+{
+  "title": "Move a granite mortar and its loose pestle to the clear work area",
+  "category": "Societal relatability",
+  "keywords": [
+    "kitchen",
+    "loose load",
+    "mortar and pestle",
+    "support transfer"
+  ],
+  "instruction": "Move the granite mortar to the green work area and leave it upright with the pestle resting inside.",
+  "context": "A mortar is moved to clear a kitchen work surface after spice preparation. Its loose long pestle rests between the bowl floor and rim, so moving the heavy bowl also requires controlling or temporarily relocating the pestle.",
+  "setup": "Metres from the midpoint between two arm bases: +x forward, +y left, z up. Bases (0, ±0.305, 0.750); station wood tabletop 1.10 x 1.30 m, top 0.7475 m, centre x=0.36. Granite mortar: 140 mm outer diameter, 80 mm high, 110 mm cavity, 18 mm floor, two integral 30 x 36 x 18 mm ears at local y=±79 mm and z=47 mm; mass 1.85 kg. Its bottom centre starts at (0.240,0,0.7475). Separate granite pestle: 180 mm long, 50 mm-long 48 mm head and 130 mm-long 28 mm shaft, mass 0.48 kg. It leans 52.95 degrees from vertical toward +x, head on the inner floor and shaft on the rim; origin (0.28682990,0.00000000,0.83888070), quaternion xyzw (0.00000000,0.44580728,0.00000000,0.89512897); exact transforms are in the task file. Four green 1 mm-high painted boundary strips mark a 210 x 240 mm work area centred at (0.300,-0.160,0.7475), outside the mortar footprint. No other movable items.",
+  "scoring": "Current end state, with whole-run fall latch. Score 0 if either body ever has its lowest point >50 mm below the tabletop, or currently >25 mm below it. Mortar placed: bottom centre within 25 mm horizontally of (0.300,-0.160), within 4 mm of tabletop height, upright within 5 degrees. Pestle contained: each head vertex below rim+3 mm lies inside the 32-sided 55 mm cavity with 3 mm tolerance; no head vertex below floor-3 mm; head centre ≥10 mm below rim and ≥3 mm inside cavity wall. Stable means both bodies <10 mm/s and <0.17 rad/s. Clear means every robot collision piece has ≥20 mm separation by conservative bounds; missing or invalid readout is not clear. If not placed: 0.25 only when mortar centre is within 90 mm of target, pestle contained and both stable; otherwise 0. If placed without contained pestle: 0.50 when stable and clear, otherwise 0.25. If placed with contained pestle: 1.0 when stable and clear, otherwise 0.75. Full success held for 1 s.",
+  "run_limit": "1,350 control steps (67.5 seconds at 20 Hz)",
+  "reset_notes": "Return the mortar bottom centre and the pestle to the exact starting transforms in the task file. Place the pestle head on the inner floor with its upper shaft leaning toward +x against the rim. Restore both arms to READY with grippers open. Nothing is consumed.",
+  "fidelity": "Full-size original rigid geometry; two free bodies, no weld or pose control. Granite masses are engineering estimates; stock friction (static 1.2, dynamic 1.0) is not granite-calibrated. Collision uses 32-sided convex sectors, without fracture, grinding or elastic deformation. Release uses conservative bounds for all 630 robot collision pieces; invalid numeric readouts fail closed.",
+  "scores": "Dream-1 run: 0.0 (1,350 steps); demo: 1.0 (1,203 steps), repeated 1.0; mortar-only control: 0.50; still-held control: 0.75.",
+  "media": "M-KKBJHN"
+}

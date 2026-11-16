@@ -1,0 +1,90 @@
+{
+  "code_sha256": {
+    "mechkit.py": "1aeb99c1df7f96b80a39f6f15de3e271b65e7a4894543fb03f1aa01c44a2e4b5",
+    "move_mortar_and_pestle.py": "f71796d2364c9d7ff6aee630e7ba2bf16c2ade89746ba1be14fa31640bf72020",
+    "robot_clearance.py": "1c68f159f824fafe02a29512f5e130096fa29f7d2b8c40706f7b303a1cf38b85"
+  },
+  "trials": [
+    {
+      "id": "adhoc_7a10828b",
+      "name": "release-demo1",
+      "policy": "yam_scripted",
+      "variant": "",
+      "score": 1.0,
+      "steps": 1203,
+      "runtime_s": 159.483,
+      "normal_terminal": true,
+      "termination": [
+        [
+          "success"
+        ]
+      ],
+      "source_unchanged": true
+    },
+    {
+      "id": "adhoc_22dbee83",
+      "name": "release-demo2",
+      "policy": "yam_scripted",
+      "variant": "",
+      "score": 1.0,
+      "steps": 1203,
+      "runtime_s": 160.753,
+      "normal_terminal": true,
+      "termination": [
+        [
+          "success"
+        ]
+      ],
+      "source_unchanged": true
+    },
+    {
+      "id": "adhoc_b57209e9",
+      "name": "release-mortar-only1",
+      "policy": "yam_scripted",
+      "variant": "mortar_only",
+      "score": 0.5,
+      "steps": 941,
+      "runtime_s": 124.625,
+      "normal_terminal": true,
+      "termination": [
+        [
+          "policy_stop"
+        ]
+      ],
+      "source_unchanged": true
+    },
+    {
+      "id": "adhoc_f1e17be7",
+      "name": "release-keep-held1",
+      "policy": "yam_scripted",
+      "variant": "keep_held",
+      "score": 0.75,
+      "steps": 1301,
+      "runtime_s": 173.411,
+      "normal_terminal": true,
+      "termination": [
+        [
+          "policy_stop"
+        ]
+      ],
+      "source_unchanged": true
+    },
+    {
+      "id": "adhoc_f013c815",
+      "name": "release-dream1",
+      "policy": "dream",
+      "variant": "",
+      "score": 0.0,
+      "steps": 1350,
+      "runtime_s": 191.212,
+      "normal_terminal": true,
+      "termination": [
+        [
+          "max_steps"
+        ]
+      ],
+      "source_unchanged": true
+    }
+  ],
+  "boundary": "These runs establish simulator reference feasibility and scorer controls, not task acceptance or real-world calibration."
+}
