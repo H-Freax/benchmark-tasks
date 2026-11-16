@@ -1,5 +1,7 @@
 # Restock a wall-mounted twin-roll tissue dispenser
 
+This task is in **Impact on jobs**. [O*NET 37-2011.00](https://www.onetonline.org/link/summary/37-2011.00) lists “Service, clean, or supply restrooms” among janitors’ and cleaners’ tasks and reports 2,432,600 employees for 2025. Retaining a usable remaining roll while replenishing the reserve is a concrete instance of that regular work.
+
 Move the remaining roll from the right support to the left, fit the refill on the vacated right support, close and physically latch the cover, release the device and leave usable tissue from the remaining roll. The manual selector starts correctly exposing the left outlet and covering the right outlet. Its measured final position is still required; redundant selector movement is optional.
 
 This is a declared prepared maintenance state. The upright cabinet starts with its side-hinged cover90 degrees open. One continuous86.36mm wide,350mm long,100um tissue sheet is attached at the inner-upper tangent of the right old roll,30 degrees above the inward horizontal radius. Its loose end is pre-threaded through the open left outlet. Reset this original layout and its settled photograph exactly. The same sheet must remain attached and usable after the roll transfer; no added support, guide or attachment holds it in the aperture. Legal temporary placement, regrasping and alternative safe routing are allowed.
@@ -24,3 +26,8 @@ Reset the old roll to the right, the refill to its paperboard platform, the cove
 
 
 Sources: [56TR external dimensions and service documents](https://www.torkglobal.com/us/en/product/dispenser/toilet-paper/jumbo-roll/56TR); [TJ0922A refill size and mass](https://www.torkglobal.com/ca/en/product/toilet-paper/refills/jumbo-roll/TJ0922A). The cabinet and manually prepared selector/paper reset are an original functional equivalent, not an OEM replica. No automatic shutter reset is claimed. Source documents are references and are not redistributed. The original task code and helper are maintained in this team fork; no external CAD, mesh, photograph or texture is packaged. The material reference and approximation boundaries are in MATERIALS.md.
+
+
+The original custom dispenser now has a [manufacturing package](fabrication/README.md), [assembly instructions](fabrication/ASSEMBLY.md), a [bill of materials](fabrication/BOM.csv), [stock cut list](fabrication/cut-list.csv), dimensioned SVG/PDF sheets and millimetre STL parts. These specify the real hinge, cam-bolt guides and spring, selector keepers, support fixings and a closing-tool connection. The source-contact envelopes and added manufacturing features are supplied separately.
+
+The fabrication files describe an unbuilt prototype. Bearings, guide pins, fluid dampers, mounting bores and the tool connection are explicit additions to the idealized joints in the recorded simulation. Their assembled mass, friction, damping and durability remain unmeasured. The existing two full-score native references and Dream recording validate the supplied simulation; the machining and bench acceptance procedures define the remaining physical build work. [source-and-scope.json](fabrication/source-and-scope.json) records that boundary and the original source correspondence.
