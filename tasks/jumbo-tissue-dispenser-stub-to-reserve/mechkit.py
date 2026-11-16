@@ -162,6 +162,29 @@ class BoxSpec:
     quat: tuple = (0.0, 0.0, 0.0, 1.0)
 
 
+@dataclass(frozen=True)
+class ConvexSpec(BoxSpec):
+    """One convex collision mesh; size/at retain its enclosing box for offline bounds."""
+    vertices: tuple = ()
+    faces: tuple = ()
+
+
+def convex(vertices, faces, at=(0.0, 0.0, 0.0), color=None) -> ConvexSpec:
+    """A convex polyhedron with metre-scale vertices and consistently wound polygon faces, at a local offset."""
+    points = np.asarray(vertices, float)
+    faces = tuple(tuple(int(i) for i in face) for face in faces)
+    if points.ndim != 2 or points.shape[1] != 3 or len(points) < 4 or not np.isfinite(points).all():
+        raise ValueError("a convex mesh needs at least four finite 3-D vertices")
+    if not faces or any(len(face) < 3 or min(face) < 0 or max(face) >= len(points) for face in faces):
+        raise ValueError("convex mesh faces must index at least three valid vertices")
+    lo, hi = points.min(0), points.max(0)
+    if min(hi - lo) <= 0:
+        raise ValueError("a convex mesh must have positive volume bounds")
+    center = (lo + hi) / 2
+    return ConvexSpec(tuple(float(v) for v in hi - lo), tuple(float(v) for v in np.asarray(at, float) + center), color,
+                      vertices=tuple(tuple(float(v) for v in p) for p in points - center), faces=faces)
+
+
 def box(size, at=(0.0, 0.0, 0.0), color=None, yaw: float = 0.0, quat=None) -> BoxSpec:
     """One box of a part: edge lengths ``size`` (m), centre ``at`` in the part frame, turned ``yaw`` (rad) about
     the part's z (or by ``quat`` xyzw); ``color`` overrides the part's."""
@@ -181,6 +204,7 @@ class MechPart(Box):
     origin: tuple = (0.0, 0.0, 0.0)  # spawn pose of the part frame (world)
     origin_quat: tuple = (0.0, 0.0, 0.0, 1.0)
     kit_id: int = 0
+    contact_offset: float = 0.005
 
 
 @dataclass
@@ -193,6 +217,7 @@ class _Part:
     lo: np.ndarray = field(default=None)  # local AABB of the geometry (part frame)
     hi: np.ndarray = field(default=None)
     parent_joint: str | None = None
+    contact_offset: float = 0.005
 
     @property
     def free(self) -> bool:
@@ -244,7 +269,8 @@ class Kit:
 
     # -- declaring --------------------------------------------------------------------------------------------
 
-    def part(self, name, pos, boxes, mass=None, color=GREY, yaw: float = 0.0, quat=None) -> str:
+    def part(self, name, pos, boxes, mass=None, color=GREY, yaw: float = 0.0, quat=None,
+             contact_offset: float = 0.005) -> str:
         """A rigid body made of ``boxes`` (see :func:`box`), its frame at world ``pos`` in the reference pose.
         ``mass`` None: fixed in place (static); otherwise a free body of that mass (kg)."""
         if not str(name).isidentifier():
@@ -258,6 +284,9 @@ class Kit:
             raise ValueError(f"part {name!r}: mass must be positive or None")
         q = quat if quat is not None else yaw_quat(yaw)
         p = _Part(name, _T(quat_to_mat(q), np.asarray(pos, dtype=float)), boxes, mass, tuple(color))
+        if not contact_offset > 0:
+            raise ValueError("contact_offset must be positive")
+        p.contact_offset = float(contact_offset)
         corners = []
         for b in boxes:
             r = quat_to_mat(b.quat)
@@ -396,7 +425,8 @@ class Kit:
             fl = lambda v: tuple(float(c) for c in v)  # plain floats: Isaac turns numpy float64 into doubles
             out.append(MechPart(name=name, pos=fl((lo + hi) / 2), color=fl(p.color), mass=p.mass,
                                 size=fl(np.maximum(hi - lo, 1e-4)), boxes=p.boxes, origin=fl(t[:3, 3]),
-                                origin_quat=fl(mat_to_quat(t[:3, :3])), kit_id=self.id))
+                                origin_quat=fl(mat_to_quat(t[:3, :3])), kit_id=self.id,
+                                contact_offset=p.contact_offset))
         return out
 
     # -- readouts ---------------------------------------------------------------------------------------------
@@ -434,7 +464,10 @@ class Kit:
             quat = mat_to_quat(m[:3, :3])
             return float(2 * math.atan2(float(np.dot(quat[:3], j.axis)), float(quat[3])))
         if j.kind == "slider":
-            return float(np.dot(m[:3, 3], j.axis))
+            # Measure the relative motion at the joint anchor. A tiny off-axis solver rotation would otherwise
+            # become a false translation through the child's distance from the world origin.
+            delta = m[:3, :3] @ j.anchor + m[:3, 3] - j.anchor
+            return float(np.dot(delta, j.axis))
         raise ValueError(f"{name!r} is a plain bond; use broken() / slip()")
 
     def q_deg(self, objects, name: str) -> float:
@@ -806,6 +839,7 @@ def _spawn_part_fn(mod):
     import isaaclab.sim as sim_utils
     from isaaclab.sim import schemas
     from isaaclab.sim.spawners.shapes import spawn_cuboid
+    from isaaclab.sim.spawners.shapes.shapes import _spawn_geom_from_prim_type
     from isaaclab.sim.utils import clone, create_prim, get_current_stage
 
     @clone
@@ -814,6 +848,7 @@ def _spawn_part_fn(mod):
         stage = get_current_stage()
         create_prim(prim_path, prim_type="Xform", translation=translation, orientation=orientation, stage=stage)
         coll = mod._contact_props() if spec.free else mod.PhysxCollisionPropertiesCfg()
+        coll.contact_offset = spec.contact_offset
         for i, b in enumerate(spec.boxes):
             color = b.color if b.color is not None else spec.color
             bcfg = sim_utils.CuboidCfg(
@@ -822,8 +857,24 @@ def _spawn_part_fn(mod):
                 physics_material=mod._grippy(),
                 visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=mod.linear_rgb(color), roughness=0.4),
             )
-            spawn_cuboid.__wrapped__(f"{prim_path}/box{i}", bcfg, translation=tuple(float(v) for v in b.at),
-                                     orientation=tuple(float(v) for v in b.quat))
+            if isinstance(b, ConvexSpec):
+                from pxr import UsdPhysics
+
+                def convex_collision(path, stage=None):
+                    UsdPhysics.MeshCollisionAPI.Apply(stage.GetPrimAtPath(path)).CreateApproximationAttr().Set("convexHull")
+
+                points = np.asarray(b.vertices, float)
+                _spawn_geom_from_prim_type(
+                    f"{prim_path}/box{i}", bcfg, "Mesh",
+                    {"points": list(b.vertices), "faceVertexCounts": [len(face) for face in b.faces],
+                     "faceVertexIndices": [index for face in b.faces for index in face],
+                     "extent": [tuple(float(v) for v in points.min(0)), tuple(float(v) for v in points.max(0))],
+                     "subdivisionScheme": "none"},
+                    translation=tuple(float(v) for v in b.at), orientation=tuple(float(v) for v in b.quat),
+                    stage=stage, geometry_schema_func=convex_collision)
+            else:
+                spawn_cuboid.__wrapped__(f"{prim_path}/box{i}", bcfg, translation=tuple(float(v) for v in b.at),
+                                         orientation=tuple(float(v) for v in b.quat))
         if spec.free:
             schemas.define_rigid_body_properties(
                 prim_path, mod.PhysxRigidBodyPropertiesCfg(solver_position_iteration_count=16,
