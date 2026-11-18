@@ -14,7 +14,7 @@
   "scoring": "End state:0 if spill>1mL, receiver oil>0.5mL, or valve flowing. Otherwise recovered water<50mL:0;50..<75:0.25;75..<97:0.5;>=97:0.75.1.0 only with>=97mL water recovered,>=79.5mL oil left above, stopper wholly supported on clean dish, receiver supported upright, key closed/no flow, both actual grippers open and all18robot rigid bodies clear of stopper/key/receiver for1s. Numeric real protocol in README. No motion-count or time-as-recovery score.",
   "run_limit": "3600 control steps (180seconds at20Hz)",
   "reset_notes": "Key closed; stopper seated; receiver empty under outlet. Refill100mL water+80mL edible oil, let layers settle. Rinse/dry apparatus after contamination.",
-  "fidelity": "Native rigid glassware/stopper/hinged key and stockYAM contact; stand+clamped funnel visibly fixed. Declared quasi-static1D density/hydrostatic/Torricelli/PV flow, sin² valve bore area and actual receiver catch, with uncalibrated Cd/viscosity approximation. Render-only liquid surfaces. No particles/slosh/wetting or changing liquid mass/inertia; no robot/object pose writer/attachment/drive. See README. Native PhysX reported the standalone hinge joint-friction attribute ignored; actual effective hinge friction remains unknown, not claimed as0.005.",
-  "scores": "Completed scripted reference V5: 0.0 (98.36mL water recovered; valve drifted open after release). Revised V6 reference and Dream-1 run pending. No full-score demonstration claimed.",
-  "media": "M-AU4KKD"
+  "fidelity": "Native rigid glassware, removable stopper and contact-driven hinged key; visibly clamped stand. Declared 1D hydrostatic/Torricelli/PV flow uses actual key angle, vent and receiver pose. Cd and oil viscosity are uncalibrated estimates. No slosh, droplets, wetting or changing liquid mass/inertia. Collider-free liquid visuals only; no object pose writers or attachments. Standalone joint-friction attribute is ignored by PhysX; effective hinge friction is unknown. Details in README.",
+  "scores": "Dream-1: 0.0 (3600 steps, normal termination). Completed scripted V5 reference: 0.0. Revised V6 reference running; no full-score demo claimed.",
+  "media": "M-ZQ33E9"
 }
