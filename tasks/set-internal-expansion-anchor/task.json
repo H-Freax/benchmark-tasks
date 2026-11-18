@@ -1,0 +1,20 @@
+{
+  "title": "Set an internal expansion anchor in concrete with a setting punch and hammer",
+  "category": "Impact on jobs",
+  "instruction": "Set the anchor in the prepared concrete hole, withdraw the setting punch, and leave both tools supported.",
+  "setup": "Original full-size DIAB37-dimensional-class anchor in a120x120x80mm concrete block with12.7mm bore39.6875mm deep, x.300/y.000m. Fourfinite steelpetals/innerwedge/realpunchshoulder;0.41284kg steel/ash hammer onwoodcradle. Twoactual152.5mm weldedsteelpedestals, stockYAMbasesz.900m. TwoordinarywoodenVrestblocks support the withdrawnpunch.",
+  "scoring": "Actual0/.5/.75/1 source-bound outcome: visible shoulderflush withactualwedge/contactconsistency=.5; retainedanchor withpunchwithdrawn=.75; bothtoolssupported,all630robotpieces20mmclearand1s stable=1. Initial/unset0. Raw pose/velocity inconsistencies blockstablecredit. See README for exact numeric tolerances and physical-judge limitations.",
+  "run_limit": "1440controls/72s at20Hz, maximumsixordinaryhammerstrikes. Reference1389controls plus20initialsettle;30actualalignmentcontrols beforeeachstrike.",
+  "fidelity": "Original manufacturable equivalent in DIAB37 exterior dimensional class, not commercial OEM internals. Split petals with actual wedge/bore collision and passive local material flexure approximation. Concrete rigid; no cracking/spalling or structural load rating. Material density/modulus/yield are declared A36-class values, force/friction uncalibrated. The first native must verify actual solver material response and contact creation.",
+  "scores": "Dream-1: 0.0 (1440 steps); scripted reference: 0.0 (482 actions, ordinary grasp protection stop). No full-score demo claimed.",
+  "media": "M-7G29GE",
+  "context": "Setting drop-in anchors in prepared concrete holes is a fastening preparation operation. The task ends with the anchor set and both tools safely supported; it does not measure structural anchorage capacity.",
+  "reset_notes": "Use a fresh sleeve/anchor after each plastic-setting trial. Rebuild the exact declared initial poses with the same punch, hammer and ordinary supports. No in-trial reset.",
+  "keywords": [
+    "bimanual",
+    "contact",
+    "impact",
+    "anchor",
+    "tool-use"
+  ]
+}
