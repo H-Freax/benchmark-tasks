@@ -1,0 +1,18 @@
+{
+  "title": "Brush the inner bottom and shoulder of a narrow-neck bottle",
+  "category": "Societal relatability",
+  "keywords": [
+    "bimanual",
+    "contact",
+    "bottle cleaning"
+  ],
+  "instruction": "Brush the visible film from inside the bottle, then remove the brush and leave both items safely released.",
+  "context": "Visible surrogate removal from a bottle interior behind a narrower neck. This is not a disinfection or feeding-safety test.",
+  "setup": "Two unchanged YAM arms on a 747.5 mm tabletop. A loose glass bottle at (300,0) mm is 139 mm tall, 65 mm OD, 59 mm body ID and 44 mm neck ID, mass 209 g. A 240 mm brush has a 40 mm head, 5 mm steel stem and 20 mm polymer handle, mass 39 g. It starts horizontal along +X at Y=-180 mm on a 3 mm PP tray and 20x35x17.5 mm wooden stem rest. 24 orange film marks cover the inner bottom and 24 the shoulder. Exact geometry and poses are supplied.",
+  "scoring": "0 below 25% removed marked area; 0.25 at 25%; 0.5 at 60%. Score 1 requires 90% total and 80% each bottom/shoulder, brush removed, both items above the tabletop at <20 mm/s linear and <0.1 rad/s angular velocity, hands 30 mm clear and all robot-body normal/tangent contacts known zero for 2 s. Simulated mark removal requires actual head contact >=0.1 N and 20 mm relative tangential travel; stationary contact or proximity cannot remove marks.",
+  "run_limit": "4,200 control steps (210 seconds at 20 Hz).",
+  "reset_notes": "Restore the documented poses and 48 marks. Real surrogate protocol: poster paint/water 1:4 by mass, 1 microlitre per supplied 2-2.5 mm stencil mark, dry 10 min at 20-25 C. This original protocol needs physical calibration; use a marked test bottle only.",
+  "fidelity": "Original full-size engineering geometry, not OEM CAD. Hollow bottle and all three brush sections collide. A force-based 500 N/m, 0.05 Ns/m compliant head envelope approximates a bristle bundle; it is unmeasured and does not model individual bristles. A disclosed contact/slip rule hides visual film marks. No runtime object pose writes, attachments, added object forces or robot-drive changes.",
+  "scores": "Dream-1: 0.0 (4200 steps); scripted reference: 0.0 (1952 actions, conservative neck corridor stop). No full-score demo claimed.",
+  "media": "M-GTBLY3"
+}

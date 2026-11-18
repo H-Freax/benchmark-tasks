@@ -1,0 +1,1 @@
+Original bottle, brush, surrogate visual marks and grading geometry. Lifecycle/primitive adapter derives from MIT partkit with native/LICENSE retained. Source CDC guidance is research evidence, not copied into scene or a medical claim. Stock YAM assets retain upstream license.
