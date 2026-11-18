@@ -1,0 +1,20 @@
+{
+  "title": "Drain the lower phase from a separatory funnel",
+  "category": "Other",
+  "keywords": [
+    "bimanual",
+    "liquid-liquid extraction",
+    "phase interface",
+    "air admission",
+    "stopcock"
+  ],
+  "instruction": "Recover the lower water phase into the receiver without oil carryover. Remove the top stopper, operate and close the stopcock at the interface, and leave the stopper in its clean dish and the apparatus released.",
+  "context": "Common wet-lab research procedure following liquid-liquid extraction: recover the dense lower phase selectively while retaining the upper phase. Upper-air admission and actual stopcock operation couple to the moving phase interface. Safe water and edible oil model fluids only; no workforce-count claim.",
+  "setup": "Full-size original250mL funnel in clamped stand, cone datum(0.36,0,0.925)m,32mm inner radius/90mm height;100mL blue water below80mL edible oil. Free28g stopper;14g PTFE-equivalent50mm key on Y hinge at(0.36,-0.047,0.925).145g70mmOD104mm-tall beaker at(0.36,0,0.7475), below outlet(0.36,0,0.852).80x70mm stopper dish at(0.30,0.08,0.7515). Standard dualYAM station; full dimensions/materials in README/scene_spec.py.",
+  "scoring": "End state:0 if spill>1mL, receiver oil>0.5mL, or valve flowing. Otherwise recovered water<50mL:0;50..<75:0.25;75..<97:0.5;>=97:0.75.1.0 only with>=97mL water recovered,>=79.5mL oil left above, stopper wholly supported on clean dish, receiver supported upright, key closed/no flow, both actual grippers open and all18robot rigid bodies clear of stopper/key/receiver for1s. Numeric real protocol in README. No motion-count or time-as-recovery score.",
+  "run_limit": "3600 control steps (180seconds at20Hz)",
+  "reset_notes": "Key closed; stopper seated; receiver empty under outlet. Refill100mL water+80mL edible oil, let layers settle. Rinse/dry apparatus after contamination.",
+  "fidelity": "Native rigid glassware/contact-driven key; declared 1D hydrostatic/Torricelli/PV flow reads actual angle, vent and receiver pose. No slosh, wetting or changing liquid inertia. Passive uncalibrated PTFE angular drag: stiffness0, damping0.020Nm s/rad, cap0.010Nm; no angle attractor. Cd/viscosity estimated. Collider-free blue/amber volumes; glass opacity0.02 is visual only. No object pose writers/attachments. Calibration/limits in README and PASSIVE-RETENTION.md.",
+  "scores": "Dream-1: 0.0 (3600 actions). Scripted reference: 1.0 (2942 observations), repeated twice from the final visible-phase source at seed 0.",
+  "media": "M-EFSHF3"
+}
