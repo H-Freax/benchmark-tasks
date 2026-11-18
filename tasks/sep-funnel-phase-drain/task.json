@@ -1,0 +1,20 @@
+{
+  "title": "Drain the lower phase from a separatory funnel",
+  "category": "Other",
+  "keywords": [
+    "bimanual",
+    "liquid-liquid extraction",
+    "phase interface",
+    "air admission",
+    "stopcock"
+  ],
+  "instruction": "Recover the lower water phase into the receiver without oil carryover. Remove the top stopper, operate and close the stopcock at the interface, and leave the stopper in its clean dish and the apparatus released.",
+  "context": "Common wet-lab research procedure following liquid-liquid extraction: recover the dense lower phase selectively while retaining the upper phase. Upper-air admission and actual stopcock operation couple to the moving phase interface. Safe water and edible oil model fluids only; no workforce-count claim.",
+  "setup": "Original full-size250mL nominal separatory funnel in a fixed visible weighted ring stand, cone datum(0.36,0,0.925)m, full32mm inner cone radius/90mm height;100mL blue water below80mL edible oil. Free28g ground-stem-equivalent stopper,14g PTFE-equivalent50mm key on nativeY hinge at(0.36,-0.047,0.925).145g70mmOD104mm-tall receiving beaker at(0.36,0,0.7475), prepositioned under outlet(0.36,0,0.852).80x70mm stopper dish at(0.30,0.08,0.7515). Standard calibrated dualYAM station and cameras; all dimensions/materials/solid construction in README and scene_spec.py.",
+  "scoring": "End state:0 if spill>1mL, receiver oil>0.5mL, or valve flowing. Otherwise recovered water<50mL:0;50..<75:0.25;75..<97:0.5;>=97:0.75.1.0 only with>=97mL water recovered,>=79.5mL oil left above, stopper wholly supported on clean dish, receiver supported upright, key closed/no flow, both actual grippers open and all18robot rigid bodies clear of stopper/key/receiver for1s. Numeric real protocol in README. No motion-count or time-as-recovery score.",
+  "run_limit": "3600 control steps (180seconds at20Hz)",
+  "reset_notes": "Key closed; stopper seated; receiver empty under outlet. Refill100mL water+80mL edible oil, let layers settle. Rinse/dry apparatus after contamination.",
+  "fidelity": "Native rigid glassware/stopper/hinged key and stockYAM contact; stand+clamped funnel visibly fixed. Declared quasi-static1D density/hydrostatic/Torricelli/PV flow, sin² valve bore area and actual receiver catch, with uncalibrated Cd/viscosity approximation. Render-only liquid surfaces. No particles/slosh/wetting or changing liquid mass/inertia; no robot/object pose writer/attachment/drive. See README. Native PhysX reported the standalone hinge joint-friction attribute ignored; actual effective hinge friction remains unknown, not claimed as0.005.",
+  "scores": "Completed scripted reference V5: 0.0 (98.36mL water recovered; valve drifted open after release). Revised V6 reference and Dream-1 run pending. No full-score demonstration claimed.",
+  "media": "M-AU4KKD"
+}
