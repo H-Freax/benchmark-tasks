@@ -1,50 +1,131 @@
 # Brush the inner bottom and shoulder of a narrow-neck bottle
 
-Use the bottle brush to remove visible surrogate film from the inner bottom and shoulder, then remove the brush and safely release both objects. Any ordinary grasp, support or placement is permitted. Nothing is attached to the robot.
+Instruction given to the policy:
+`Brush the film marks off the inside bottom and shoulder of the bottle, then take the brush out and put both down.`
 
-This is a development candidate. All completed scripted reference trials scored0.0. The current reference stopped normally at a conservative neck-clearance guard before cleaning. Dream-1 completed 4200 actions and scored0.0. A full-score demonstration is not yet available; the current model and failed-reference media are supplied for review.
+Files: `task.json`, `task.py` (the task file: objects, `score()`, `success()`, the scripted `demo()` and an offline
+self-test), `geometry/geometry.json` (every shape, pose, material and film mark) and `native/`:
+`bottle_scene.py` (per-step observation and the stage score), `cleaning.py` (film model), `grader.py` (end state),
+`pad_contacts.py` (robot-to-item contacts), `reference.py` (the scripted reference), `native_geometry.py` and
+`partkit.py` (multi-shape rigid bodies and per-step hooks), `vertex_helper.py`, `cooking_local.py`.
 
-## Setup and reset
+## What is modelled
 
-All original dimensions, explicit poses, material assignments and mark areas are in `geometry/geometry.json`. Table height is747.5mm. The loose bottle stands atX300/Y0mm. The horizontal brush points+X, with its head origin atX120/Y-180/Z770.5mm. A3mm polypropylene return tray supports the head; a20x35x17.5mm wooden rest supports the existing steel stem atX250/Y-180mm. The original brush is240mm long: headz0-40mm, steelstem40-200mm, polymerhandle200-240mm. The reference grasps the original handle atz220mm. All630 stock YAM collision hulls and original drives are retained.
+- The bottle is a loose 209 g hollow glass body built from 97 convex pieces: a 4 mm base, a 59 mm bore body, a
+  20 mm conical shoulder and a 44 mm bore, 25 mm long neck. Nothing holds it down; the other hand has to keep
+  it in place while the brush works.
+- The brush is one 39 g rigid body: a 42 mm x 40 mm head, a 5 mm steel stem and a 20 mm x 40 mm soft-grip
+  handle (friction 1.2, the same as the platform's other graspable objects), all colliding. The head is a soft
+  contact envelope (150 N/m and 1 Ns/m per contact point, friction 0.45) standing in for a bristle bundle: it
+  gives by a few millimetres against the glass at a few tenths of a newton. Individual bristles are not
+  simulated, and the head is 2 mm narrower than the neck rather than squeezing through it.
+- 24 orange marks on the inner bottom (5 mm squares on rings of radius 10 and 22 mm) and 24 on the inside of
+  the shoulder (4 mm squares at 99 and 109 mm height) stand in for dried film. A mark comes off only after the
+  brush head has slid 20 mm across it in total while the head presses on the glass with 0.1 N or more
+  (summed over the head's contact points) and the mark lies within 0.5 mm of the head. Touching without sliding, the stem, or a pass through the air
+  removes nothing. Removed marks disappear from view; the glass itself never changes.
+- The shoulder marks sit behind the neck: the head passes the 44 mm neck with 1 mm to spare on each side, and
+  has to be moved off the bottle axis and up under the shoulder to reach them.
+- Nothing is attached to the robot, no object pose or velocity is written and no force is applied by the task;
+  the robot's drives are the stock ones.
 
-The bottle is139mm tall,65mmOD,59mminnerbody,44mmneckID and4mmclosedbase. The20mm shoulder joins its body to the25mm neck. Glass density integration gives209g; the original brush geometry/material densities give39g. These are original reproducible engineering equivalents, not manufacturer dimensions or weights.
+## Scoring
 
-For a physical visible-film surrogate, use washable orange poster paint mixed with water1:4 by mass; deposit1microlitre per supplied2-2.5mm stencil mark, dry10minutes at20-25C, and photograph the24bottom/24shoulder marks before and after. Use a bottom view and a mirror or inexpensive endoscope for the shoulder. Mark center, normal and area are supplied in the geometry file. This original protocol and the simulated removal thresholds have not been calibrated against physical removal. No microbial or medical claim is made. Do not use the marked test bottle for feeding.
+Read from the last step of the episode (`native/bottle_scene.py: stage_score`):
 
-Reset restores documented initial poses, all48marks and counters. The task never writes object poses/velocities or applies object forces during manipulation.
+| Stage | Score |
+| --- | --- |
+| Each region (bottom, shoulder): 40 % of its marked area removed | 0.15 each |
+| Each region: 80 % of its marked area removed | 0.30 each |
+| Both regions at 80 %, 90 % of all marked area, and the brush head out of the bottle | 0.80 |
+| ... and both items put down for 2 s | 1.0 |
 
-## Running
+"Out of the bottle": every point of the head is at least 5 mm above the mouth, or beside the bottle.
+"Put down": bottle and brush on or above the tabletop, slower than 20 mm/s and 0.1 rad/s, the bottle within
+10 deg of upright, every gripper point at least 30 mm from both items and none of the 18 robot bodies touching
+either. A missing contact reading counts as touching.
 
-Use the pinned YAM/Inspect environment with Python3.12.13 and set these task-local paths. The runtime requires NumPy and SciPy; native observation uses Isaac/PhysX APIs supplied by the runtime.
+## Offline check, no GPU
 
-```sh
-export TASK_ROOT=/absolute/path/to/tasks/brush-narrow-neck-bottle
-export RUN_DIR=/absolute/path/to/a/new/run-directory
-export ROBOCURVE_GEOMETRY_ROOT="$TASK_ROOT/geometry"
-export ROBOCURVE_TRACE_DIR="$RUN_DIR/trace"
-inspect-robots run --embodiment yam_arena --policy dream -E task="$TASK_ROOT/native/task.py" -E object_jitter=0 -E control_hz=20 --instruction 'Brush the visible film from inside the bottle, then remove the brush and leave both items safely released.' --scorer task_score --max-steps 4200 --seed 0 --no-prompt --store-frames --log-dir "$RUN_DIR/inspect"
+```bash
+python tasks/brush-narrow-neck-bottle/task.py
 ```
 
-Configure the Dream-1 policy connection in the runtime before a model run. The model task entry contains no reference controller. For the scripted reference use `--policy yam_scripted` and `-E task="$TASK_ROOT/native/reference.py"`. On runtimes requiring the non-UJITSO cooking backend, use `native/local_task.py` for the model or `native/local_reference.py` for the reference. These wrappers only select the collision-cooking dispatch and record its actual setting; geometry, drives and physics are identical. No simulator is launched merely by importing a task file.
+It asserts the film rules, the end-state checks and the stage table on hand-built states, then replays the
+reference and its two incomplete variants on the arm kinematics. Expected output:
 
-The nominal reference contains1420joint targets over71seconds, with actual-arrival gates allowed up to4200controls/210seconds. It requires five fresh real two-pad observations for both objects before loaded movement; it bounds actual material steps, checks the whole brush through the neck and stops normally on missing contact, excessive material slip, joint limits or arrival timeout. The scoring code does not read these phases or gates. Earlier completed reference trials scored0.0; the current controller has not established a successful demonstration. Physical execution time and throughput are still unknown; the trial wall-time cap used for the completed current development run was1000seconds.
+```
+scoring: 31 cases pass
+full (nominal bottle): 2094 steps = 104.7 s, worst IK 0.10 mm / 0.02 deg, path coverage bottom 1.00 shoulder 1.00
+full (bottle shifted 20 mm and tilted 2 deg in the hand): 2094 steps = 104.7 s, worst IK 0.10 mm / 0.02 deg, path coverage bottom 1.00 shoulder 1.00
+bottom_only (nominal bottle): 1094 steps = 54.7 s, worst IK 0.09 mm / 0.02 deg, path coverage bottom 1.00 shoulder 0.00
+leave_brush_in (nominal bottle): 1854 steps = 92.7 s, worst IK 0.09 mm / 0.02 deg, path coverage bottom 1.00 shoulder 1.00
+```
 
-## Scoring and fidelity
+## Run and score one trial
 
-`native/cleaning.py` accumulates marked-area removal only when real native bottle/brush contact is at least0.1N, the contact belongs to the40mmhead, the marked point intersects the actual head within0.5mm modeling tolerance, and cumulative relative tangential travel reaches20mm. Duplicate observations, stationary contact and shaft-only contact cannot clean marks. Hiding a removed visual mark never changes physical geometry.
+Isaac Lab-Arena 0.3.1 with yam-arena and inspect-robots; NumPy and SciPy.
 
-Score0below25%removedarea;0.25at25%;0.5at60%. Score1requires90%overall and80%eachbottom/shoulder, the head outside the bottle, both objects above the table withlinearvelocity<20mm/s andangularvelocity<0.1rad/s, handpoints30mmclear and knownzero normal/tangent contacts against all18robotrigidbodies continuously2seconds. The native task, grader and contact observer are the executable scoring authority. Missing data fails closed and the first observation error is persisted.
+```bash
+inspect-robots run --embodiment yam_arena --policy yam_scripted \
+  -E task=tasks/brush-narrow-neck-bottle/task.py \
+  -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
+  --instruction "Brush the film marks off the inside bottom and shoulder of the bottle, then take the brush out and put both down." \
+  --scorer task_score --max-steps 3000 --seed 0 --no-prompt --store-frames --log-dir runs/brush-narrow-neck-bottle
+```
 
-The native bristle envelope is force-based500N/m compliance,0.05Ns/m damping and0.45friction. This unmeasured engineering approximation preserves real head/neck/shoulder contact but does not simulate individual bristles or biological cleaning. The reference uses ordinary stock joint targets; no task or robot force settings are changed.
+For Dream-1 use `--policy dream` with the same arguments. `BOTTLE_DEMO=bottom_only` or
+`BOTTLE_DEMO=leave_brush_in` makes `yam_scripted` play an incomplete variant. `BOTTLE_TRACE_DIR=<dir>` writes
+every step's poses, contacts and film state (about 50 MB per run). `BOTTLE_LEGACY_COOKING=1` selects the
+non-UJITSO collision cooking backend on runtimes that need it; geometry and physics are the same.
 
-The close public `wash_cup` prior already includes one hand holding a cup while the other brushes its interior: https://huggingface.co/dddddsds31341/pi05-wash_cup_100-10k . This candidate adds contact access behind a narrower neck; a distinct capability claim remains provisional. CDC cleaning context: https://www.cdc.gov/hygiene/about/clean-sanitize-store-infant-feeding-items.html . Neither source is copied into scene assets.
+A trial is 3,000 control steps at most (150 s at 20 Hz); the reference needs 2,034. Wall time for the reference
+is about 8 minutes on an RTX 3090 with nothing else running, and 13 minutes when the GPU is shared.
+
+## The scripted reference
+
+`native/reference.py`. The left hand takes the bottle by its body from the side and keeps holding it. The right
+hand picks the brush up by its handle, stands it upright, and lowers the head through the neck on the bottle's
+axis as observed (the held bottle ends up about 20 mm from where it stood and leaning about 2 deg). It scrubs
+the bottom with three 7 mm circles, then the lower ring of the shoulder with five circles and the upper ring
+with six, the head's top edge pressed lightly under the cone, lifts the brush out, and lays it back on its tray
+after the left hand has let the bottle go. While the brush is at or inside the bottle the right arm's joint
+targets are corrected from the observed brush pose, and while scrubbing the tip height has its own correction:
+the stock wrist is soft, and the cone otherwise pushes the head 2 mm up and down around each circle.
+
+The reference stops early only on a real hazard: the bottle leaning more than 25 deg, the handle grasp lost,
+or the steel stem pressing on the glass with more than 15 N. Contact between the soft head and the neck or
+walls is ordinary use and does not stop it. The scorer never reads the reference's phases.
+
+## Results (seed 0, no jitter)
+
+| Run | task_score | Steps |
+| --- | --- | --- |
+| Scripted reference, run 1 (320 x 176 cameras) | 1.0 | 2,034 |
+| Scripted reference, run 2 (640 x 352 cameras) | 1.0 | 2,034 |
+| `BOTTLE_DEMO=bottom_only`: bottom scrubbed, shoulder skipped, brush out, both put down | 0.3 | 1,094 |
+| `BOTTLE_DEMO=leave_brush_in`: both regions scrubbed, brush left standing in the bottle | 0.6 | 1,854 |
+| Dream-1 | 0.0 | 3,000 |
+
+In the full runs every mark is removed: each bottom mark has 64 to 169 mm of sliding under the head and each
+shoulder mark 28 to 42 mm, against the 20 mm needed. The episode ends on success 2 s after the right hand has
+let go of the brush. Dream-1 did not pick up the brush or touch the bottle.
+
+## Reset and a physical version
+
+Reset restores the documented poses and all 48 marks. For a physical trial use washable orange poster paint
+thinned 1:4 with water by mass, applied through a stencil as 5 mm squares on the bottom and 4 mm squares on the
+shoulder at the positions in `geometry/geometry.json`, dried 10 minutes at 20-25 C, and photograph the bottom
+from above and the shoulder with a mirror or a small inspection camera before and after. The 20 mm sliding
+threshold is an engineering stand-in and has not been calibrated against paint removal. This is a visible-film
+test only: no claim about microbes or feeding safety is made, and the marked bottle must not be used for
+feeding.
+
+Related public work: a `wash_cup` policy that brushes the inside of an open cup held in the other hand
+(https://huggingface.co/dddddsds31341/pi05-wash_cup_100-10k). This task differs in the narrower neck and in
+the shoulder behind it, which a straight-in stroke does not reach.
 
 ## License
 
-Original task code and engineering geometry are supplied under the included MIT license. The primitive/lifecycle adapter retains its MIT notice. Stock YAM assets remain external runtime dependencies under their upstream licenses; they are not redistributed here. No OEM CAD, copied web page, internal review, credential, private evidence or experiment archive is included.
-
-
-## Recorded submission evidence
-
-The uploaded Dream-1 attempt completed its full allowed action budget and scored 0.0. The uploaded scripted reference also scored 0.0; it is an unsuccessful attempt, not a full-score demonstration. Both videos are original simulator camera streams at 20 fps. The task is submitted with the implementation and these current results; full-score feasibility remains unresolved.
+Task code and geometry: MIT (`LICENSE`). `native/partkit.py` keeps its MIT notice (`native/LICENSE`). The YAM
+robot assets are external runtime dependencies under their own licenses and are not redistributed here.

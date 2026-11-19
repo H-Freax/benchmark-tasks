@@ -1,7 +1,5 @@
 """Read-only two task bodies against every stock robot rigid-body partner."""
 import numpy as np
-from pathlib import Path
-import os,hashlib
 LINKS=('base','link1','link2','link3','link4','link5','gripper','tip_left','tip_right')
 def array(v):
  v=getattr(v,'torch',v)
@@ -27,7 +25,7 @@ def decode(raw,filters,capacity=4096):
    out[sensor][partner]=dict(count=n,start=s,normal_abs_sum_N=float(np.abs(force).sum()),normal_raw_N=force.tolist(),world_points_m=p.tolist(),world_normals=normal.tolist(),separations_m=sep.tolist())
  return dict(pairs=out,counts=counts.tolist(),starts=starts.tolist(),capacity=capacity,complete18partners=True)
 class PadObserver:
- def __init__(self):self.view=None;self.filters=None;self.binding=None;self.saved_first_contact=False
+ def __init__(self):self.view=None;self.filters=None;self.binding=None
  def bind(self,base):
   from pxr import Usd,UsdPhysics,PhysxSchema
   from isaaclab_physx.physics.physx_manager import PhysxManager
@@ -43,7 +41,7 @@ class PadObserver:
   view=PhysxManager.get_physics_sim_view().create_rigid_contact_view(sensors,filter_patterns=[filters,filters],max_contact_data_count=4096)
   if view is None or list(view.sensor_paths)!=sensors or list(view.filter_paths)!=[filters,filters]:raise RuntimeError('Actual18partner binding mismatch')
   self.view=view;self.filters=filters;self.binding=dict(sensors=sensors,filters=filters,capacity=4096)
- def observe(self,base):
+ def observe(self,base,trace=None):
   if self.view is None:self.bind(base)
   raw=tuple(array(v)for v in self.view.get_contact_data(dt=float(base.physics_dt)))
   answer=decode(raw,self.filters);answer['physics_tick']=int(base._sim_step_counter);answer['physics_dt_s']=float(base.physics_dt)
@@ -61,12 +59,6 @@ class PadObserver:
   if extent>=4096:raise RuntimeError('Tangential buffer truncated')
   if not np.isfinite(tangent[0][:extent]).all()or not np.isfinite(tangent[1][:extent]).all():raise RuntimeError('Nonfinite actual tangential data')
   answer['tangent_world_vectors_raw_N']=tangent[0][:extent].tolist();answer['tangent_points_world_m']=tangent[1][:extent].tolist()
-  if not self.saved_first_contact and sum(sum(r)for r in answer['counts'])>0:
-   trace=Path(os.environ['ROBOCURVE_TRACE_DIR']);trace.mkdir(parents=True,exist_ok=True)
-   path=trace/'ACTUAL-18-PARTNER-FIRST-CONTACT-BUFFERS.npz'
-   np.savez_compressed(path,**{**{f'normal_{i}':a for i,a in enumerate(raw)},**{f'tangent_{i}':a for i,a in enumerate(tangent)}})
-   answer['raw_full_capacity_receipt']=dict(file=path.name,sha256=hashlib.sha256(path.read_bytes()).hexdigest())
-   self.saved_first_contact=True
   return answer
 def two_pad(answer,sensor,side):
  filters=answer['pairs'][sensor]

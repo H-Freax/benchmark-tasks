@@ -13,8 +13,12 @@ def configure(trace):
     before = settings.get(key)
     settings.set_bool(key, False)
     actual = settings.get_as_bool(key)
+    if actual:
+        raise RuntimeError("Collision cooking setting did not persist")
+    if trace is None:
+        return
     trace.mkdir(parents=True, exist_ok=True)
-    (trace / "COOKING-BACKEND-SETTING.json").write_text(json.dumps({
+    (trace / "cooking-backend-setting.json").write_text(json.dumps({
         "setting": key,
         "prior_setting": before,
         "requested_setting": False,
@@ -22,8 +26,5 @@ def configure(trace):
         "stage": "after_app_before_make_env",
         "scope": "collision cooking dispatch backend only",
         "geometry_or_physics_changed": False,
-        "cache_deleted": False,
-        "formal_score": None
+        "cache_deleted": False
     }, indent=2, allow_nan=False) + "\n")
-    if actual:
-        raise RuntimeError("Collision cooking setting did not persist")

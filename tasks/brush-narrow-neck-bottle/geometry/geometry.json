@@ -10132,7 +10132,7 @@
       "pos": [
         0.12,
         -0.18,
-        0.7705000000000001
+        0.7715
       ],
       "quat_xyzw": [
         0.0,
@@ -10142,10 +10142,10 @@
       ],
       "geoms": [
         {
-          "name": "compliant_bristle_envelope",
+          "name": "bristle_head_envelope",
           "type": "cylinder",
           "size": [
-            0.02,
+            0.021,
             0.02,
             0
           ],
@@ -10199,7 +10199,7 @@
           "density_kg_m3": 7850
         },
         {
-          "name": "polymer_brush_grip",
+          "name": "soft_grip_handle",
           "type": "cylinder",
           "size": [
             0.01,
@@ -10222,12 +10222,12 @@
             0.5,
             0.65
           ],
-          "friction": 0.6,
+          "friction": 1.2,
           "collision_enabled": true,
           "density_kg_m3": 950.0
         }
       ],
-      "mass_kg": 0.039112828537192924,
+      "mass_kg": 0.03937043913478729,
       "fixed": false,
       "contact_report": true
     },
@@ -10251,12 +10251,12 @@
           "size": [
             0.01,
             0.0175,
-            0.00875
+            0.00925
           ],
           "pos": [
             0.0,
             0.0,
-            0.00875
+            0.00925
           ],
           "quat_xyzw": [
             0,
@@ -11157,31 +11157,27 @@
     ]
   },
   "brush": {
-    "head_radius_m": 0.02,
+    "head_radius_m": 0.021,
     "head_z_m": [
       0,
       0.04
     ],
-    "stem_grasp_local_m": [
+    "handle_grasp_local_m": [
       0.0,
       0.0,
       0.22
     ],
     "total_length_m": 0.24,
     "compliance": {
-      "stiffness_N_m": 500.0,
-      "damping_Ns_m": 0.05,
-      "acceleration_spring": false,
-      "authority": "Disclosedengineeringbristlebundleenvelope,notmeasuredOEMforcecurve"
-    },
-    "grasp_role": "ordinaryoriginalpolymerhandle200\u2013240mm,center220mm;geometrynotchanged"
+      "stiffness_N_m": 150.0,
+      "damping_Ns_m": 1.0,
+      "note": "Soft contact envelope standing in for a bristle bundle; an engineering value, not a measured brush."
+    }
   },
   "cleaning": {
     "contact_force_gate_N": 0.1,
     "per_patch_tangential_travel_m": 0.02,
     "patch_count": 48,
-    "caveat": "Visual milk-film surrogate only; notsterilization or germremoval. Nativepairheadcontact+actualrelativepointsliprequired; proximty/shaftcontactdoesnotclean."
-  },
-  "prototype_only": true,
-  "formal_score": null
+    "note": "Visible film stand-in only. A mark needs head contact and relative sliding; proximity or stem contact does not remove it."
+  }
 }

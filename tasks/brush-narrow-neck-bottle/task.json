@@ -3,16 +3,17 @@
   "category": "Societal relatability",
   "keywords": [
     "bimanual",
-    "contact",
+    "tool use",
+    "contact-rich",
     "bottle cleaning"
   ],
-  "instruction": "Brush the visible film from inside the bottle, then remove the brush and leave both items safely released.",
-  "context": "Visible surrogate removal from a bottle interior behind a narrower neck. This is not a disinfection or feeding-safety test.",
-  "setup": "Two unchanged YAM arms on a 747.5 mm tabletop. A loose glass bottle at (300,0) mm is 139 mm tall, 65 mm OD, 59 mm body ID and 44 mm neck ID, mass 209 g. A 240 mm brush has a 40 mm head, 5 mm steel stem and 20 mm polymer handle, mass 39 g. It starts horizontal along +X at Y=-180 mm on a 3 mm PP tray and 20x35x17.5 mm wooden stem rest. 24 orange film marks cover the inner bottom and 24 the shoulder. Exact geometry and poses are supplied.",
-  "scoring": "0 below 25% removed marked area; 0.25 at 25%; 0.5 at 60%. Score 1 requires 90% total and 80% each bottom/shoulder, brush removed, both items above the tabletop at <20 mm/s linear and <0.1 rad/s angular velocity, hands 30 mm clear and all robot-body normal/tangent contacts known zero for 2 s. Simulated mark removal requires actual head contact >=0.1 N and 20 mm relative tangential travel; stationary contact or proximity cannot remove marks.",
-  "run_limit": "4,200 control steps (210 seconds at 20 Hz).",
-  "reset_notes": "Restore the documented poses and 48 marks. Real surrogate protocol: poster paint/water 1:4 by mass, 1 microlitre per supplied 2-2.5 mm stencil mark, dry 10 min at 20-25 C. This original protocol needs physical calibration; use a marked test bottle only.",
-  "fidelity": "Original full-size engineering geometry, not OEM CAD. Hollow bottle and all three brush sections collide. A force-based 500 N/m, 0.05 Ns/m compliant head envelope approximates a bristle bundle; it is unmeasured and does not model individual bristles. A disclosed contact/slip rule hides visual film marks. No runtime object pose writes, attachments, added object forces or robot-drive changes.",
-  "scores": "Dream-1: 0.0 (4200 steps); scripted reference: 0.0 (1952 actions, conservative neck corridor stop). No full-score demo claimed.",
-  "media": "M-GTBLY3"
+  "instruction": "Brush the film marks off the inside bottom and shoulder of the bottle, then take the brush out and put both down.",
+  "context": "Washing baby bottles and reusable drink bottles by hand with a bottle brush is an everyday chore at home, in childcare (497,450 childcare workers, BLS OEWS May 2023) and in kitchens (463,940 dishwashers). Residue stays on the bottom and under the shoulder, which are only reached by working a brush through the neck while the other hand holds the bottle. The marks are a visible stand-in for dried film; this is not a disinfection test.",
+  "setup": "Two YAM arms at a table 747.5 mm high. A loose clear glass bottle stands at (300, 0) mm: 139 mm tall, 65 mm outside diameter, 59 mm bore, 4 mm base, a 20 mm conical shoulder and a 25 mm long neck of 44 mm bore, 209 g. A 240 mm bottle brush (39 g) lies along +x at y = -180 mm, head toward the robot: 42 mm x 40 mm soft bristle head, 5 mm steel stem, 20 mm x 40 mm soft-grip handle ending at x = 360 mm. Its head rests on a 280 x 100 x 3 mm plastic tray and its stem on a 20 x 35 x 18.5 mm wooden rest. Orange film marks: 24 on the inner bottom (5 mm squares on rings of radius 10 and 22 mm) and 24 inside the shoulder (4 mm squares at 99 and 109 mm height). Everything is dry and at room temperature.",
+  "scoring": "Per region (inner bottom, inner shoulder): 0.15 when 40% of its marked area is removed, 0.30 at 80%. 0.80 when both regions are at 80%, 90% of all marked area is removed and the brush head is out of the bottle (5 mm above the mouth, or beside the bottle). 1.0 when, in addition, both items have been put down for 2 s: on the table, slower than 20 mm/s and 0.1 rad/s, bottle within 10 deg of upright, grippers 30 mm clear and no robot part touching either. A mark comes off only after the brush head has slid 20 mm across it while touching the glass with at least 0.1 N; touching without sliding, or the stem, removes nothing. Scored at the last step.",
+  "run_limit": "3,000 control steps (150 seconds at 20 Hz).",
+  "reset_notes": "Restore the listed poses and all 48 marks. Physical version: washable orange poster paint thinned 1:4 with water by mass, stencilled as 5 mm squares (bottom) and 4 mm squares (shoulder), dried 10 min at 20-25 C; photograph the bottom from above and the shoulder with a mirror before and after. Use a marked test bottle only, never for feeding.",
+  "fidelity": "Full-size hollow glass bottle of 97 convex pieces; brush head, stem and handle all collide. The bristle head is one soft contact envelope (150 N/m per contact point, friction 0.45) that clears the neck by 1 mm a side; bristles squeezing through a narrower neck, water and detergent are not simulated. Film is 48 visual marks removed by a stated contact-and-sliding rule, not chemistry; the 20 mm threshold is uncalibrated. No pose writes, attachments, added forces or drive changes.",
+  "scores": "Dream-1: 0.0 (3,000 steps). Scripted demo: 1.0 in two runs (2,034 steps each). Incomplete variants: bottom only, shoulder skipped: 0.3; both scrubbed, brush left in the bottle: 0.6.",
+  "media": "M-737K6H"
 }

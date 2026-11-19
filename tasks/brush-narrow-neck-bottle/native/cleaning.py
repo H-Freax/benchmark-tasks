@@ -8,19 +8,21 @@ def transform(pose):
 def point(T,p):return T[:3,:3]@np.asarray(p)+T[:3,3]
 class Film:
  def __init__(self,G):
-  self.G=G;self.dose=np.zeros(len(G['patches']));self.last_serial=-1;self.previous=None
+  self.G=G;self.dose=np.zeros(len(G['patches']));self.last_serial=-1;self.previous=None;self.radius=G['brush']['head_radius_m']
  def update(self,row):
   serial=row.get('serial')
   if not isinstance(serial,int)or serial<=self.last_serial:return dict(advanced=False,removed=[],dose_m=self.dose.tolist())
   old=self.last_serial;self.last_serial=serial
   Tb=transform(row['bottle_pose']);Th=transform(row['brush_pose']);relative=np.linalg.inv(Tb)@Th
-  # An actual contact must belong to the declared head envelope, not the shaft.
-  good=[]
+  # Only contact points on the head envelope count, not the stem or handle. The head must press on the
+  # glass with the gate force in total; the simulator splits one contact patch over several points.
+  good=[];pressing=0.
   for c in row.get('native_contacts',[]):
    force=float(c['normal_force_N']);p=np.asarray(c['world_point_m'],float)
    if not np.isfinite(force)or p.shape!=(3,)or not np.isfinite(p).all():raise ValueError('invalid contact row')
    local=point(np.linalg.inv(Th),p)
-   if abs(force)>=self.G['cleaning']['contact_force_gate_N'] and -.0005<=local[2]<=.0405 and np.linalg.norm(local[:2])<=.023:good.append(local)
+   if abs(force)>0 and -.0005<=local[2]<=.0405 and np.linalg.norm(local[:2])<=self.radius+.003:good.append(local);pressing+=abs(force)
+  if pressing<self.G['cleaning']['contact_force_gate_N']:good=[]
   previous=self.previous;self.previous=relative.copy()
   if previous is None or old+1!=serial or not good:
    return dict(advanced=True,removed=[],dose_m=self.dose.tolist(),head_contact_count=len(good))
@@ -29,7 +31,7 @@ class Film:
    p=np.asarray(patch['center_m']);q=point(np.linalg.inv(relative),p)
    # The marked glass point must actually intersect the compliant head region.
    # A scalar pair contact does not clean distant points or a surrounding image.
-   if np.linalg.norm(q[:2])>.0205 or not -.0005<=q[2]<=.0405:continue
+   if np.linalg.norm(q[:2])>self.radius+.0005 or not -.0005<=q[2]<=.0405:continue
    displacement=point(relative,q)-point(previous,q)
    normal=np.asarray(patch['normal']);tangent=displacement-normal*np.dot(displacement,normal)
    travel=float(np.linalg.norm(tangent))

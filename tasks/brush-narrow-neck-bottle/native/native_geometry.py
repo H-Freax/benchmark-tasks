@@ -102,8 +102,8 @@ def _spawn_impl(prim_path,cfg,translation=None,orientation=None,**kwargs):
             mc.func(mat,mc);bind_physics_material(path,mat,stage=stage)
             if s.get('compliant_head',False):
                 ma=PhysxSchema.PhysxMaterialAPI.Apply(stage.GetPrimAtPath(mat))
-                ma.CreateCompliantContactStiffnessAttr(500.)
-                ma.CreateCompliantContactDampingAttr(.05)
+                ma.CreateCompliantContactStiffnessAttr(float(G['brush']['compliance']['stiffness_N_m']))
+                ma.CreateCompliantContactDampingAttr(float(G['brush']['compliance']['damping_Ns_m']))
                 ma.CreateCompliantContactAccelerationSpringAttr(False)
         vis=f'{prim_path}/Looks/visual_{i}';vc=su.PreviewSurfaceCfg(diffuse_color=linear_rgb(tuple(s['color'])),roughness=.45,opacity=s.get('opacity',1.))
         vc.func(vis,vc);bind_visual_material(path,vis,stage=stage)
@@ -112,13 +112,13 @@ def _spawn_impl(prim_path,cfg,translation=None,orientation=None,**kwargs):
 def _boundary(event,**data):
     global _LAST_BOUNDARY
     _LAST_BOUNDARY=dict(event=event,**data)
-    trace=Path(os.environ.get('ROBOCURVE_TRACE_DIR',str(Path(__file__).parent/'native-trace')))
-    trace.mkdir(parents=True,exist_ok=True)
+    if not os.environ.get('BOTTLE_TRACE_DIR'):return
+    trace=Path(os.environ['BOTTLE_TRACE_DIR']);trace.mkdir(parents=True,exist_ok=True)
     with (trace/'adapter-boundaries.jsonl').open('a') as f:f.write(json.dumps(_LAST_BOUNDARY)+'\n')
 
 def _failure(event,**data):
     _boundary(event,full_traceback=traceback.format_exc(),last_boundary=dict(globals().get('_LAST_BOUNDARY',{})),**data)
-    print('CANE_ADAPTER_EXCEPTION '+json.dumps(_LAST_BOUNDARY),flush=True)
+    print('BOTTLE_SCENE_EXCEPTION '+json.dumps(_LAST_BOUNDARY),flush=True)
 
 def spawn(prim_path,cfg,translation=None,orientation=None,**kwargs):
     _boundary('spawn_enter',prim_path_repr=repr(prim_path),part_name_repr=repr(cfg.part_name),translation_repr=repr(translation),orientation_repr=repr(orientation))
@@ -145,9 +145,9 @@ def frame_x(axis):
 
 def _author_joints_impl(stage,env_path):
     from pxr import Gf,Sdf,UsdGeom,UsdPhysics
-    UsdGeom.Xform.Define(stage,env_path+'/cane_joints')
+    UsdGeom.Xform.Define(stage,env_path+'/task_joints')
     for j in G['joints']:
-        path=env_path+'/cane_joints/'+j['name']
+        path=env_path+'/task_joints/'+j['name']
         _boundary('author_joint',env_path_repr=repr(env_path),joint_path_repr=repr(path),parent_repr=repr(j['parent']),child_repr=repr(j['child']))
         if j['kind']=='hinge':joint=UsdPhysics.RevoluteJoint.Define(stage,path);F=frame_x(j['axes_child'][0])
         elif j['kind']=='slider':joint=UsdPhysics.PrismaticJoint.Define(stage,path);F=frame_x(j['axes_child'][0])
@@ -178,7 +178,7 @@ def _author_joints_impl(stage,env_path):
             drive.CreateStiffnessAttr(j['stiffness_Nm_rad'][k]*math.pi/180)
             drive.CreateDampingAttr(j['damping_Nms_rad'][k]*math.pi/180)
             drive.CreateTargetPositionAttr(math.degrees(j['springref_rad'][k]));drive.CreateTargetVelocityAttr(0.);drive.CreateMaxForceAttr(1e10)
-    print('CANE_NATIVE_JOINTS '+str(len(G['joints'])),flush=True)
+    pass
 
 def author_joints(stage,env_path):
     _boundary('author_joints_enter',env_path_repr=repr(env_path))
@@ -191,17 +191,17 @@ _original_patch_scene=pk._patch_scene
 def patch_scene(mod):
     _original_patch_scene(mod)
     from isaaclab.scene import interactive_scene as isc
-    if getattr(isc.InteractiveScene,'_cane_native_joints',False):return
+    if getattr(isc.InteractiveScene,'_bottle_native_joints',False):return
     old=isc.InteractiveScene.__init__
     def init(self,*a,**k):
         old(self,*a,**k);author_joints(self.stage,self.env_prim_paths[0])
-    isc.InteractiveScene.__init__=init;isc.InteractiveScene._cane_native_joints=True
+    isc.InteractiveScene.__init__=init;isc.InteractiveScene._bottle_native_joints=True
 
 pk._Finder.targets['yam_arena.scene']=patch_scene
 if 'yam_arena.scene' in sys.modules:patch_scene(sys.modules['yam_arena.scene'])
 
 
-# This assembly has no joints: the taper, drift, tool and tray all contact physically.
+# This scene has no joints: bottle, brush, tray and rest only touch.
 def author_joints(stage,env_path):
     if G["joints"]:
-        raise RuntimeError("Unexpected permanent task joints")
+        raise RuntimeError("Unexpected task joints")
