@@ -1347,5 +1347,5 @@
   "default_top_camera_full_setup_visibility": false,
   "geometry_complete_in_frozen_source": true,
   "geometry_sha256": "5c3db40abf3b50fd3b21f1d9963480fda3c6ac077451cb245b70da9ab9b6edaa",
-  "complete_setup_screenshot": "media/setup-two-views.png; native overview with occluded feet and no physical doorway marks"
+  "complete_setup_screenshot": "Historical previous-revision image:media/setup-two-views.png. Current native setup/visibility capture pending; added context inventory:geometry/OBSERVATION-MARKS.json."
 }

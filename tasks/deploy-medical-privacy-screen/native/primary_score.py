@@ -72,7 +72,7 @@ class PrimaryScore:
    out.update(score_status='indeterminate',physical_clearance_violation=False,clearance_bounds=unknown_pairs,robot_hulls=count)
    return out
   # P7 new shared rule: sampled first-pose envelope, not native velocity.
-  eligible=bool(upright and supported and clear and integrity and c>=.70)
+  eligible=bool(upright and supported and clear and integrity and c>=.90)
   if not eligible:self.history.clear()
   else:self.history.append((t,np.asarray(poses),float(c),bool(fast)))
   # Freshness above fixes the cadence; retain the canonical final 21 rows.

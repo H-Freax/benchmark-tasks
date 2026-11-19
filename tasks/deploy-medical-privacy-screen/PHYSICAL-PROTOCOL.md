@@ -25,15 +25,15 @@ Every one of the same 21 samples must also meet all applicable terminal conditio
 
 The screen clearance union includes its declared frames, inlays and feet; the physical survey must account for external hinge hardware and other exterior deviations. Robot geometry includes every declared link, hand and finger hull of both robots, rather than only tips or end effectors. An incomplete 630-hull set cannot certify release.
 
-**Score 1.0:** all conditions hold and coverage is at least 562/567 (>=99%) at every sample. **Score 0.5:** all conditions hold and coverage is at least 397/567 (>=70%) at every sample, but the full tier is not met throughout. **Score 0:** complete valid evidence establishes that neither tier is met. Coverage and all geometric conditions must persist through the same window; measurements from separate windows cannot be combined.
+**Score 1.0:** all conditions hold and coverage is at least 562/567 (>=99%) at every sample. **Score 0.5:** all conditions hold and coverage is at least 511/567 (>=90%) at every sample, but the full tier is not met throughout. **Score 0:** complete valid evidence establishes that neither tier is met. Coverage and all geometric conditions must persist through the same window; measurements from separate windows cannot be combined.
 
 Indeterminate geometry, absent evidence and measurement uncertainty establish neither a pass nor a physical violation. Report `indeterminate`/`invalid`, its reason and any diagnostic no-credit return separately from a certified physical score of zero. A conservative solver lower bound below 50 mm is not evidence that physical clearance is below 50 mm. A known violation can rule out credit even if some other conditions remain unknown; identify only the violation actually established.
 
-There is no bimanual-use, fixed panel-angle, hand-assignment, operation-order or return-to-READY gate. A quiet initial U-shaped layout may legitimately receive partial credit if it meets all partial conditions for the complete window. Full credit still requires the complete full-coverage window.
+There is no bimanual-use, fixed panel-angle, hand-assignment, operation-order or return-to-READY gate. The unchanged initial U layout blocks486/567 and receives0 after a complete valid window. Partial credit requires a measurable shielding improvement to at least511/567; full credit still requires562/567 throughout.
 
 ## Primary human procedure
 
-Follow [PRIMARY-HUMAN-SCORING.md](PRIMARY-HUMAN-SCORING.md). Three fixed viewpoint recordings directly classify the 189 target-dot centres at each of the same 21 instants, giving the same 567 sight tests without building rays in software. Count certain screen occlusion, not shadows, robot occlusion or merely disappearing dot edges. Record uncertain centres explicitly and use count bounds against the unchanged 562/397 thresholds.
+Follow [PRIMARY-HUMAN-SCORING.md](PRIMARY-HUMAN-SCORING.md). Three fixed viewpoint recordings directly classify the 189 target-dot centres at each of the same 21 instants, giving the same 567 sight tests without building rays in software. Count certain screen occlusion, not shadows, robot occlusion or merely disappearing dot edges. Record uncertain centres explicitly and use count bounds against the unchanged 562/511 thresholds.
 
 Use floor/side rulers and a 5 mm feeler for the six foot-bottom intervals; a level/angle gauge for the 5° upright limit; registered frame landmarks and rulers for both 5 mm anchor-gap bounds. Bound origin movement from x/y/z ruler changes by the Euclidean upper bound, which must be at most 5 mm. A sum of absolute yaw/pitch/roll changes, including reading uncertainty, of at most 1° is sufficient for the same SO(3) condition; testing each axis separately against 1° is not. A bound which is insufficient is indeterminate, not a violation.
 
@@ -49,6 +49,6 @@ Detailed pose reconstruction and finite-convex closest-point solvers remain opti
 
 ## Evidence and measurement limits
 
-The packaged scoring definition and sampling conventions apply to both runs. The scripted native reference reached 1.0 after 824 controls (41.2 simulated seconds), and its final 21-sample window passed independent geometry, support, release and trace checks. Its complete 825-frame demonstration is available. The same-source Dream-1 beta attempt completed1,200 controls at0.5, matching independent final scoring. Its complete1,201-frame recording is available. The quiet starting layout also earns0.5; this result does not demonstrate improved shielding. The uploaded media ID is recorded in task.json.
+Previous-revision historical diagnostics: reference1.0 after824 controls and model0.5 after1,200 controls used the former70% partial threshold and lacked visible viewing marks. They are not current scores or matched media. Current-revision native reset, visibility/setup evidence, complete references, demonstration and model run are pending; task.json clears the previous media ID.
 
 The setup image records a separate settled reset using the same physical scene. Source inspection, CPU checks and simulation results do not establish calibrated physical accuracy, a built assembly or real-world task success. The measurement and uncertainty procedures above remain proposals until their bounds are validated on the physical setup.

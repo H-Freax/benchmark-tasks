@@ -2,7 +2,7 @@
 
 Position a free-standing, three-panel medical screen to hide the marked treatment-area target from three specified doorway viewpoints, leave all six feet supported, and release the screen. Visual privacy while changing or receiving personal care is the intended real-world use. This task measures optical shielding and sampled stable placement; there is no patient, clinical procedure or validated clinical-safety claim.
 
-The seed-1 scripted demonstration reached1.0 after824 controls (41.2 simulated seconds), with an independently verified final21-sample window. Dream-1 beta completed the full1,200 controls (60 simulated seconds) at0.5; independent scoring agrees. Complete videos preserve825 demo frames and1,201 model frames. The quiet initial layout also earns0.5, so the model result does not establish improved shielding. The setup image records a separate native reset. See `task.json`, `PHYSICAL-PROTOCOL.md`, `BOM.csv`, `SETUP.json` and `assembly/`.
+This review revision adds three visible doorway viewing marks and raises partial coverage to90% (511/567). The unchanged initial U layout blocks486/567 and earns0. Current-revision native reset, camera visibility, complete references, setup capture, matched demonstration and model attempt remain pending. Earlier reference1.0/824 controls and model0.5/1,200 controls are previous-revision historical diagnostics, not current scores or media. See `task.json`, `PHYSICAL-PROTOCOL.md`, `BOM.csv`, `SETUP.json`, `geometry/OBSERVATION-MARKS.json` and `assembly/`.
 
 ## Construction and fixed starting layout
 
@@ -15,9 +15,10 @@ Use metres for world positions, millimetres for construction dimensions. World x
 | Robot pedestals | Fixed steel-equivalent blocks, 140×140×750; bottom centres (0.15,+0.55,0) and (0.15,-0.55,0) | Two, 115.395 kg each |
 | Robots | Stock YAM parallel-gripper arms, base centres (0.15,+0.55,0.75) and (0.15,-0.55,0.75); original gains, effort and gripper limits | Two, upstream robot assets |
 | Treatment target | Fixed opaque PVC-equivalent board, 8×1040×940, centre (1.50,0,1.05), with 189 dark 1×6×6 dots | Board and dots together 3.913802 kg |
+| Doorway viewing marks | Three amber square outlines, 76×76×4 mm outside, 60×60 mm clear aperture; centres equal the three scored sight points; fixed, non-colliding context | Three; nominal transport mass 0.001 kg each, excluded from moving mass |
 | Room context | Native station ground, lighting and camera stand/housing; station table removed; three policy cameras | Upstream station context; no extra loose objects |
 
-Panel frame coordinates, all finite solids, materials, densities, friction assumptions, masses, inertia and initial transforms are in `geometry/geometry.json`; `BOM.csv` lists each component and world bounds. The maximum panel width including feet is562mm. Initial U-shaped screen bounds are592×614mm, height1652mm; this is a partly deployed screen, rather than a compact folded storage state. Its geometric initial coverage is486/567 sight segments (85.7143%); partial credit is possible if every other condition holds for the full final window.
+Panel frame coordinates, all finite solids, materials, densities, friction assumptions, masses, inertia and initial transforms are in `geometry/geometry.json`; `BOM.csv` lists each component and world bounds. The maximum panel width including feet is562mm. Initial U-shaped screen bounds are592×614mm, height1652mm; this is a partly deployed screen, rather than a compact folded storage state. Its geometric initial coverage is486/567 sight segments (85.7143%); this unchanged layout earns0 even after a complete valid final window because486 is below511.
 
 | Panel | Authored origin (x,y,z) | Yaw | Initial foot centres (x,y), before settle |
 |---|---|---|---|
@@ -27,7 +28,7 @@ Panel frame coordinates, all finite solids, materials, densities, friction assum
 
 The centre/left hinge uses local anchors (0,-0.015,0) on each body; centre/right uses (0.560,+0.015,0) on the centre and (0,+0.015,0) on the wing. Initial world axis xy positions are (0.965,-0.280) and (0.935,+0.280). Both are vertical; the abstract z=0 reference denotes a point on the axis, not a pin attached to the floor. Relative to the authored joint frames, the left hinge limits are -170° to+80° and the right hinge limits are -80° to+170°; finite-body contact still constrains legal motion. No particular final hinge angle is required.
 
-Target dot centres are x=1.495, y=-0.50..+0.50 in0.05 increments and z=0.60..1.50 in0.1125 increments. Sight coordinates are (0,-0.30,1.10), (0,0,1.10), (0,+0.30,1.10). The simulator has no visible doorway or sight markers. These coordinates define the three observer positions; use the calibrated floor template in `assembly/03-u-reset-template.svg` for a proposed physical layout. Target-board dots visible in the screenshot are not doorway marks.
+Target dot centres are x=1.495, y=-0.50..+0.50 in0.05 increments and z=0.60..1.50 in0.1125 increments. Sight coordinates are (0,-0.30,1.10), (0,0,1.10), (0,+0.30,1.10). Three amber square outlines named `doorway_view_1` through `doorway_view_3` are centred exactly on these scored observer positions, in planes x=0 facing the target. They have no colliders and cannot support the screen. In a physical layout reproduce the same outlines on independent camera-positioning jigs, with camera optical centres at the aperture centres. Use `geometry/OBSERVATION-MARKS.json` for exact dimensions and floor registration. The earlier setup image lacks these new marks and is historical; fresh native policy-camera visibility checks and a setup capture remain pending.
 
 The drawings give cut lengths, frame/inlay retention, a proposed pair of short coaxial hinges at300/1300mm per axis, drilling and foot fasteners. This physical proposal is unbuilt. Bolts, sleeves, inserts, adhesive and weld details are not silently included in the simulated ideal joints or masses. See `assembly/README.md` for the omitted hardware envelope and volume-based mass estimate.
 
@@ -39,15 +40,15 @@ For a physical trial, register the actual floor plane and all templates, remove 
 
 ## Score and limit
 
-A trial allows at most1,200 controls:60 simulated seconds at20Hz, with960Hz physics. The final acceptance window must fit inside that limit. The measured seed-1 scripted reference took1,026.556 seconds of wrapper wall time, including simulator startup/reset, and completed at824 controls/41.2 simulated seconds. Wall runtime varies with hardware, renderer and policy/API latency; the measured Dream-1 wrapper wall runtime was1,517.820 seconds. External wall-time caps do not add robot actions.
+A trial allows at most1,200 controls:60 simulated seconds at20Hz, with960Hz physics. The final acceptance window must fit inside that limit. The previous-revision historical seed-1 scripted reference took1,026.556 seconds of wrapper wall time, including simulator startup/reset, and completed at824 controls/41.2 simulated seconds. Wall runtime varies with hardware, renderer and policy/API latency; the measured Dream-1 wrapper wall runtime was1,517.820 seconds. External wall-time caps do not add robot actions.
 
 Use exactly the final21 fresh canonical20Hz observations, spanning1.000s. At every sample, require all three panels upright within5°, all six foot bottoms within±5mm of the actual floor, both hinge-anchor gaps≤5mm and finite-solid Euclidean screen-to-robot clearance≥50mm. Clearance covers all630 actual collision hulls of both robots, including link, hand and finger geometry. Across that same window every panel origin must stay within5mm of its first-sample origin and its shortest SO(3) change within1°. Native velocities must be finite; their magnitudes are not score gates.
 
-Coverage counts567 finite segments from the three sight points to the189 target dots. Only intersection with a finite opaque screen solid before the dot blocks a ray; hinge gaps remain open. Score1.0 requires at least562/567 blocked at every sample; score0.5 requires at least397/567 throughout, without satisfying the full tier. Valid evidence meeting neither tier scores0. Missing/stale/nonfinite evidence or unresolved geometry is invalid/indeterminate, rather than proof of a physical violation. A conservative clearance lower bound below50mm requires refinement or unknown. Neither hand assignment, two-hand use, prescribed angle nor reference phase is a scoring gate. Physical judging uses the direct-photo and ordinary-gauge procedure below; sampled conditions do not certify continuous-time safety or motion between samples.
+Coverage counts567 finite segments from the three sight points to the189 target dots. Only intersection with a finite opaque screen solid before the dot blocks a ray; hinge gaps remain open. Score1.0 requires at least562/567 blocked at every sample; score0.5 requires at least511/567 throughout, without satisfying the full tier. Valid evidence meeting neither tier scores0. Missing/stale/nonfinite evidence or unresolved geometry is invalid/indeterminate, rather than proof of a physical violation. A conservative clearance lower bound below50mm requires refinement or unknown. Neither hand assignment, two-hand use, prescribed angle nor reference phase is a scoring gate. Physical judging uses the direct-photo and ordinary-gauge procedure below; sampled conditions do not certify continuous-time safety or motion between samples.
 
 ### Human physical judging
 
-[PRIMARY-HUMAN-SCORING.md](PRIMARY-HUMAN-SCORING.md) is the primary proposed real-trial method. At each of the same21 instants, read the189 registered dot centres in each of three fixed-viewpoint pictures: the567 centre sight tests are judged directly as screen-blocked, visible or uncertain. This avoids a requirement to reconstruct a room in3D or trace software rays. Near-edge, blurred, occluded or misregistered centres remain uncertain; shadows or obstruction by a robot do not count as screen coverage. The full/partial count thresholds remain562/397.
+[PRIMARY-HUMAN-SCORING.md](PRIMARY-HUMAN-SCORING.md) is the primary proposed real-trial method. At each of the same21 instants, read the189 registered dot centres in each of three fixed-viewpoint pictures: the567 centre sight tests are judged directly as screen-blocked, visible or uncertain. This avoids a requirement to reconstruct a room in3D or trace software rays. Near-edge, blurred, occluded or misregistered centres remain uncertain; shadows or obstruction by a robot do not count as screen coverage. The full/partial count thresholds remain562/511.
 
 Use floor/side rulers and a5mm feeler for all six foot-bottom heights, a level/angle gauge for5° upright, and registered frame landmarks/rulers for each5mm hinge-anchor separation. Bound x/y/z origin changes conservatively and require the Euclidean upper bound≤5mm. For rotation, the sum of absolute yaw/pitch/roll changes and their error bounds≤1° is sufficient for the same SO(3) condition; each axis≤1° separately is insufficient. An insufficient upper bound is inconclusive, not proof of motion beyond the limit.
 
@@ -76,7 +77,7 @@ flock --shared "$GPU_LOCK" flock --exclusive "$GPU_SLOT_LOCK" \
   inspect-robots run --embodiment yam_arena --policy yam_scripted \
   -E "task=$TASK_DIR/native/reference_entry.py" \
   -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
-  --instruction 'Set the privacy screen so the marked treatment area is screened from the open doorway. Leave it standing securely, then let go.' \
+  --instruction 'Set the privacy screen so the marked treatment area is screened from all three amber doorway viewing marks. Leave it standing securely, then let go.' \
   --scorer task_score --max-steps 1200 --seed 1 --no-prompt --store-frames \
   --log-dir "$RUN_DIR/inspect"
 ```
@@ -96,7 +97,7 @@ flock --shared "$GPU_LOCK" flock --exclusive "$GPU_SLOT_LOCK" \
   -P model=dreamlabs/dream-1-beta -P timeout_s=90 \
   -E "task=$TASK_DIR/native/model_entry.py" \
   -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
-  --instruction 'Set the privacy screen so the marked treatment area is screened from the open doorway. Leave it standing securely, then let go.' \
+  --instruction 'Set the privacy screen so the marked treatment area is screened from all three amber doorway viewing marks. Leave it standing securely, then let go.' \
   --scorer task_score --max-steps 1200 --seed 1 --no-prompt --store-frames \
   --log-dir "$RUN_DIR/inspect"
 ```

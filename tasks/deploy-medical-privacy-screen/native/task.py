@@ -4,7 +4,8 @@ import stage_timing as st
 import os,sys,json,hashlib,numpy as np
 HERE=Path(__file__).resolve().parent;sys.path.insert(0,str(HERE))
 import native_geometry as ng
-GROOT=Path(os.environ.get('ROBOCURVE_GEOMETRY_ROOT',str(HERE.parent/'geometry')));G=json.load(open(GROOT/'geometry.json'));GSHA=hashlib.sha256((GROOT/'geometry.json').read_bytes()).hexdigest()
+from observation_marks import with_observation_marks
+GROOT=Path(os.environ.get('ROBOCURVE_GEOMETRY_ROOT',str(HERE.parent/'geometry')));G=with_observation_marks(json.loads((GROOT/'geometry.json').read_text()));GSHA=hashlib.sha256(json.dumps(G,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
 from yam_arena import station
 station.BASES={s:tuple(v)for s,v in G['robot_bases_m'].items()}
 OBJECTS=ng.objects(G);SCENE='station';SCORE_OVER='end';SUCCESS_HOLD_S=.05;CONTROL_HZ=20.

@@ -1,6 +1,6 @@
 # Sources and licensing
 
-The screen, target and pedestal geometry are original procedural engineering equivalents. The four assembly SVGs are original explanatory drawings. They contain no manufacturer CAD, product photographs or copied product text. The geometry, drawings and proposed hardware are not a measured specimen or an OEM-approved assembly.
+The screen, target and pedestal geometry are original procedural engineering equivalents. The three amber doorway observation outlines are original procedural context marks, equivalent to tape or paint on independently supported camera-positioning jigs. Dimensions are author-selected, not manufacturer data; they add no contact geometry, screen support or task-body force. `geometry/OBSERVATION-MARKS.json` is the exact inventory/BOM addendum to the unchanged generated geometry and BOM.csv. These additions are covered by the task MIT license. The four assembly SVGs are original explanatory drawings. They contain no manufacturer CAD, product photographs or copied product text. The geometry, drawings and proposed hardware are not a measured specimen or an OEM-approved assembly.
 
 | Source | Use and limit |
 |---|---|

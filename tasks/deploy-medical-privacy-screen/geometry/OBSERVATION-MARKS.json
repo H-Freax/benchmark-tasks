@@ -1,0 +1,407 @@
+{
+  "schema_version": 1,
+  "authority": "Exact additive context inventory and BOM; original generated geometry and BOM.csv remain unchanged.",
+  "base_geometry_file": "geometry/geometry.json",
+  "base_geometry_sha256": "5c3db40abf3b50fd3b21f1d9963480fda3c6ac077451cb245b70da9ab9b6edaa",
+  "base_bom_file": "BOM.csv",
+  "base_bom_sha256": "69c11c55a7c9c0eb8bb88f86af1b67a4d7855e9ab9a06a7713cff8a66b5929e3",
+  "generator": "native/observation_marks.py:with_observation_marks",
+  "generator_sha256": "38626ab2412419f0342a7f7a70030444a76af91915b3dd3b261415bac7e6e67e",
+  "runtime_geometry_sha256": "687e8a9bb7d4aac193151f5d5764fd42b65b2d5a9399fde3e7cd19650a4d7c98",
+  "runtime_hash_definition": "SHA256 of UTF-8 JSON expanded geometry, sort_keys=true, separators=(comma,colon), allow_nan=false; task.py traces this identity.",
+  "fixed_context_parts": [
+    {
+      "name": "doorway_view_1",
+      "pos": [
+        0,
+        -0.3,
+        1.1
+      ],
+      "quat_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "fixed": true,
+      "mass_kg": 0.001,
+      "context_only": true,
+      "geoms": [
+        {
+          "name": "view_outline_0",
+          "type": "box",
+          "pos": [
+            0,
+            -0.034,
+            0
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.004,
+            0.038
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_1",
+          "type": "box",
+          "pos": [
+            0,
+            0.034,
+            0
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.004,
+            0.038
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_2",
+          "type": "box",
+          "pos": [
+            0,
+            0,
+            -0.034
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.03,
+            0.004
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_3",
+          "type": "box",
+          "pos": [
+            0,
+            0,
+            0.034
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.03,
+            0.004
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        }
+      ]
+    },
+    {
+      "name": "doorway_view_2",
+      "pos": [
+        0,
+        0,
+        1.1
+      ],
+      "quat_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "fixed": true,
+      "mass_kg": 0.001,
+      "context_only": true,
+      "geoms": [
+        {
+          "name": "view_outline_0",
+          "type": "box",
+          "pos": [
+            0,
+            -0.034,
+            0
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.004,
+            0.038
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_1",
+          "type": "box",
+          "pos": [
+            0,
+            0.034,
+            0
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.004,
+            0.038
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_2",
+          "type": "box",
+          "pos": [
+            0,
+            0,
+            -0.034
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.03,
+            0.004
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_3",
+          "type": "box",
+          "pos": [
+            0,
+            0,
+            0.034
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.03,
+            0.004
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        }
+      ]
+    },
+    {
+      "name": "doorway_view_3",
+      "pos": [
+        0,
+        0.3,
+        1.1
+      ],
+      "quat_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "fixed": true,
+      "mass_kg": 0.001,
+      "context_only": true,
+      "geoms": [
+        {
+          "name": "view_outline_0",
+          "type": "box",
+          "pos": [
+            0,
+            -0.034,
+            0
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.004,
+            0.038
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_1",
+          "type": "box",
+          "pos": [
+            0,
+            0.034,
+            0
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.004,
+            0.038
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_2",
+          "type": "box",
+          "pos": [
+            0,
+            0,
+            -0.034
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.03,
+            0.004
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        },
+        {
+          "name": "view_outline_3",
+          "type": "box",
+          "pos": [
+            0,
+            0,
+            0.034
+          ],
+          "quat_xyzw": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            0.002,
+            0.03,
+            0.004
+          ],
+          "color": [
+            1.0,
+            0.65,
+            0.05
+          ],
+          "collision_enabled": false
+        }
+      ]
+    }
+  ],
+  "dimensions": {
+    "units": "m; box size fields are half-extents",
+    "outer_yz": [
+      0.076,
+      0.076
+    ],
+    "aperture_yz": [
+      0.06,
+      0.06
+    ],
+    "depth_x": 0.004
+  },
+  "material": "Amber tape/paint equivalent; non-colliding visual context. No screen support, no score occluder.",
+  "mass_basis": "0.001 kg nominal fixed transport mass per outline; not measured and excluded from moving screen mass.",
+  "physical_reproduction": "Make three independently supported camera-positioning jigs. Centre their amber outlines at (0,-0.30,1.10), (0,0,1.10), (0,+0.30,1.10), in x=0 planes. Keep optical centres at aperture centres. Place supports outside the target sight segments and robot work area. Register using the unchanged floor template; do not attach to the screen.",
+  "provenance": "Original author-selected context geometry; task MIT license; no third-party asset.",
+  "scoring": {
+    "sight_segments": 567,
+    "unchanged_initial_blocked": 486,
+    "partial_minimum_blocked": 511,
+    "full_minimum_blocked": 562,
+    "fresh_samples": 21
+  },
+  "evidence_status": "Offline registration/geometry verified. Native reset, policy-camera visibility, setup capture, complete references, matched demo/model and physical reproduction remain pending."
+}
