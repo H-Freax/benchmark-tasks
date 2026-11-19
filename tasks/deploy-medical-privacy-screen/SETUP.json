@@ -1347,5 +1347,26 @@
   "default_top_camera_full_setup_visibility": false,
   "geometry_complete_in_frozen_source": true,
   "geometry_sha256": "5c3db40abf3b50fd3b21f1d9963480fda3c6ac077451cb245b70da9ab9b6edaa",
-  "complete_setup_screenshot": "Historical previous-revision image:media/setup-two-views.png. Current native setup/visibility capture pending; added context inventory:geometry/OBSERVATION-MARKS.json."
+  "complete_setup_screenshot": "media/setup.png: current three-view native setup overview; two documentation wide views above reference 1 policy top-camera frame 0, all full FOVs retained. Several feet and rear surfaces remain occluded.",
+  "documentation_image": {
+    "path": "media/setup.png",
+    "sha256": "d14cd5188ffdcb693f114329cd500b99d6744b0f627046b8e717b7a0e9b73f91",
+    "dimensions_px": [
+      1920,
+      1080
+    ],
+    "inputs": "Two native documentation wide views and reference 1 top_cam frame 0; no new scene drawn or identity overlays.",
+    "documentation_cameras_are_policy_observations": false,
+    "full_fov_retained": true,
+    "six_feet_individually_visible": false,
+    "reference_capture_comparison": {
+      "matched_physics_step": 480,
+      "body_count": 9,
+      "maximum_position_delta_m": 0.0,
+      "maximum_orientation_delta_deg": 1.7075472925031877e-06,
+      "maximum_velocity_delta_native": 2.6345862073271112e-05,
+      "exact_episode_state_match": false
+    },
+    "capture_render_preserved_native_state": true
+  }
 }

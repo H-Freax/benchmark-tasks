@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "task_source_commit_at_runs": "0052458c7a0c8326887ad3934286bd5d48710bda",
+  "raw_inspect_repository_label": "0052458c7a0c8326887ad3934286bd5d48710bda-dirty",
+  "source_identity_note": "All 41 task files at run time and all 22 executable/geometry inputs match committed Git blobs. The repository-wide dirty label comes from unrelated untracked files; repository-wide cleanliness is not claimed. Delivery edits only update documentation and media.",
+  "runtime_geometry_sha256": "687e8a9bb7d4aac193151f5d5764fd42b65b2d5a9399fde3e7cd19650a4d7c98",
+  "runtime_source_sha256": {
+    "geometry/OBSERVATION-MARKS.json": "88dee9d7f66829df738cd0284fd841a187c8e7078c44a24d1ea5f115a859fafe",
+    "geometry/geometry.json": "5c3db40abf3b50fd3b21f1d9963480fda3c6ac077451cb245b70da9ab9b6edaa",
+    "native/ATTRIBUTION.md": "22c5b2e05c7cb1c531463b236c42f36e91196a5e63187f5af4162a6f45d3e5a4",
+    "native/LICENSE": "08d7d18417f03c19ccfdb200a578b698291c1daa7dd774931f19469911742f0e",
+    "native/LICENSE-MONITOR": "08d7d18417f03c19ccfdb200a578b698291c1daa7dd774931f19469911742f0e",
+    "native/LICENSE-ORDINARY-ARM": "08d7d18417f03c19ccfdb200a578b698291c1daa7dd774931f19469911742f0e",
+    "native/LICENSE-TABLET": "08d7d18417f03c19ccfdb200a578b698291c1daa7dd774931f19469911742f0e",
+    "native/checked_arm.py": "97ae6210320ebe50dfe6aa8e2c07186defa71809d61df69321f534136bc91ff4",
+    "native/contact_readback.py": "2f81fe5a76667756835836607b31ca4a949817cd9ad63366c56c11026bac63de",
+    "native/convex_distance.py": "bed3b1251b93412e21136be00a3311d7f771103e742da9fd6295793cad885c05",
+    "native/coverage_geometry.py": "55d3a1bd40ec5fe362ea5b4b7cd2219463eba81d98fd20568b0bbbb5a34858c5",
+    "native/model_entry.py": "83b6635e86ddda9ddd1903301a3e1317efcf37690da6312074e51500f68c43ab",
+    "native/native_geometry.py": "1ba1c675bd3e9a447bcaea58eef6c9cc11cf47879d162ef6de34e9f034eb0cc1",
+    "native/observation_marks.py": "38626ab2412419f0342a7f7a70030444a76af91915b3dd3b261415bac7e6e67e",
+    "native/ordinary_arm.py": "940f53c263cdef65f0ffd0caaaac4fd05823e05b75083836959d5826c72a0949",
+    "native/partkit.py": "57138b339345ca146e8f12dd5f2c41e9d02cac263844f73ae9e887960bf5e488",
+    "native/passive_entry.py": "2968121ba2fdeffac8269e5353729d34e8adbbfe27f869103336bd2321936cb0",
+    "native/poly_mass_properties.py": "a8e9d63667975fdee80d839f73163dfed0bc37714e66d7fcf2d220bd1671ccd5",
+    "native/primary_score.py": "aa90be964e7ad73e7b2fe9171b7844047ff63bbf67057b115e61dc5239cfb382",
+    "native/reference_entry.py": "048c91f7492303dd87d6abff5439c7822a876dbc5f91963a08daac76587514c5",
+    "native/stage_timing.py": "b7ea3c5ba8d86269bc7d2e335bfbec7d171a4c2393a68ca15c1abb99c6bce285",
+    "native/task.py": "bb0a938f04ac4814103029fa5230c488637fa52ece7fa3914de0804bbdc6b95c"
+  },
+  "control_hz": 20,
+  "physics_hz": 960,
+  "seed": 1,
+  "control_limit": 1200,
+  "scoring_counts": {
+    "total": 567,
+    "partial": 511,
+    "full": 562,
+    "unchanged_initial_blocked": 486
+  },
+  "zero_baseline": {
+    "controls": 32,
+    "score": 0.0,
+    "native_and_independent_agree": true
+  },
+  "runs": [
+    {
+      "role": "reference1",
+      "policy": "scripted",
+      "controls": 824,
+      "native_score": 1.0,
+      "independent_score": 1.0,
+      "wall_seconds": 940.5934072139207,
+      "normal_inspect_terminal": true,
+      "frames_per_camera": {
+        "top_cam": 825,
+        "left_cam": 825,
+        "right_cam": 825
+      },
+      "all_actual_native_rows_valid": true,
+      "no_task_pose_writes_or_wrenches": true,
+      "final_log_sha256": "e16f6a35522a746413e243222211a4ee011799de898d67e207aa79321c3071dc",
+      "independent_report_sha256": "eb423abaa661ba9c50df05078d566631d1766948213a945028120221ea4d5cfb"
+    },
+    {
+      "role": "reference2",
+      "policy": "scripted",
+      "controls": 824,
+      "native_score": 1.0,
+      "independent_score": 1.0,
+      "wall_seconds": 943.6037484859116,
+      "normal_inspect_terminal": true,
+      "frames_per_camera": {
+        "top_cam": 825,
+        "left_cam": 825,
+        "right_cam": 825
+      },
+      "all_actual_native_rows_valid": true,
+      "no_task_pose_writes_or_wrenches": true,
+      "final_log_sha256": "6e3e464ab81921a38850de5e2e73b1b099d6e88d75881319e39ce60e1680f996",
+      "independent_report_sha256": "5cd9e15b13454692596f25d208f806d129ffd047fe017eb65c9ce3cd5f661768"
+    },
+    {
+      "role": "model",
+      "policy": "Dream-1 beta",
+      "controls": 1200,
+      "native_score": 0.0,
+      "independent_score": 0.0,
+      "wall_seconds": 768.1490602979902,
+      "normal_inspect_terminal": true,
+      "frames_per_camera": {
+        "top_cam": 1201,
+        "left_cam": 1201,
+        "right_cam": 1201
+      },
+      "all_actual_native_rows_valid": true,
+      "no_task_pose_writes_or_wrenches": true,
+      "final_log_sha256": "b8f13a854ed73cbf20ba559cf88560de6f7c3a9251467aa890a290169cc939c8",
+      "independent_report_sha256": "0058e8f48b4a8da3b15dafa402de3e694082eff8b1dcc48406f303d7b2622337"
+    }
+  ],
+  "physical_trial_completed": false,
+  "sampled_conditions_only": true,
+  "media_sha256": {
+    "setup": {
+      "sha256": "d14cd5188ffdcb693f114329cd500b99d6744b0f627046b8e717b7a0e9b73f91",
+      "bytes": 484328
+    },
+    "demo": {
+      "sha256": "30771e89404bf44af856a954d39c49c201afd8c33913a5c79a7d9bf2eda18d35",
+      "bytes": 1603437
+    },
+    "second_reference": {
+      "sha256": "9fc773ce726d17ee4aa7b61a2512d2b74d98c7658267728a2ef58eaf77e480ab",
+      "bytes": 1603121
+    },
+    "model": {
+      "sha256": "b943afec2ea4c1598210e0769a79f5705c86def3e2e600741600976d5d419cca",
+      "bytes": 1782141
+    }
+  },
+  "media_id": "M-BQ93RE"
+}
