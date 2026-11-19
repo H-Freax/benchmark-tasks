@@ -1,0 +1,413 @@
+{
+  "status": "STOP_GATE_3_FAILED",
+  "can": {
+    "sha256": "15af4c13ead2a71c89cb5264c4689919166aacadc8800ab4cf966e34be51c10f",
+    "vertices": 8404,
+    "up_axis": "Z",
+    "raw_bounds_m": [
+      [
+        -0.03392699733376503,
+        -0.0338749997317791,
+        -0.051018502563238144
+      ],
+      [
+        0.03392699733376503,
+        0.0338749997317791,
+        0.051018502563238144
+      ]
+    ],
+    "raw_size_m": [
+      0.06785399466753006,
+      0.0677499994635582,
+      0.10203700512647629
+    ],
+    "declared_extent_m": 0.066,
+    "scale": 0.9726767056734945,
+    "scaled_size_m": [
+      0.066,
+      0.0658988462875948,
+      0.09924901800321043
+    ],
+    "grasp_band_height_m": 0.03,
+    "grasp_band_horizontal_size_m": [
+      0.06431824887295329,
+      0.06377257467134004
+    ]
+  },
+  "robot": {
+    "urdf_sha256": "d6cc3fca8d6848aad36c0d2bb8798de391fcf5ef8f41180fe7618eda141f0bef",
+    "parts": {
+      "tip_left": {
+        "bounds_tcp_m": [
+          [
+            -0.05677348199999984,
+            -0.03399989099999988,
+            -0.0810000959999997
+          ],
+          [
+            0.014797321000000176,
+            0.03399837400000016,
+            0.012842500000000812
+          ]
+        ],
+        "span_m": [
+          0.07157080300000002,
+          0.06799826500000003,
+          0.09384259600000051
+        ]
+      },
+      "tip_right": {
+        "bounds_tcp_m": [
+          [
+            -0.014797298999999986,
+            -0.0340001009999997,
+            -0.08100009600000073
+          ],
+          [
+            0.056773504000000384,
+            0.03399911800000028,
+            0.012842499999999257
+          ]
+        ],
+        "span_m": [
+          0.07157080300000038,
+          0.06799921899999997,
+          0.09384259599999999
+        ]
+      },
+      "gripper": {
+        "bounds_tcp_m": [
+          [
+            -0.051000026,
+            -0.032499998,
+            -0.14449999800000002
+          ],
+          [
+            0.050999973,
+            0.032500001,
+            -0.07050123400000001
+          ]
+        ],
+        "span_m": [
+          0.101999999,
+          0.064999999,
+          0.07399876400000001
+        ]
+      }
+    },
+    "whole_finger_pair_span_m": [
+      0.11354698600000022,
+      0.06799921899999997,
+      0.09384259600000154
+    ],
+    "pad_pair_span_m": [
+      0.07873408400000005,
+      0.027388771000000003,
+      0.017528937000000022
+    ],
+    "each_pad_closing_axis_thickness_m": [
+      0.006332572000000189,
+      0.006338712000000031
+    ],
+    "wrist_forearm_at_grasp": {
+      "gripper": {
+        "world_size_m": [
+          0.10200052604075635,
+          0.06500012442015618,
+          0.07399947084515468
+        ],
+        "bottom_above_table_m": 0.13552365902911623,
+        "top_above_table_m": 0.2095231298742709,
+        "panel_height_slab_size_m": [
+          0.10200052604075635,
+          0.06500012442015618,
+          0.059476340970883834
+        ]
+      },
+      "link5": {
+        "world_size_m": [
+          0.0731870546938061,
+          0.06411319257846104,
+          0.06910171990105085
+        ],
+        "bottom_above_table_m": 0.1990220186708218,
+        "top_above_table_m": 0.26812373857187266,
+        "panel_height_slab_size_m": null
+      },
+      "link4": {
+        "world_size_m": [
+          0.1335943252898158,
+          0.11931808165524102,
+          0.11979749090063652
+        ],
+        "bottom_above_table_m": 0.20629877245527561,
+        "top_above_table_m": 0.32609626335591213,
+        "panel_height_slab_size_m": null
+      },
+      "link3": {
+        "world_size_m": [
+          0.30412359316384613,
+          0.2095632760796378,
+          0.1694187681144208
+        ],
+        "bottom_above_table_m": 0.28013738258596277,
+        "top_above_table_m": 0.44955615070038357,
+        "panel_height_slab_size_m": null
+      }
+    },
+    "openings": {
+      "-0.033": {
+        "pad_aperture_m": 0.06606279999999984,
+        "whole_pair_outer_span_m": 0.11354698600000022
+      },
+      "-0.04695": {
+        "pad_aperture_m": 0.09396279999999982,
+        "whole_pair_outer_span_m": 0.14144698600000022
+      }
+    }
+  },
+  "candidate": {
+    "can_xy_m": [
+      0.2,
+      0.2
+    ],
+    "gap_m": 0.074,
+    "panel_height_m": 0.195,
+    "panel_length_m": 0.24,
+    "panel_thickness_m": 0.018,
+    "yaw_rad": 1.5707963267948966,
+    "grasp_tcp_above_table_m": 0.065,
+    "walls": [
+      {
+        "center_m": [
+          0.2,
+          0.15400000000000003,
+          0.8450000000000001
+        ],
+        "size_m": [
+          0.24,
+          0.018,
+          0.195
+        ]
+      },
+      {
+        "center_m": [
+          0.2,
+          0.246,
+          0.8450000000000001
+        ],
+        "size_m": [
+          0.24,
+          0.018,
+          0.195
+        ]
+      }
+    ]
+  },
+  "trajectory": {
+    "hz": 20.0,
+    "frames": 307,
+    "duration_s": 15.3,
+    "worst_ik_mm": 12.876987611801741,
+    "worst_ik_deg": 48.2409802191473,
+    "joint_limit_margin_deg": 0.0,
+    "min_sat_gap_mm": -21.745526135121782,
+    "limiting": [
+      "left",
+      "tip_right",
+      0,
+      9.05,
+      "carry outside panels"
+    ],
+    "segments": {
+      "hover": {
+        "frames": 40,
+        "ik_mm": 0.07454892279589921,
+        "ik_deg": 0.010812611061747891,
+        "clearance_mm": 6.103677317089204,
+        "limiting": [
+          "left",
+          "tip_left",
+          1,
+          1.4
+        ]
+      },
+      "descend": {
+        "frames": 40,
+        "ik_mm": 0.08201510406709998,
+        "ik_deg": 0.009298009467914493,
+        "clearance_mm": 2.9884478770322573,
+        "limiting": [
+          "left",
+          "tip_left",
+          0,
+          3.0
+        ]
+      },
+      "close": {
+        "frames": 20,
+        "ik_mm": 0.023150262232516466,
+        "ik_deg": 0.002665182365346712,
+        "clearance_mm": 2.9975571566948167,
+        "limiting": [
+          "left",
+          "tip_right",
+          0,
+          4.4
+        ]
+      },
+      "small lift": {
+        "frames": 30,
+        "ik_mm": 0.07453463178031008,
+        "ik_deg": 0.008462040542929395,
+        "clearance_mm": 2.989062620846148,
+        "limiting": [
+          "left",
+          "tip_left",
+          1,
+          5.85
+        ]
+      },
+      "leave through near end": {
+        "frames": 40,
+        "ik_mm": 12.822072659742913,
+        "ik_deg": 32.76858255086157,
+        "clearance_mm": -11.908835574714162,
+        "limiting": [
+          "left",
+          "tip_right",
+          0,
+          8.2
+        ]
+      },
+      "carry outside panels": {
+        "frames": 30,
+        "ik_mm": 12.876987611801741,
+        "ik_deg": 48.217204793654595,
+        "clearance_mm": -21.745526135121782,
+        "limiting": [
+          "left",
+          "tip_right",
+          0,
+          9.05
+        ]
+      },
+      "over target": {
+        "frames": 30,
+        "ik_mm": 9.048464538429327,
+        "ik_deg": 48.2409802191473,
+        "clearance_mm": 4.257648393500412,
+        "limiting": [
+          "left",
+          "tip_left",
+          0,
+          10.7
+        ]
+      },
+      "lower": {
+        "frames": 30,
+        "ik_mm": 3.029659738241921,
+        "ik_deg": 20.55144355457905,
+        "clearance_mm": 12.757594474451183,
+        "limiting": [
+          "left",
+          "tip_left",
+          0,
+          12.95
+        ]
+      },
+      "release": {
+        "frames": 16,
+        "ik_mm": 3.0296597395577987,
+        "ik_deg": 20.551443555865646,
+        "clearance_mm": 8.046071137830484,
+        "limiting": [
+          "left",
+          "tip_left",
+          0,
+          13.75
+        ]
+      },
+      "retreat": {
+        "frames": 30,
+        "ik_mm": 3.0296597383339634,
+        "ik_deg": 20.551443555683765,
+        "clearance_mm": 7.860993481357104,
+        "limiting": [
+          "left",
+          "tip_left",
+          0,
+          13.8
+        ]
+      },
+      "done": {
+        "frames": 1,
+        "ik_mm": 3.0296564881457075,
+        "ik_deg": 20.551438624560486,
+        "clearance_mm": 20.14551638435813,
+        "limiting": [
+          "left",
+          "tip_left",
+          0,
+          15.3
+        ]
+      }
+    }
+  },
+  "environment": {
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "machine": "arm64",
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "yam_source_commit": "bd62771e60320433893bd1d2df0fc79b5ddcd6d1",
+    "arena_source_commit": "c7edf3a9d5d8276565208f72422f8f8a0806d6cf",
+    "asset_root_release": "6.2",
+    "isaac_sim_used": false
+  },
+  "gates": {
+    "grasp_dimensions": "PASS",
+    "allowed_motion_vocabulary": "PASS_FOR_PROPOSED_WAYPOINTS",
+    "full_trajectory_ik_and_clearance": "FAIL"
+  },
+  "measurement_notes": [
+    "SI units except fields explicitly suffixed mm or deg.",
+    "Convex robot hull versus box SAT, not simulator contacts.",
+    "Box gap is a certified separating-axis margin when positive; negative means modeled intersection.",
+    "Finger opening during closure is blocked at a conservative 66 mm aperture; no contact simulation was run.",
+    "Plan endpoints are enumerated in the external diagnostic script.",
+    "The single failed trajectory does not prove every possible layout or path infeasible.",
+    "The 6.2 asset mirror may differ from a GPU installation with a different asset root."
+  ],
+  "audit": {
+    "baseline": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "mutations": {
+      "vertex_only": {
+        "passed": 14,
+        "failed": 1
+      },
+      "ignore_ik": {
+        "passed": 13,
+        "failed": 2
+      },
+      "ignore_gripper": {
+        "passed": 13,
+        "failed": 2
+      }
+    },
+    "task_test_suite": "NOT_CREATED_GATE_3_FAILED",
+    "gpu_smoke": "NOT_RUN_GATE_3_FAILED",
+    "full_demo": "NOT_RUN_GATE_3_FAILED"
+  },
+  "sources": {
+    "base_commit": "573e3868db43cb69b9cb0b446ddf8c7de7045518",
+    "yam_commit": "bd62771e60320433893bd1d2df0fc79b5ddcd6d1",
+    "arena_commit": "c7edf3a9d5d8276565208f72422f8f8a0806d6cf",
+    "pr_snapshot": "snapshot-20261119T072321Z",
+    "can_url": "https://omniverse-content-staging.s3-us-west-2.amazonaws.com/Assets/Isaac/6.2/Isaac/IsaacLab/Arena/assets/object_library/srl_robolab_assets/objects/ycb/tomato_soup_can.usd"
+  },
+  "diagnostic_script_sha256": "4c0a127c6579594e74c45493fac9fc3193c4f0aac931d3a28219b2685a8003bc"
+}
