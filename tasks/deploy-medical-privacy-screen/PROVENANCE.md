@@ -1,0 +1,17 @@
+# Sources and licensing
+
+The screen, target and pedestal geometry are original procedural engineering equivalents. The four assembly SVGs are original explanatory drawings. They contain no manufacturer CAD, product photographs or copied product text. The geometry, drawings and proposed hardware are not a measured specimen or an OEM-approved assembly.
+
+| Source | Use and limit |
+|---|---|
+| [AGA medical screens / PV-3003](https://www.agasan.com/en/products/medical-screens/) | Dimensional/material class: full-height folding screen with aluminium framing and rigid PVC-foam inlays. The560mm panels, hinge offsets, declared friction/damping and9.9468216kg mass are explicit engineering assumptions. Manufacturer-listed1652mm height,1690mm extended width,605×82mm folded envelope and11.6kg do not make this construction identical to the product. The saved source was consulted; its current web content has not been revalidated for this package. |
+| [Nurse Aide Skills Checklist](https://ed.sc.gov/sites/scdoe/assets/file/programs-services/148/documents/Nurse_Aide_Skills_Checklist.pdf) | Context for providing privacy with a curtain, screen or door; does not establish frequency of this exact operation. |
+| [BLS: Nursing Assistants and Orderlies](https://www.bls.gov/OOH/healthcare/nursing-assistants.htm) | Occupational context only; no employment count is attributed to this task. |
+| [Benchmark PR2036](https://github.com/robocurve/benchmark-tasks/pull/2036) | `ordinary_arm.py` uses the donor's `Arm`, `wait` and `width` spans from merge9c7c8af6a43b230d789754a4642fd712a60116e6, `tasks/adjust-monitor-to-portrait/demo.py`, SHA256e0c34b3a53cb74c4d8e0955181b71931b19f5459623c0c5c1c8359115916f61d. Complete MIT notices remain in `native/LICENSE*`; detailed code attribution remains in `native/ATTRIBUTION.md`. |
+| [YAM Arena](https://github.com/kairosiann/yam-isaac-lab-arena), [Isaac Lab-Arena](https://github.com/isaac-sim/IsaacLab-Arena), [I2RT YAM](https://github.com/i2rt-robotics/i2rt) | Runtime, robot/station geometry and action/observation plumbing are external dependencies. Their licenses continue to apply; this package does not relicense or redistribute manufacturer assets. |
+
+The reference adds bounded endpoint IK and actual-frame planning while retaining stock robot controller gains/limits. It submits ordinary joint/gripper actions, checks actual open-jaw geometry and double-pad contact, and observes task-body motion. It does not move task bodies through pose-following, hidden attachment, added task wrench or reset during a trial.
+
+Declared densities are aluminium2700, rigid PVC foam500, rubber1100 and steel7850kg/m³. Per-panel3.3156072kg and total9.9468216kg are integrated masses of the explicit tube walls, inlay and rigid foot blocks. They exclude hinge hardware, fasteners, foot inserts, adhesive and weld filler. The proposed visible hinge hardware adds an estimated280.85g before omitted fasteners and changes its envelope; that estimate is not a weighed mass. Ideal hinges and rigid friction-equivalent feet are disclosed approximations. No built assembly, calibrated hinge/floor response, real-world trial or sim-to-real equivalence is claimed.
+
+Original task code, procedural geometry, assembly drawings and documentation are released under the MIT license in `LICENSE`. Copied native components retain their accompanying copyright and MIT license notices in `native/LICENSE*`; external runtime assets retain their own terms. Source permission, successful runtime execution and task-board acceptance are separate facts.

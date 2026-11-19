@@ -1,0 +1,13 @@
+{
+  "inspect-robots": "1.0.0",
+  "inspect-robots-yam": "0.38.0",
+  "isaaclab": "17.0.2",
+  "isaaclab_arena": "0.3.0",
+  "isaacsim": "6.1.0.0",
+  "isaacsim-kernel": "6.1.0.0",
+  "numpy": "2.3.1",
+  "python": "3.12.13",
+  "torch": "2.11.0+cu128",
+  "yam-arena": "0.1.0",
+  "coal": "3.0.2"
+}
