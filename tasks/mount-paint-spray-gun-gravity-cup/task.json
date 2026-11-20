@@ -1,0 +1,23 @@
+{
+  "title": "Mount a paint spray gun gravity cup onto the fluid inlet and engage the locking cam ring",
+  "category": "Impact on jobs",
+  "keywords": [
+    "bimanual",
+    "automotive",
+    "spray gun",
+    "coating",
+    "gravity cup",
+    "bayonet",
+    "cam lock",
+    "retention proof"
+  ],
+  "instruction": "Hold the spray gun upright, seat the gravity cup firmly into the top fluid inlet, rotate the locking cam ring clockwise until it clicks into locked position, verify retention with an upward tug, and clear both arms.",
+  "context": "Automotive painters, body repairers, and industrial coating machine operators (BLS SOC 51-9122, SOC 49-3021, SOC 47-2141; >780,000 US jobs) assemble and clean professional HVLP gravity-feed spray guns (SATAjet / 3M PPS 2.0). Under paint booth safety protocols, paint cups must be positively locked to the gun body before filling or atomization. The technician steadies the gun, inserts the rigid nylon cup spout axially into the fluid inlet boss past the Buna-N seal, and rotates the knurled locking cam collar 45 degrees clockwise into its detent to prevent unseating under spray vibration.",
+  "setup": "Station table with a professional HVLP spray gun (mass 0.65 kg) supported upright in a bench stand at x 24 cm, y -6 cm. Top fluid inlet boss (outer diameter 22 mm, bore 16 mm, depth 15 mm) features an anodized knurled locking collar ring. A 650 mL rigid nylon paint cup (diameter 90 mm, height 143 mm, mass 0.12 kg) with bottom cylindrical spout and dual bayonet lugs sits upright on the table at x 24 cm, y 16 cm.",
+  "scoring": "Score 1.0 when the gravity cup is seated coaxially in the fluid inlet (radial offset <= 3.5 mm, tilt <= 6 deg), locking collar rotated clockwise >= 40 deg into positive detent, 20 N upward retention proof pull held 1.0 s with vertical slip <= 0.8 mm, both arms released and retracted clear >= 25 mm, and stationary for 1.0 s. Partial credit: 0.75 for seated and locked but unreleased; 0.50 for seated coaxially; 0.25 for aligned above inlet. Score 0 if cup dropped, overturned > 45 deg, or dislodged under proof pull.",
+  "run_limit": "1,800 steps (90 seconds at 20 Hz)",
+  "reset_notes": "Place the spray gun upright in its bench stand at x 24 cm, y -6 cm with locking ring at 0 deg (unlocked). Place the paint cup upright on the table at x 24 cm, y 16 cm.",
+  "fidelity": "Standard 1:1 HVLP spray gun on steel bench stand. 650 mL rigid nylon cup with cylindrical spout and dual bayonet lugs. Knurled locking collar ring on revolute hinge joint with 45-deg cam detent. 20 N upward retention proof pull. 100% rigid-body contact physics and arm clearance verification.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": ""
+}
