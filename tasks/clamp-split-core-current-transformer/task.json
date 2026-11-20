@@ -18,6 +18,6 @@
   "run_limit": "600 steps (30 seconds at 20 Hz)",
   "reset_notes": "Disengage the mechanical retention catch, hinge open the upper core keeper to 45 deg, and park both arms clear.",
   "fidelity": "True 1:1 scale standard industrial split-core CT (Magnelab SCT style) and 350 kcmil insulated cable. 100% rigid contact physics with revolute core hinge and positive mechanical retention catch. Active 15 N verification tug tests retention along cable. Full URDF robot collision hulls checked.",
-  "scores": "Dream-1 run: 0.0; demo: 1.0",
-  "media": "M-J22ZJ2"
+  "scores": "Dream-1 run: 0.5; demo: 1.0",
+  "media": "M-SZH8KC"
 }
