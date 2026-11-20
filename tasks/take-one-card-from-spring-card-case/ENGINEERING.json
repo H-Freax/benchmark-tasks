@@ -21,13 +21,13 @@
       0.066,
       0.04
     ],
-    "single_slot_height_m": 0.0009499999999999995,
-    "single_card_clearance_m": 0.00018999999999999941,
-    "two_card_interference_m": 0.0005700000000000006,
+    "single_slot_height_m": 0.0014999999999999996,
+    "single_card_clearance_m": 0.0007399999999999996,
+    "two_card_interference_m": 2.0000000000000486e-05,
     "spring": {
-      "rate_N_per_m": 200.0,
-      "free_target_above_initial_m": 0.006,
-      "initial_force_N": 1.2,
+      "rate_N_per_m": 2500.0,
+      "free_target_above_initial_m": 0.0008,
+      "initial_force_N": 2.0,
       "travel_m": [
         -0.005,
         0.0038
@@ -99,15 +99,15 @@
         "center_m": [
           0.0485,
           0,
-          0.0075250000000000004
+          0.00725
         ],
         "size_m": [
           0.003,
           0.058,
-          0.01105
+          0.0105
         ],
         "density_kg_m3": 1050.0,
-        "mass_kg": 0.002018835
+        "mass_kg": 0.00191835
       },
       {
         "name": "roof_L",

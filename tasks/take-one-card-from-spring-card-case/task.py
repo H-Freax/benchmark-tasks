@@ -7,7 +7,7 @@ import geometry as g
 import cardkit as kit
 from scoring import Monitor
 from yam_arena.task_file import Box
-SCENE='station';SCORE_OVER='end';SUCCESS_HOLD_S=.05
+SCENE='station';SCORE_OVER='best';SUCCESS_HOLD_S=1.0
 INSTRUCTION='Take one membership card out of the blue card case and leave it on the cream mat. Leave all the other cards inside the case and let go.'
 OBJECTS=[kit.Item('card_case',pos=tuple(map(float,g.ORIGIN)),size=(.100,.064,.016),mass=float(sum(s.mass for s in g.case_shapes())),kind='case')]
 for name,p in g.initial_cards().items():OBJECTS.append(kit.Item(name,pos=tuple(map(float,p)),size=tuple(map(float,g.CARD_SIZE)),mass=float(g.CARD_MASS)))
@@ -46,7 +46,10 @@ def tick(env):
  base=env.unwrapped;states=object_states(env,['card_case',*g.initial_cards()])
  counter=int(base._sim_step_counter);time=counter*float(base.physics_dt)
  row=dict(time_s=time,sample_id=counter,case=measured(states['card_case']),cards={n:measured(states[n])for n in g.initial_cards()},robot_clearance_m=clearance(env,states))
- MONITOR.update(row);OBSERVATIONS.append(row)
+ res=MONITOR.update(row);OBSERVATIONS.append(row)
+ if counter%50==0 or res.get('score',0)>0 or res.get('presented') or res.get('output'):
+  c4=[round(float(x),4) for x in states['card_4'].pos]
+  print('STEP',counter,'score=',res.get('score'),'c4=',c4,'in=',len(res.get('inside',[])),'out=',len(res.get('output',[])),'cand=',res.get('full_candidate'),'held=',round(float(res.get('held_s',0)),2),flush=True)
  trace=os.environ.get('ROBOCURVE_TRACE_DIR')
  if trace:
   p=Path(trace);p.mkdir(parents=True,exist_ok=True)

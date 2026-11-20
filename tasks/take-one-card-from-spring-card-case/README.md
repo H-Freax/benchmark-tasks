@@ -6,12 +6,12 @@ A receptionist, cashier or visitor retrieves a single plastic membership card fr
 
 - **Category:** Societal relatability
 - **Domain:** Hospitality / retail / office customer service (ID / loyalty card distribution)
-- **Mechanism:** Spring follower under a 5-card stack pushes against a top thumb window with an exact 0.95 mm single-card outlet throat. High friction against the top PVC card advances exactly one card forward while the 0.95 mm dam blocks the second card (1.52 mm two-card interference). The second arm stabilizes the loose case on its desktop riser.
+- **Mechanism:** Spring follower under a 5-card stack pushes against a top thumb window with an exact 1.50 mm single-card outlet throat. High friction against the top PVC card advances exactly one card forward while the 1.50 mm throat blocks the second card (1.52 mm two-card interference). The second arm stabilizes the loose case on its desktop riser.
 
 ## Reproducibility and Fabrication
 
 The `fabrication/` subdirectory provides a complete, reproducible fabrication package for physical testing and 3D printing:
-- `case_dimensions.svg`: Orthographic dimensioned drawings (top view, centerline section A–A with 0.95 mm throat detail, bench fixture coordinates).
+- `case_dimensions.svg`: Orthographic dimensioned drawings (top view, centerline section A–A with 1.50 mm throat detail, bench fixture coordinates).
 - `fabrication/case_base.stl`: 100 x 64 x 14 mm ABS lower housing with 11.05 mm front dam and 2x spring guide posts.
 - `fabrication/case_lid.stl`: 100 x 64 x 2 mm ABS upper frame with 66 x 40 mm thumb window.
 - `fabrication/follower_plate.stl`: 84 x 52 x 1 mm 6061-T6 aluminium follower plate.

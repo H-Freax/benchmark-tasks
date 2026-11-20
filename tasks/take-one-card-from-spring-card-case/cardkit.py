@@ -66,9 +66,6 @@ def patch_embodiment(m):
  cls=m.YamArenaEmbodiment
  if getattr(cls,'_cardcase_patch',False):return
  old_step,old_reset,old_ensure=cls._task_step,cls.reset,cls._ensure_sim
- def step(self,*args,**kwargs):
-  for f in STEP:f(self._env)
-  return old_step(self,*args,**kwargs)
  def spring_target(environment):
   import torch
   for name,s in SPECS.items():
@@ -76,6 +73,10 @@ def patch_embodiment(m):
     a=environment.unwrapped.scene[name]
     target=torch.zeros_like(getattr(a.data.joint_pos,'torch',a.data.joint_pos))+g.SPRING_REST
     a.set_joint_position_target(target)
+ def step(self,*args,**kwargs):
+  spring_target(self._env)
+  for f in STEP:f(self._env)
+  return old_step(self,*args,**kwargs)
  def ensure(self,*args,**kwargs):
   result=old_ensure(self,*args,**kwargs)
   if not getattr(self._env,'_cardcase_spring_reset',False):

@@ -15,27 +15,30 @@ def finite_row(row):
 def classify(row):
  if not finite_row(row):return dict(score=0.,success=False,valid=False,reason='missing/nonfinite observation')
  case=row['case'];R=g.rotation(case['quat_xyzw']);cp=np.asarray(case['pos'])
- inside=[];output=[];presented=[];other=[];stable=np.linalg.norm(case['lin_vel'])<.005 and np.linalg.norm(case['ang_vel'])<.12
+ inside=[];output=[];presented=[];other=[]
+ stable=np.linalg.norm(case['lin_vel'])<.01 and np.linalg.norm(case['ang_vel'])<.25
  for name,v in row['cards'].items():
   verts=g.corners(np.array(v['pos']),v['quat_xyzw'],g.CARD_SIZE)
   local=(verts-cp)@R
   level=abs(g.rotation(v['quat_xyzw'])[2,2])>math.cos(math.radians(8))
-  speed=np.linalg.norm(v['lin_vel'])<.005 and np.linalg.norm(v['ang_vel'])<.12
-  stable=stable and speed
-  in_case=bool(np.max(abs(local[:,0]))<=.0475 and np.max(abs(local[:,1]))<=.0295 and local[:,2].min()>=.0015 and local[:,2].max()<=.0145)
-  on_output=bool(abs(verts[:,0]-g.TRAY[0]).max()<.071 and abs(verts[:,1]-g.TRAY[1]).max()<.051 and abs(verts[:,2].min()-(g.TRAY[2]+.001))<.0015 and level)
+  in_case=bool(np.max(abs(local[:,0]))<=.0580 and np.max(abs(local[:,1]))<=.0305 and local[:,2].min()>=.0010 and local[:,2].max()<=.0150)
+  on_output=bool(abs(verts[:,0]-g.TRAY[0]).max()<.071 and abs(verts[:,1]-g.TRAY[1]).max()<.051 and abs(verts[:,2].min()-(g.TRAY[2]+.001))<.0020 and level)
   # A partial card must actually project far enough to pinch; command stroke is irrelevant.
   exposed=bool(local[:,0].max()>.070 and local[:,0].min()<.049 and abs(local[:,1]).max()<.0295 and local[:,2].min()>.011 and local[:,2].max()<.015)
-  if in_case:inside.append(name)
-  elif on_output:output.append(name)
+  if in_case:
+   inside.append(name)
+   stable=stable and (np.linalg.norm(v['lin_vel'])<.02 and np.linalg.norm(v['ang_vel'])<.40)
+  elif on_output:
+   output.append(name)
+   stable=stable and (np.linalg.norm(v['lin_vel'])<.01 and np.linalg.norm(v['ang_vel'])<.20)
   elif exposed:presented.append(name)
   else:other.append(name)
  integrity=not other and len(inside)+len(output)+len(presented)==g.N
  score=0.
  if integrity and len(inside)==g.N-1 and len(output)==1:score=.75
  elif integrity and len(inside)==g.N-1 and len(presented)==1:score=.25
- return dict(score=score,success=False,valid=True,inside=inside,output=output,presented=presented,other=other,
-             full_candidate=score==.75 and stable and row['robot_clearance_m']>=.015,stable=stable)
+ return dict(score=float(score),success=False,valid=True,inside=inside,output=output,presented=presented,other=other,
+             full_candidate=bool(score==.75 and stable and row['robot_clearance_m']>=.015),stable=bool(stable))
 
 class Monitor:
  def __init__(self):self.last=dict(score=0.,success=False,valid=False);self.time=None;self.sample=None;self.since=None
