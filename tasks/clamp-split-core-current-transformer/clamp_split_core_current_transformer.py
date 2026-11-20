@@ -335,26 +335,26 @@ def demo():
 
     # Coordinated bimanual operation:
     # Phase 1 (0-3.0s): Right arm descends beside CT base from -Y; Left arm descends above keeper from +Z.
-    # Phase 2 (3.0-8.0s): Right arm steadies base; Left arm compresses keeper flush shut until catch clicks locked.
+    # Phase 2 (3.0-8.0s): Right arm steadies base flange; Left arm depresses keeper firmly shut until latch clicks locked.
     # Phase 3 (8.0-15.0s): Both arms retract to park poses (>= 20 mm clear) and hold for active 15 N verification tug.
     right_plan = [
         Waypoint(1.5, (CABLE_X, -0.040, CABLE_Z + 0.040), FINGER_OPEN, "hover_beside_base"),
-        Waypoint(1.0, (CABLE_X, -0.030, CABLE_Z), FINGER_OPEN, "descend_beside_base"),
-        Waypoint(0.5, (CABLE_X, -0.022, CABLE_Z), FINGER_CLOSED, "contact_side_flange"),
-        Waypoint(5.0, (CABLE_X, -0.022, CABLE_Z), FINGER_CLOSED, "steady_base_during_clamping"),
+        Waypoint(1.0, (CABLE_X, -0.025, CABLE_Z + 0.020), FINGER_CLOSED, "approach_side_flange"),
+        Waypoint(0.5, (CABLE_X, -0.016, CABLE_Z + 0.010), FINGER_CLOSED, "contact_side_flange"),
+        Waypoint(5.0, (CABLE_X, -0.016, CABLE_Z + 0.010), FINGER_CLOSED, "steady_base_during_clamping"),
         Waypoint(1.0, (CABLE_X, -0.040, CABLE_Z + 0.040), FINGER_OPEN, "retract_side"),
         Waypoint(1.5, PARK_R, FINGER_OPEN, "clear_right"),
         Waypoint(4.5, PARK_R, FINGER_OPEN, "proof_hold_right")
     ]
 
     left_plan = [
-        Waypoint(2.0, (0.335, 0.000, 0.880), FINGER_OPEN, "approach_above_keeper"),
-        Waypoint(0.5, (0.335, 0.000, 0.880), FINGER_CLOSED, "close_gripper_pad"),
-        Waypoint(2.5, (0.355, 0.000, 0.735), FINGER_CLOSED, "press_keeper_shut"),
-        Waypoint(1.5, (0.355, 0.000, 0.735), FINGER_CLOSED, "hold_keeper_shut"),
-        Waypoint(1.0, (0.335, 0.000, 0.880), FINGER_OPEN, "retract_up"),
+        Waypoint(2.0, (0.335, 0.000, 0.900), FINGER_CLOSED, "approach_above_keeper"),
+        Waypoint(1.0, (0.335, 0.000, 0.880), FINGER_CLOSED, "contact_keeper_top"),
+        Waypoint(2.5, (0.335, 0.000, 0.850), FINGER_CLOSED, "press_keeper_shut"),
+        Waypoint(1.5, (0.335, 0.000, 0.850), FINGER_CLOSED, "hold_keeper_shut"),
+        Waypoint(1.0, (0.335, 0.000, 0.900), FINGER_OPEN, "retract_up"),
         Waypoint(1.5, PARK_L, FINGER_OPEN, "clear_left"),
-        Waypoint(6.0, PARK_L, FINGER_OPEN, "proof_hold_left")
+        Waypoint(5.5, PARK_L, FINGER_OPEN, "proof_hold_left")
     ]
 
     return {"left": left_plan, "right": right_plan}
