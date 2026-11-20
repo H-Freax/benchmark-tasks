@@ -1,17 +1,18 @@
 # Mount Commercial Condiment Pump in Fountain Jar
 
 ## Overview
-In commercial fast food and high-volume food service operations (BLS SOC 35-3023 / 35-2021, representing >4.2 million US workers), condiment dispensing stations are sanitized and restocked daily. Stainless portion-control pumps (Server Products / Vollrath style) are assembled and secured into 3.5 qt deep stainless fountain jars.
+In commercial fast food and high-volume food service operations (BLS SOC 35-3023: Fast Food and Counter Workers, 3,460,000 workers; BLS SOC 35-2021: Food Preparation Workers, 891,000 workers; total >4.35 million US workers), condiment dispensing stations are disassembled, sanitized, and reassembled daily under FDA Food Code standards. Stainless portion-control dispenser pumps (Server Products / Vollrath commercial standard) are mounted and secured into heavy-gauge stainless steel fountain jars.
 
 ## Mechanics & Physics
-- Stainless Steel 3.5 qt Fountain Jar (180 x 115 x 180 mm, 1.2 kg) sits on the stainless counter.
-- Stainless Condiment Dispenser Pump (380 g) with a 175 mm pick-up tube, rectangular rim collar, and spring-loaded locking detent catch.
-- Bimanual execution: right hand grasps and steadies the jar rim while left hand retrieves the pump from the sanitary wash rack, coaxially guides the long pick-up cylinder into the jar bore, seats the collar flush onto the rim, engages the detent lock, and applies an upward 5 N proof pull before clearing both hands.
+- **Stainless Steel Fountain Jar** (110 x 130 x 90 mm, 1.2 kg) sits on the prep counter at `(0.260, 0.080)` m with a flared rim (`Z = 0.8375` m) and a front locking detent catch.
+- **Sanitary Wire Wash Rack** (140 x 140 x 95 mm, 0.50 kg) at `(0.240, 0.250)` m with an 80 mm deep vertical socket holding the sanitized pump upright.
+- **Commercial Portion-Control Pump** (380 g) with an 80 mm pick-up tube, 118 x 138 mm rectangular contoured lid collar, spring-loaded locking detent tab, and vertical grip stem.
+- **Bimanual Coordination**: Right gripper grasps the jar's lower sidewall to steady against insertion forces and torques. Left gripper retrieves the pump from the wash rack socket, coaxially guides the pick-up cylinder into the jar bore without jamming, seats the collar flush onto the flared rim, pushes the spring locking collar tab forward into the rim detent slot, and applies an upward proof pull against the mechanical detent to verify retention before clearing both hands for a 1.0 s stability dwell.
 
 ## Stages & Scoring
-- 0.20: Pump grasped and lifted clear of wash rack (>30 mm).
-- 0.40: Pick-up cylinder entered jar bore (Z insertion > 80 mm).
-- 0.65: Lid collar seated flush on jar rim (vertical gap < 4 mm, tilt < 6 deg).
-- 0.85: Collar locking tab engaged in rim detent slot.
-- 1.00: 5 N upward verification proof pull sustained without collar displacement, both hands clear (TCPs >= 40 mm, collision hulls clear), assembly stable.
-- Anti-cheat latches (0.0): dropped pump, excessive jar slide (>35 mm) or tipping (>10 deg), hands not clear.
+- **0.20**: Pump grasped and lifted vertically clear of wash rack socket (> 30 mm).
+- **0.40**: Pick-up cylinder entered jar bore (`r_xy < 0.040` m, vertical insertion > 5 mm below rim).
+- **0.65**: Lid collar seated flush on jar rim (`r_xy < 0.020` m, vertical gap < 15 mm).
+- **0.85**: Collar locking tab pushed forward into rim detent slot (`px < jx - 0.002` m).
+- **1.00**: Upward proof pull sustained against mechanical detent for >= 10 steps (0.5 s), both hands retracted clear (TCPs >= 35 mm, link hulls >= 5 mm clear), and assembly resting still.
+- **Defect latches (0.0)**: Dropped pump outside stand/jar, excessive jar displacement (> 35 mm) or tipping, or hands not clear during hold.
