@@ -19,5 +19,5 @@
   "fidelity": "Rigid bodies. Pricing gun housing collider modeled with true internal cavity and carrier journal stops. Front door modeled with USD Physics revolute joint (0.05 N*m/rad stiffness, 0.10 N*m friction). Fresh and spent ink rollers modeled as rigid cylindrical bodies with PhysX collision meshes.",
   "scores": "Dream-1 run: 0.0; demo: 1.0 (two runs, 320 steps each).",
   "run_limit": "800 steps (40.0 s at 20 Hz).",
-  "media": "M-JU8A5Y"
+  "media": "M-CTBF5L"
 }
