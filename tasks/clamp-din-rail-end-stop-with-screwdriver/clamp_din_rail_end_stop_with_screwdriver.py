@@ -211,15 +211,16 @@ end_stop = kit.part(
     color=CLIPFIX_GREY,
 )
 
-# Prismatic slider for end_stop along the DIN rail (axis = Y, between START_Y and FLUSH_Y)
+# Prismatic slider for end_stop along the DIN rail (axis = Y, travel from START_Y to FLUSH_Y)
+SLIDE_TRAVEL = FLUSH_Y - START_Y
 kit.slider(
     "rail_slide",
     parent=None,
     child="end_stop",
     axis=(0, 1, 0),
-    lower=START_Y - 0.020,
-    upper=FLUSH_Y + 0.001,  # Stop at terminal block face
-    start=START_Y,
+    lower=-0.010,
+    upper=SLIDE_TRAVEL + 0.002,
+    start=0.0,
     stiffness=0.0,
     damping=15.0,
     friction=0.15,
@@ -363,6 +364,10 @@ def _on_step(objects: dict) -> None:
                 M["proof_state"] = "failed"
             elif timer >= 20:  # 1.0 s of continuous proof load at 20 Hz
                 M["proof_state"] = "held"
+
+    step_idx = mk._EP.get("step", 0)
+    if step_idx % 40 == 0 or step_idx > 360:
+        print(f"[{TAG}] step={step_idx} y={current_y:.4f} gap={gap_to_stack:.4f} engaged={engaged} torque={M.get('torque_Nm', 0):.2f} proof={M.get('proof_state')} score={score(objects)}", flush=True)
 
 
 kit.on_step(_on_step)
