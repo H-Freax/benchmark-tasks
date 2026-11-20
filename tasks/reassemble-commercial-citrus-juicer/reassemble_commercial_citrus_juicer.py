@@ -375,7 +375,7 @@ def success(objects: dict) -> bool:
 
 
 # Exported constants
-SCORE_OVER = 0.0
+SCORE_OVER = "end"
 SUCCESS_HOLD_S = 1.0
 
 
