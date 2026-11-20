@@ -307,11 +307,12 @@ def _on_step(objects: dict) -> None:
     if engaged:
         last_yaw = M.get("last_driver_yaw")
         if last_yaw is not None:
-            # Shortest angular delta
+            # Shortest angular delta: clockwise tightening rotation is negative dyaw about Z
             dyaw = (current_yaw - last_yaw + math.pi) % (2.0 * math.pi) - math.pi
-            # Count rotation magnitude while engaged near stack
-            if abs(dyaw) > 0.005 and near_stack:
-                total_rad = M.get("cumulative_turn_rad", 0.0) + abs(dyaw)
+            cw_turn = -dyaw
+            # Count clockwise rotation magnitude while engaged near stack
+            if cw_turn > 0.005 and near_stack:
+                total_rad = M.get("cumulative_turn_rad", 0.0) + cw_turn
                 M["cumulative_turn_rad"] = total_rad
 
                 # Screw advances at SCREW_PITCH (0.7 mm / 2*pi rad)
@@ -452,9 +453,9 @@ def score(objects: dict) -> float:
     """Staged scoring:
 
     0.25: End bracket slid forward along DIN rail (y >= -0.025 m).
-    0.50: End bracket flush against terminal block stack (gap <= 0.5 mm) with
+    0.50: End bracket flush against terminal block stack (gap <= 1.0 mm) with
     screwdriver engaged.
-    0.75: Clamping screw torqued >= 0.4 N*m with advance >= 0.6 mm, but tools/hands
+    0.75: Clamping screw torqued >= 0.4 N*m with advance >= 0.15 mm, but tools/hands
     not released.
     1.00: Clamped tight, screwdriver returned to rest, hands clear >= 20 mm, and
     20 N proof push held 1.0 s.
