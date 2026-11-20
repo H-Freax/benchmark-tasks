@@ -1,0 +1,22 @@
+{
+  "title": "Push a shower valve's cartridge flush against its O-rings, slide the retainer clip down into its slots, and release",
+  "category": "Industrial and commercial robotics",
+  "keywords": [
+    "plumbing",
+    "shower valve",
+    "cartridge replacement",
+    "retainer clip",
+    "bimanual",
+    "o-ring compression"
+  ],
+  "name": "seat-shower-cartridge-and-slide-retainer-clip",
+  "instruction": "Push the shower valve cartridge flush against its O-rings, slide the retainer clip down into its slots, and release.",
+  "context": "Replacing a leaking pressure-balanced shower cartridge (Moen 1222 Posi-Temp) is a standard maintenance operation for plumbers and building maintenance technicians (BLS 47-2152 + 49-9071, >1,950,000 workers). The cylindrical cartridge fits into the cast-brass rough-in valve body against dual elastomeric O-rings. Lubricated O-rings generate elastomeric drag and spring-back (~1.2 mm outward push), requiring one hand to firmly hold the cartridge seated flush against the internal shoulder stop while the other hand aligns and slides a brass U-shaped retainer clip down into vertical slots across the valve ears. If the cartridge is proud by more than 0.8 mm or rotated out of index, the clip's legs collide with the cartridge body and fail to seat. Once seated, the technician releases both hands and tests retention against outward hydraulic backpressure.",
+  "setup": "Positions in cm from table center. Cast-brass Moen 1222 shower rough-in valve casting (11 x 7 x 5 cm, 520 g) rigidly mounted to bench fixture at x = 28.0, y = 0.0, z = 4.5 cm above table. Features true 32 mm bore cavity and dual 1.8 mm vertical guide slot channels across machined ears. Moen 1222 cartridge (32 mm OD, 10.5 cm length, 120 g) starts 12 mm proud on lubricated elastomeric O-rings (1100 N/m spring, 13.2 N resistance at flush stop). Stamped brass U-shaped retainer clip (3.2 x 2.4 x 0.15 cm, 25 g) staged adjacent on metal block at x = 28.0, y = -12.0, z = 5.6 cm.",
+  "scoring": "Evaluated at trial end. 0.00 if unpushed (> 8 mm proud) or clip dropped. 0.20 if cartridge pushed halfway into bore (< 6 mm proud). 0.45 if cartridge pushed flush against internal shoulder stop (< 0.8 mm proud). 0.70 if retainer clip aligned and entered into guide slots while cartridge held flush. 0.90 if retainer clip fully seated down onto ear stops across cartridge retaining groove. 1.00 strictly requires flush cartridge, fully seated retainer clip, both hands cleared (>= 60 mm), and retained in equilibrium for >= 1.0 s under spring-back load.",
+  "reset_notes": "Slide the retainer clip upward out of the body guide slots and return to staging block; cartridge relaxes 12 mm outward to proud unseated position.",
+  "fidelity": "Cast-brass valve body collider with hollow bore and 1.8 mm vertical guide slots (0.40 mm clearance). Cartridge slider joint with 1100 N/m spring stiffness (13.2 N preload at 12 mm flush stroke) and 10 N/(m/s) damping models greased O-ring drag and 1.2 mm spring-back. Stamped brass U-clip (25 g).",
+  "scores": "Dream-1 run: 0.0; demo: 1.0 (two runs, 360 steps each).",
+  "run_limit": "800 steps (40.0 s at 20 Hz).",
+  "media": "M-VMKFK5"
+}
