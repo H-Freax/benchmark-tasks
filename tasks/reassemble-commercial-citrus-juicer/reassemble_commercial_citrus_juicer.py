@@ -101,15 +101,16 @@ kit.part(
         mk.box((0.070, 0.060, 0.040), at=(-0.030, 0.000, 0.145), color=CAST_IRON),
         # Receiver collar ring support arm extending forward from column
         mk.box((0.080, 0.035, 0.020), at=(-0.030, 0.000, 0.040), color=CAST_IRON),
-        # Receiver collar ring perimeter walls (115 mm opening in X and Y)
-        mk.box((0.015, 0.130, 0.025), at=(0.060, 0.000, 0.040), color=CAST_IRON),
-        mk.box((0.015, 0.130, 0.025), at=(-0.060, 0.000, 0.040), color=CAST_IRON),
-        mk.box((0.130, 0.015, 0.025), at=(0.000, 0.060, 0.040), color=CAST_IRON),
-        mk.box((0.130, 0.015, 0.025), at=(0.000, -0.060, 0.040), color=CAST_IRON),
-        # Internal bayonet detent stops inside collar
-        mk.box((0.010, 0.015, 0.010), at=(0.050, 0.020, 0.030), color=CAST_BLACK),
-        mk.box((0.010, 0.015, 0.010), at=(-0.050, 0.020, 0.030), color=CAST_BLACK),
-        mk.box((0.010, 0.015, 0.010), at=(0.000, -0.050, 0.030), color=CAST_BLACK),
+        # Receiver collar perimeter walls with front clearance notch for handle/spout
+        mk.box((0.015, 0.140, 0.025), at=(0.065, 0.000, 0.040), color=CAST_IRON),
+        mk.box((0.015, 0.140, 0.025), at=(-0.065, 0.000, 0.040), color=CAST_IRON),
+        mk.box((0.140, 0.015, 0.025), at=(0.000, 0.065, 0.040), color=CAST_IRON),
+        # Front collar rim segmented to form a 50 mm clearance notch at -Y
+        mk.box((0.045, 0.015, 0.025), at=(0.045, -0.065, 0.040), color=CAST_IRON),
+        mk.box((0.045, 0.015, 0.025), at=(-0.045, -0.065, 0.040), color=CAST_IRON),
+        # Internal bayonet detent stops inside collar (positioned at side walls)
+        mk.box((0.010, 0.015, 0.010), at=(0.052, 0.020, 0.030), color=CAST_BLACK),
+        mk.box((0.010, 0.015, 0.010), at=(-0.052, 0.020, 0.030), color=CAST_BLACK),
     ],
     mass=None,  # Solid bench-mounted unit
 )
