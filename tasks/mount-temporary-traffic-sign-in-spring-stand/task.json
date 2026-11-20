@@ -1,0 +1,21 @@
+{
+  "title": "Insert a roadside sign stand mast upright into its dual-spring base receiver and engage the spring lock pin",
+  "category": "Impact on jobs",
+  "keywords": [
+    "civil engineering",
+    "highway maintenance",
+    "traffic control",
+    "temporary sign stand",
+    "spring pin",
+    "bimanual"
+  ],
+  "instruction": "Retract and hold the base receiver spring pin, insert the mast upright fully into the socket, release the pin to lock it, and let go.",
+  "context": "Construction Laborers (SOC 47-2061: 1,040,000 workers), Highway Maintenance Workers (SOC 47-4051: 150,000 workers), and First-Line Supervisors of Construction Trades (SOC 47-1011: 650,000 workers) deploy temporary traffic control work zones daily per MUTCD Part 6 standards (totaling over 1.84M US workers, BLS OEWS May 2023). Every work zone requires mounting roll-up warning signs onto dual-spring roadside stands (Dicke DF3000 / Cortina 03-800). The 1.25-inch square aluminum mast upright (Dicke DL1000) must be inserted into the tubular steel receiver socket and locked with a 3/8-inch spring-loaded retention pin to prevent wind-shear blow-out from passing commercial traffic.",
+  "setup": "Tabletop workstation (z 0.7475 m). Roadside stand fixture (Dicke DF3000 standard) centered at (0.280, -0.060): 100 x 100 x 10 mm baseplate, dual wind-deflection coil springs, 1.50-inch (38.1 mm) square steel receiver socket (height 20 mm, inner throat 36.0 mm, floor z 0.7575 m). Spring pull pin (dia 9.5 mm / 3/8 in, stroke 20 mm, 40 N/m return spring) on left face (+y) at z 0.7725 m. Upright mast: 1.25-inch (31.75 mm) square aluminum tube, 140 mm length, mass 0.175 kg, with 7/16-inch pin locking hole at 15 mm from bottom end and top clamp collar. Starts upright in transport rack at (0.280, -0.180).",
+  "scoring": "Scored from recorded states and retention test. 0.3 for inserting the mast upright into the socket (depth >= 15 mm). 0.7 for full seating (bottom within 25 mm of floor, tilt <= 12 deg) and spring pin engaged through locking hole (pin displacement <= 3.5 mm). 1.0 for both hands clear (> 25 mm) and passing a 25 N vertical proof pull test (displacement <= 2.5 mm under load for 0.5 s, held 1.0 s). Score 0 latched if post drops, tilts > 35 deg, or pin released while unseated jamming in throat.",
+  "run_limit": "1,200 steps (60 seconds at 20 Hz)",
+  "reset_notes": "Retract the spring lock pin and lift the mast upright post out of the receiver socket. Return the upright post to its transport rack. Allow the spring pin to return to its home detent.",
+  "fidelity": "Rigid bodies with multi-box approximations. Prismatic slider joint with 40 N/m return spring for lock pin. Mechkit catch for positive pin-in-hole retention with 25 N vertical proof pull. Clearance measured from gripper link boxes.",
+  "scores": "Dream-1: 0.0; demo: 1.0",
+  "media": "M-GRT3D5"
+}
