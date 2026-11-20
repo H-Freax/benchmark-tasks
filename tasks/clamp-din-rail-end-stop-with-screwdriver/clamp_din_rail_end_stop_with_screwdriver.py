@@ -475,26 +475,34 @@ def success(objects: dict) -> bool:
 
 # -- Scripted Demo & Cheat Variants --------------------------------------------
 
+from dataclasses import dataclass
 
-class Waypoint:
-
-    def __init__(
-        self,
-        duration: float,
-        xyz: tuple[float, float, float],
-        gripper: float,
-        label: str = "",
-        yaw: float = 0.0,
-    ):
-        self.duration = duration
-        self.xyz = xyz
-        self.gripper = gripper
-        self.label = label
-        self.yaw = yaw
+try:
+    from yam_arena import demo as yam_demo
+    from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN
+    _BaseWaypoint = yam_demo.Waypoint
+except ImportError:
+    class _BaseWaypoint:
+        pass
+    FINGER_CLOSED = 0.0
+    FINGER_OPEN = -0.04695
 
 
-FINGER_OPEN = 0.045
-FINGER_CLOSED = 0.000
+@dataclass
+class Waypoint(_BaseWaypoint):
+    duration: float
+    pos: tuple[float, float, float]
+    finger: float
+    label: str = ""
+    yaw: float = 0.0
+
+    @property
+    def xyz(self) -> tuple[float, float, float]:
+        return self.pos
+
+    @property
+    def gripper(self) -> float:
+        return self.finger
 
 
 def demo() -> dict[str, list[Waypoint]]:
