@@ -14,8 +14,8 @@ In retail point-of-sale environments, pharmacy dispensaries, and warehouse distr
 
 - **Cordless Barcode Scanner (Zebra DS2278)**:
   - Total height: 175 mm
-  - Head depth: 99 mm
-  - Width: 66 mm
+  - Head depth: 75 mm
+  - Width: 55 mm
   - Weight: 214 g (0.214 kg) authentic commercial mass
   - Features: Contoured pistol-grip handle (36 x 32 x 110 mm), recessed optics window bezel, bottom charging contacts with retention detent notch.
 - **Desktop Presentation Cradle (Zebra CR2278-PC)**:
@@ -23,8 +23,8 @@ In retail point-of-sale environments, pharmacy dispensaries, and warehouse distr
   - Weight: 380 g (0.380 kg) cast-iron ballasted base with non-skid rubber feet
   - Features: Contoured hollow receiver throat with 15 mm side guide cheeks, back support cup, front retaining lip, and bottom stop with charging pins.
 - **Starting Setup**:
-  - Presentation cradle sits on the checkout counter at `x = 0.36 m, y = -0.05 m`.
-  - Scanner starts upright on counter at `x = 0.30 m, y = -0.10 m, z = 0.055 m`.
+  - Presentation cradle sits on the checkout counter at `x = 0.36 m, y = -0.05 m, z = 0.0425 m` above table.
+  - Scanner starts upright on counter at `x = 0.30 m, y = -0.10 m, z = 0.085 m` above table.
 
 ## Scoring Logic & Success Criteria
 
