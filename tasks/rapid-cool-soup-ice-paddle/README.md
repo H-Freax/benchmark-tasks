@@ -13,10 +13,10 @@ The instruction specifies the cooling, agitation, and storage hanging goals. Uns
 ## The rig
 
 In layout (all coordinates in metres from arm-base line midpoint):
-- 8 qt Commercial Stainless Stockpot (Vollrath / Winco style): outer diameter 220 mm across flats, inner diameter 204 mm across flats, height 90 mm, total mass 2.40 kg. Sits on a 280 x 280 x 5 mm heat-resistant charcoal silicone prep mat at (0.260, 0.080) m. Pot floor at Z = 0.7585 m, rim top at Z = 0.8425 m. Contains hot broth simulant (depth 45 mm, liquid surface at Z = 0.8035 m, 39 mm clear headspace to rim).
-- Stockpot Fixtures: welded front-left stainless rim bracket with a horizontal resting saddle at (0.240, 0.170, Z = 0.8425 m). Right side welded tubular loop handle at (0.260, -0.045, Z = 0.8025 m).
+- 8 qt Commercial Stainless Stockpot (Vollrath / Winco style): outer diameter 220 mm across flats, inner diameter 204 mm across flats, height 90 mm, total mass 2.40 kg. Sits on the counter at (0.260, 0.080) m. Pot floor at Z = 0.7535 m, rim top at Z = 0.8375 m. Contains hot broth simulant (depth 45 mm, liquid surface at Z = 0.7985 m, 39 mm clear headspace to rim).
+- Stockpot Fixtures: welded front-left stainless rim bracket with a horizontal resting saddle at (0.240, 0.170, Z = 0.8375 m). Right side welded tubular loop handle at (0.260, -0.045, Z = 0.7975 m).
 - Sanitary Stand: weighted stainless steel stand (100 x 100 x 30 mm, 500 g) at (0.220, 0.220) m with an 18 mm deep vertical socket. Stand floor at Z = 0.7595 m.
-- Commercial Ice Paddle (San Jamar Rapi-Kool style): 450 g food-grade polyethylene wand filled with frozen core water. Finned blade (65 mm long, 55 mm wide, 26 mm thick, heat-dissipating cooling ribs), 18 mm collar with radial hanging hook projecting 25 mm along +Y with a 10 mm downward retaining lip, and 45 mm cylindrical grip handle (diameter 24 mm). Starts standing upright in the stand cradle (blade bottom at Z = 0.7595 m, handle grip centre at Z = 0.8545 m).
+- Commercial Ice Paddle (San Jamar Rapi-Kool style): 120 g food-grade polyethylene wand. Finned blade (65 mm long, 55 mm wide, 26 mm thick, heat-dissipating cooling ribs), 18 mm collar with radial hanging hook projecting 25 mm along +Y with a 10 mm downward retaining lip, and 45 mm cylindrical grip handle (diameter 24 mm). Starts standing upright in the stand cradle (blade bottom at Z = 0.7605 m, handle grip centre at Z = 0.8655 m).
 
 ## Environment
 

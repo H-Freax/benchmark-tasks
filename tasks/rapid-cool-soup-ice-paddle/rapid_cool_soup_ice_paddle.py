@@ -1,10 +1,10 @@
 """Submerge an ice cooling paddle into a commercial stockpot of hot soup, agitate to chill, and hang the paddle on the rim bracket.
 
 On the commercial kitchen prep counter stands an 8 qt heavy-gauge stainless steel stockpot (Vollrath / Winco style:
-220 mm outer diameter, 204 mm inner diameter, 90 mm tall, 2.4 kg) sitting on a silicone heat mat at (0.260, 0.080).
-The stockpot contains hot broth simulant (liquid depth 45 mm, surface at Z = 0.8035 m, 39 mm headspace to the rim).
+220 mm outer diameter, 204 mm inner diameter, 90 mm tall, 2.4 kg) sitting on the counter at (0.260, 0.080).
+The stockpot contains hot broth simulant (liquid depth 45 mm, surface at Z = 0.7985 m, 39 mm headspace to the rim).
 The front-left rim of the pot features a welded stainless paddle hanging bracket with a horizontal resting saddle
-at (0.240, 0.170, Z = 0.8425 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.045, Z = 0.8025 m).
+at (0.240, 0.170, Z = 0.8375 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.045, Z = 0.7975 m).
 To the robot's left stands a sanitary stainless paddle stand (100 x 100 x 30 mm, 500 g) at (0.220, 0.220) holding an upright
 commercial rapid cooling paddle (San Jamar Rapi-Kool style: 120 g hollow HDPE shell, 65 mm finned cooling blade, 18 mm collar with
 radial hanging hook extending 25 mm, and 45 mm cylindrical grip handle).
@@ -53,18 +53,12 @@ SCORE_OVER = "end"
 STAINLESS = (0.75, 0.77, 0.80)
 DARK_STAINLESS = (0.45, 0.47, 0.50)
 STAND_STEEL = (0.62, 0.64, 0.67)
-MAT_CHARCOAL = (0.18, 0.18, 0.20)
 BROTH_GOLD = (0.76, 0.58, 0.22)
 ICE_PADDLE_CYAN = (0.35, 0.75, 0.85)
 PADDLE_HANDLE_BLUE = (0.15, 0.35, 0.70)
 HOOK_RED = (0.85, 0.22, 0.20)
 
 # Physical layout and dimensions
-# Tabletop silicone protective heat mat under stockpot
-MAT_XY = (0.260, 0.080)
-MAT_SIZE = (0.280, 0.280, 0.005)
-MAT_TOP = TOP + MAT_SIZE[2]       # Z = 0.7525 m
-
 # Commercial stockpot (Vollrath / Winco style 8 qt heavy stainless pot)
 POT_XY = (0.260, 0.080)
 POT_OUTER_ACROSS = 0.220          # 220 mm flat-to-flat outer diameter
@@ -72,23 +66,23 @@ POT_INNER_ACROSS = 0.204          # 204 mm inner diameter (8 mm wall thickness)
 POT_WALL_THICK = 0.008
 POT_TOTAL_H = 0.090               # 90 mm exterior pot height
 POT_FLOOR_H = 0.006               # 6 mm thick bottom slab
-POT_FLOOR_Z = MAT_TOP + POT_FLOOR_H  # Z = 0.7585 m
-POT_RIM_Z = MAT_TOP + POT_TOTAL_H    # Z = 0.8425 m
+POT_FLOOR_Z = TOP + POT_FLOOR_H   # Z = 0.7535 m
+POT_RIM_Z = TOP + POT_TOTAL_H     # Z = 0.8375 m
 POT_KG = 2.40                     # 2.4 kg pot + soup mass
 
 # Hot broth simulant inside pot
 BROTH_DEPTH = 0.045               # 45 mm broth depth
-BROTH_SURFACE_Z = POT_FLOOR_Z + BROTH_DEPTH  # Z = 0.8035 m
+BROTH_SURFACE_Z = POT_FLOOR_Z + BROTH_DEPTH  # Z = 0.7985 m
 BROTH_HEADSPACE = POT_RIM_Z - BROTH_SURFACE_Z  # 39.0 mm clear headspace to rim
 
 # Stockpot rim hanging bracket (welded at front-left rim: X=0.240, Y=0.170)
 BRACKET_XY = (0.240, 0.170)
-BRACKET_SEAT_Z = POT_RIM_Z        # Z = 0.8425 m
+BRACKET_SEAT_Z = POT_RIM_Z        # Z = 0.8375 m
 BRACKET_SIZE = (0.024, 0.016, 0.012)
 
 # Stockpot right loop handle (welded at right side: X=0.260, Y=-0.045)
 POT_HANDLE_XY = (0.260, -0.045)
-POT_HANDLE_Z = MAT_TOP + 0.050    # Z = 0.8025 m
+POT_HANDLE_Z = TOP + 0.050        # Z = 0.7975 m
 
 # Paddle sanitary stand (weighted stainless cradle with vertical socket)
 STAND_XY = (0.220, 0.220)
@@ -112,10 +106,10 @@ PADDLE_GRIP_Z_LOCAL = 0.040       # ergonomic grip centre in paddle frame (+40 m
 PADDLE_KG = 0.120                 # simulated 120 g (hollow HDPE cooling wand shell)
 
 # Initial placement of paddle in stand:
-# Paddle rests blade-down in stand socket. Blade bottom at STAND_FLOOR_Z = 0.7595 m.
-# Collar origin z = STAND_FLOOR_Z + PADDLE_BLADE_L = 0.7595 + 0.065 = 0.8245 m.
-# Handle grip centre in world frame = 0.8245 + 0.040 = 0.8645 m.
-PADDLE_START_POS = (STAND_XY[0], STAND_XY[1], STAND_FLOOR_Z + PADDLE_BLADE_L)
+# Paddle rests blade-down in stand socket with 1 mm gravity settling clearance.
+# Blade bottom at STAND_FLOOR_Z + 0.001 m.
+# Collar origin z = STAND_FLOOR_Z + PADDLE_BLADE_L + 0.001.
+PADDLE_START_POS = (STAND_XY[0], STAND_XY[1], STAND_FLOOR_Z + PADDLE_BLADE_L + 0.001)
 
 # Local hook engagement point in paddle frame
 HOOK_LOCAL = (0.0, 0.015, 0.004)
@@ -236,22 +230,15 @@ kit = mk.Kit()
 # Fixed sanitary stand on counter
 kit.part("storage_stand", (STAND_XY[0], STAND_XY[1], TOP), _stand_boxes(), mass=None, color=STAND_STEEL)
 
-# 8 qt stockpot on silicone heat mat (free rigid body, sits solidly with friction)
-kit.part("stockpot", (POT_XY[0], POT_XY[1], MAT_TOP), _pot_boxes(), mass=POT_KG, color=STAINLESS, solver_position_iterations=16)
+# 8 qt stockpot on counter (free rigid body, sits solidly with friction, 1.5 mm initial clearance)
+kit.part("stockpot", (POT_XY[0], POT_XY[1], TOP + 0.0015), _pot_boxes(), mass=POT_KG, color=STAINLESS, solver_position_iterations=16)
 
 # Commercial rapid cooling ice paddle (starts upright in storage stand)
 kit.part("ice_paddle", PADDLE_START_POS, _paddle_boxes(), mass=PADDLE_KG, color=ICE_PADDLE_CYAN, solver_position_iterations=16)
 
-FIXTURES = [
-    Box(
-        "silicone_heat_mat",
-        pos=(MAT_XY[0], MAT_XY[1], TOP + MAT_SIZE[2] / 2),
-        size=MAT_SIZE,
-        color=MAT_CHARCOAL,
-    ),
-]
+FIXTURES = []
 
-OBJECTS = [*kit.objects(), *FIXTURES]
+OBJECTS = kit.objects()
 
 
 # -- episode physics & scoring ----------------------------------------------------------------------------------
@@ -340,7 +327,8 @@ def _step_rules(objects) -> None:
     pot_pos, _ = kit.pose(objects, "stockpot")
     pot_xy = (float(pot_pos[0]), float(pot_pos[1]))
     pot_slip = math.hypot(pot_xy[0] - POT_XY[0], pot_xy[1] - POT_XY[1])
-    if pot_slip > POT_MAX_SLIP or _tilt_deg(pot_st) > POT_MAX_TILT_DEG:
+    pot_tilt = _tilt_deg(pot_st)
+    if pot_slip > POT_MAX_SLIP or pot_tilt > POT_MAX_TILT_DEG:
         mk.MEMORY["pot_fault"] = True
 
     # 2. Dropped paddle fault: paddle falls onto counter top outside stand and pot
@@ -585,7 +573,7 @@ def _build_state(
     paddle_pos=PADDLE_START_POS,
     paddle_quat=(0.0, 0.0, 0.0, 1.0),
     paddle_vel=(0.0, 0.0, 0.0),
-    pot_pos=(POT_XY[0], POT_XY[1], MAT_TOP),
+    pot_pos=(POT_XY[0], POT_XY[1], TOP),
     pot_quat=(0.0, 0.0, 0.0, 1.0),
     pot_tilt_deg=0.0,
 ) -> dict:
