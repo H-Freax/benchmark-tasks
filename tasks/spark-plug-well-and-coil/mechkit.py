@@ -268,8 +268,13 @@ class Kit:
         self._released: set = set()
         self.catches: dict = {}
         self.guides: dict = {}
+        self.filtered_collisions: list = []
         self.id = len(_KITS)
         _KITS.append(self)
+
+    def filter_collision(self, a: str, b: str) -> None:
+        """Permanently disable PhysX collision between parts ``a`` and ``b``."""
+        self.filtered_collisions.append((str(a), str(b)))
 
     # -- declaring --------------------------------------------------------------------------------------------
 
@@ -581,7 +586,10 @@ class Kit:
         if path and _SIM["stage"] is not None:
             from pxr import UsdPhysics
 
-            UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(True)
+            j = UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path))
+            j.CreateBreakForceAttr().Set(float("inf"))
+            j.CreateBreakTorqueAttr().Set(float("inf"))
+            j.GetJointEnabledAttr().Set(True)
 
     def disengage(self, name: str) -> None:
         """Open catch ``name`` again now (sim), e.g. a collet's teeth let go while its release ring is pressed."""
@@ -589,7 +597,10 @@ class Kit:
         if path and _SIM["stage"] is not None:
             from pxr import UsdPhysics
 
-            UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(False)
+            j = UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path))
+            j.GetJointEnabledAttr().Set(False)
+            j.CreateBreakForceAttr().Set(0.0)
+            j.CreateBreakTorqueAttr().Set(0.0)
 
     def pull(self, part: str, force=None, at=None) -> bool:
         """Hold a steady ``force`` (N, world) on free part ``part`` at env point ``at``, applied at every physics
@@ -656,7 +667,10 @@ def _open_catches() -> None:
     from pxr import UsdPhysics
 
     for path in _SIM["catch_paths"].values():
-        UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(False)
+        j = UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path))
+        j.GetJointEnabledAttr().Set(False)
+        j.CreateBreakForceAttr().Set(0.0)
+        j.CreateBreakTorqueAttr().Set(0.0)
 
 
 def _world_aabb(t, lo, hi):
@@ -916,6 +930,11 @@ def _author_all(stage, env_path: str) -> None:
             if p:
                 _SIM["joint_paths"][(k.id, name)] = p
                 _guide_contacts(k, name, True)
+        for a, b in k.filtered_collisions:
+            if a in paths and b in paths:
+                from pxr import Sdf, UsdPhysics
+                pairs = UsdPhysics.FilteredPairsAPI.Apply(stage.GetPrimAtPath(paths[a]))
+                pairs.CreateFilteredPairsRel().AddTarget(Sdf.Path(paths[b]))
     print(f"[mechkit {__version__}] parts {sorted(paths)}; joints {sorted(n for _, n in _SIM['joint_paths'])}",
           flush=True)
 
