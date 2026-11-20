@@ -269,7 +269,7 @@ def demo() -> dict[str, list[Waypoint]]:
     RIGHT_PARK = (0.160, -0.280, 0.940)
 
     # Left arm starts parked clear on +Y side
-    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park")
+    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park", yaw=-math.pi / 2)
 
     # Right arm: approach and grasp tongs on forward grill zone
     add("right", 1.2, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.090), FINGER_OPEN, "approach tongs above grill", yaw=math.pi / 2)
@@ -290,7 +290,7 @@ def demo() -> dict[str, list[Waypoint]]:
     add("right", 0.6, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_CLOSED, "lower tongs onto tray", yaw=math.pi / 2)
     add("right", 0.4, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_OPEN, "release tongs", yaw=math.pi / 2)
     # Retract right arm to clear park position
-    add("right", 0.8, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z + 0.080), FINGER_OPEN, "lift right arm")
+    add("right", 0.8, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z + 0.080), FINGER_OPEN, "lift right arm", yaw=math.pi / 2)
     add("right", 1.0, RIGHT_PARK, FINGER_OPEN, "park right arm")
 
     if variant == "no_platen":
@@ -303,28 +303,28 @@ def demo() -> dict[str, list[Waypoint]]:
     wait_until("left", clock["right"] - 1.0, "wait for tongs clear")
 
     # Left arm: approach insulated platen front handle in open position (75 degrees)
-    # Handle runs side-to-side (along Y), fingers close across it (yaw = 0.0)
-    add("left", 1.2, (0.225, 0.000, 1.060), FINGER_OPEN, "approach insulated handle above")
-    add("left", 0.6, (0.225, 0.000, 1.020), FINGER_OPEN, "align with handle")
-    add("left", 0.4, (0.225, 0.000, 1.020), FINGER_CLOSED, "grasp insulated handle")
+    # Handle runs side-to-side (along Y), fingers close across it with yaw = -pi/2
+    add("left", 1.2, (0.225, 0.000, 1.060), FINGER_OPEN, "approach insulated handle above", yaw=-math.pi / 2)
+    add("left", 0.6, (0.225, 0.000, 1.020), FINGER_OPEN, "align with handle", yaw=-math.pi / 2)
+    add("left", 0.4, (0.225, 0.000, 1.020), FINGER_CLOSED, "grasp insulated handle", yaw=-math.pi / 2)
 
-    # Lower platen smoothly along circular arc
-    add("left", 0.6, (0.277, 0.000, 1.006), FINGER_CLOSED, "pivot platen down 60 deg")
-    add("left", 0.6, (0.323, 0.000, 0.980), FINGER_CLOSED, "pivot platen down 45 deg")
-    add("left", 0.6, (0.361, 0.000, 0.943), FINGER_CLOSED, "pivot platen down 30 deg")
-    add("left", 0.6, (0.388, 0.000, 0.897), FINGER_CLOSED, "pivot platen down 15 deg")
-    add("left", 0.6, (0.402, 0.000, 0.846), FINGER_CLOSED, "seat platen flush on stop 0 deg")
+    # Lower platen smoothly along circular arc with yaw = -math.pi / 2
+    add("left", 0.6, (0.277, 0.000, 1.006), FINGER_CLOSED, "pivot platen down 60 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.323, 0.000, 0.980), FINGER_CLOSED, "pivot platen down 45 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.361, 0.000, 0.943), FINGER_CLOSED, "pivot platen down 30 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.388, 0.000, 0.897), FINGER_CLOSED, "pivot platen down 15 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.402, 0.000, 0.846), FINGER_CLOSED, "seat platen flush on stop 0 deg", yaw=-math.pi / 2)
 
     if variant == "no_release":
-        add("left", 2.0, (0.402, 0.000, 0.846), FINGER_CLOSED, "dwell without release")
+        add("left", 2.0, (0.402, 0.000, 0.846), FINGER_CLOSED, "dwell without release", yaw=-math.pi / 2)
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
         return plans
 
     # Release insulated handle and retract clear
-    add("left", 0.4, (0.402, 0.000, 0.846), FINGER_OPEN, "release handle")
-    add("left", 0.8, (0.402, 0.000, 0.930), FINGER_OPEN, "lift left arm")
+    add("left", 0.4, (0.402, 0.000, 0.846), FINGER_OPEN, "release handle", yaw=-math.pi / 2)
+    add("left", 0.8, (0.402, 0.000, 0.930), FINGER_OPEN, "lift left arm", yaw=-math.pi / 2)
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
 
     # Ensure right arm remains parked clear
