@@ -382,10 +382,11 @@ def _step_rules(objects) -> None:
             mk.MEMORY["rim_latched"] = True
 
     # Periodic execution logging in sim
-    if step_id % 50 == 0 or step_id in (1, 10, 20, 30, 40, 50, 530, 533):
+    if (step_id % 10 == 0 and 100 <= step_id <= 450) or step_id % 50 == 0 or step_id in (1, 10, 20, 30, 40, 50, 530, 533):
         pad_z = float(pad_tip[2])
         active_faults = [k for k in ("pot_fault", "drop_fault", "splash_fault", "cheat_bypass", "invalid_state") if mk.MEMORY.get(k)]
-        print(f"[STEP {step_id:04d}] score={score(objects):.2f} pad_tip_z={pad_z:.4f} revs={revs:.2f} faults={active_faults}", flush=True)
+        th_val = math.atan2(dy_pot, dx_pot)
+        print(f"[STEP {step_id:04d}] score={score(objects):.2f} pad_tip_z={pad_z:.4f} revs={revs:.2f} r_pot={r_pot:.4f} pot_xy=({pot_xy[0]:.3f},{pot_xy[1]:.3f}) pad_xy=({pad_pos[0]:.3f},{pad_pos[1]:.3f}) th={th_val:.3f} faults={active_faults}", flush=True)
 
 
 kit.on_step(_step_rules)
