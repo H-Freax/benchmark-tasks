@@ -18,5 +18,5 @@
   "fidelity": "Rigid bodies. Eyewash housing collider features true hollow cavity with internal floor cradle stop. Door hinge modeled with USD Physics revolute joint (0.08 N*m/rad stiffness, 0.15 N*m Coulomb friction). Sealed 32 oz bottle modeled as composite body with true 980 g mass.",
   "scores": "Dream-1 run: 0.0; demo: 1.0 (two runs, 334 steps each).",
   "run_limit": "800 steps (40.0 s at 20 Hz).",
-  "media": "M-Q256TV"
+  "media": "M-6JTS6S"
 }
