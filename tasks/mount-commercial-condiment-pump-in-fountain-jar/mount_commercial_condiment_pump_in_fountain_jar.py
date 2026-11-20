@@ -132,8 +132,8 @@ class Scorer:
             self.stage_locked = True
 
         # Stage 5: Proof test (upward pull with lock holding)
-        # Left arm pulls upward with > 4.0 N while collar remains seated
-        if self.stage_locked and left_force_z > 4.0 and gap_z < 0.008:
+        # Left arm pulls upward with > 5.0 N while collar remains seated
+        if self.stage_locked and left_force_z >= 5.0 and gap_z < 0.008:
             self.proof_steps += 1
             if self.proof_steps >= self.proof_required_steps:
                 self.stage_proof = True
