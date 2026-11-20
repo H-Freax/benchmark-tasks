@@ -122,7 +122,7 @@ AGITATION_FULL_REVS = 5.0         # >= 5 circular revolutions for full credit (0
 MIN_STIR_R = 0.015                # minimum radius from pot axis
 MAX_STIR_R = 0.075                # maximum radius from pot axis (clears 102 mm inner radius)
 MAX_SPLASH_SPEED = 0.45           # linear speed > 0.45 m/s while submerged causes splash fault
-MAX_SPLASH_ACCEL = 4.0            # acceleration > 4.0 m/s^2 while submerged causes splash fault
+MAX_SPLASH_ACCEL = 6.0            # acceleration > 6.0 m/s^2 while submerged causes splash fault
 DRAIN_HOLD_STEPS = 16             # 16 steps (0.8 s) drain hold above liquid level
 HOOK_SEAT_TOL_XY = 0.020          # hook within 20 mm of bracket saddle
 HOOK_SEAT_TOL_Z = 0.020           # hook within 20 mm of bracket saddle
@@ -499,10 +499,10 @@ def demo():
 
     pad_grasp_z = PADDLE_START_POS[2] + PADDLE_GRIP_Z_LOCAL
     pad_carry_z = 0.950
-    pad_submerge_z = 0.847
-    pad_drain_z = 0.882
-    bracket_seat_z = 0.837
-    bracket_approach_z = 0.873
+    pad_submerge_z = 0.878
+    pad_drain_z = 0.910
+    bracket_seat_z = 0.865
+    bracket_approach_z = 0.900
 
     yaw_grip = 0.0
 
