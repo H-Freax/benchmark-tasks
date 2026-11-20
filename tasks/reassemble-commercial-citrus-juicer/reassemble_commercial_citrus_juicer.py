@@ -143,8 +143,8 @@ kit.hinge(
     upper_deg=95.0,
     start_deg=85.0,
     rest_deg=85.0,
-    stiffness=5.0,
-    damping=0.5,
+    stiffness=1.2,
+    damping=0.3,
 )
 
 # -- 3. Stainless Juice Collector Funnel Bowl ----------------------------------
@@ -408,7 +408,7 @@ def demo() -> dict[str, list[Waypoint]]:
     c_x = CONE_INIT_POS[0]
     c_y = CONE_INIT_POS[1]
     c_z = CONE_INIT_POS[2] + 0.025
-    CONE_CARRY_Z = TOP + 0.125
+    CONE_CARRY_Z = TOP + 0.150
 
     # Right arm: installs collector bowl into base collar and locks bayonet detents
     right = [
@@ -461,12 +461,12 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.2, (c_x, c_y, CONE_CARRY_Z), FINGER_OPEN, "cone_approach"),
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
-        # Smooth direct Y approach into juicer collar
+        # Smooth direct Y approach into juicer collar with 28.5 mm clearance above bowl rim
         Waypoint(0.8, (c_x, c_y - 0.035, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
         Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
         Waypoint(0.8, (c_x, c_y - 0.105, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_3"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
-        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_seat"),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
