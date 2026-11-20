@@ -502,7 +502,7 @@ def demo():
     pad_carry_z = 0.950
     pad_submerge_z = 0.878
     pad_drain_z = 0.910
-    bracket_seat_z = 0.865
+    bracket_seat_z = 0.860
     bracket_approach_z = 0.900
 
     yaw_grip = 0.0
@@ -531,10 +531,10 @@ def demo():
 
     # Circular agitation revolutions
     n_revs = 0 if variant == "no_agitation" else 5
-    R = 0.030
-    t_step = 0.06 if variant == "fast_splash" else 0.55
+    R = 0.035
+    t_step = 0.04 if variant == "fast_splash" else 0.28
     for rev in range(n_revs):
-        for angle_deg in [0, 90, 180, 270]:
+        for angle_deg in [0, 45, 90, 135, 180, 225, 270, 315]:
             th = math.radians(angle_deg)
             add("left", t_step, (px + R * math.cos(th), py + R * math.sin(th), pad_submerge_z), HANDLE_PINCH, f"stir rev {rev}", yaw_grip)
     add("left", t_step, (px + R, py, pad_submerge_z), HANDLE_PINCH, "stir finish", yaw_grip)
@@ -550,6 +550,7 @@ def demo():
     add("left", 1.2, (bx, by - 0.015, bracket_approach_z), HANDLE_PINCH, "approach rim bracket", yaw_grip)
     add("left", 0.8, (bx, by - 0.015, bracket_seat_z), HANDLE_PINCH, "lower hook onto bracket", yaw_grip)
     add("left", 0.6, (bx, by - 0.015, bracket_seat_z), FINGER_OPEN, "release hook", yaw_grip)
+    add("left", 0.8, (bx, by - 0.015, 0.940), FINGER_OPEN, "retract above paddle", 0.0)
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm", 0.0)
 
     t_left_hung = clock["left"]
@@ -601,10 +602,10 @@ def self_test() -> int:
     s_hung = _build_state(paddle_pos=(BRACKET_XY[0], BRACKET_XY[1] - 0.015, BRACKET_SEAT_Z + 0.004))
 
     stir_steps = []
-    R = 0.030
+    R = 0.035
     sub_z = (BROTH_SURFACE_Z - 0.025) + PADDLE_BLADE_L
     for rev in range(5):
-        for angle_deg in [0, 90, 180, 270]:
+        for angle_deg in [0, 45, 90, 135, 180, 225, 270, 315]:
             th = math.radians(angle_deg)
             stir_steps.append(_build_state(paddle_pos=(POT_XY[0] + R * math.cos(th), POT_XY[1] + R * math.sin(th), sub_z)))
     stir_steps.append(_build_state(paddle_pos=(POT_XY[0] + R, POT_XY[1], sub_z)))
@@ -621,7 +622,7 @@ def self_test() -> int:
         "initial state scores 0": ([s_init], tcps_clear, rboxes_clear, 0.0),
         "lifted paddle scores 0.15": ([s_init, s_lifted], tcps_clear, rboxes_clear, 0.15),
         "submerged in broth scores 0.35": ([s_init, s_lifted, s_submerged], tcps_clear, rboxes_clear, 0.35),
-        "3 agitation revolutions scores 0.60": ([s_init, s_lifted, *stir_steps[:13]], tcps_clear, rboxes_clear, 0.60),
+        "3 agitation revolutions scores 0.60": ([s_init, s_lifted, *stir_steps[:25]], tcps_clear, rboxes_clear, 0.60),
         "5 agitation revolutions + drained scores 0.80": ([s_init, s_lifted, *stir_steps, *drain_steps], tcps_clear, rboxes_clear, 0.80),
         "full agitation + rim hang + clear hands scores 1.0": ([s_init, s_lifted, *stir_steps, *drain_steps, s_hung], tcps_clear, rboxes_clear, 1.0),
         "hands touching paddle at end caps at 0.80": ([s_init, s_lifted, *stir_steps, *drain_steps, s_hung], [(BRACKET_XY[0], BRACKET_XY[1], 0.84)], rboxes_clear, 0.80),
