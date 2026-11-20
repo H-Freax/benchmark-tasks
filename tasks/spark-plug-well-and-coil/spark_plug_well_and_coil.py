@@ -3,9 +3,10 @@ Automotive Service Technicians and Mechanics (SOC 49-3023, 760,000+ US workers).
 
 Task:
 Install a replacement spark plug into a recessed cylinder head well using a retention
-socket extension tool, thread it home into the combustion chamber seat, withdraw the
-tool to cradle, and install a coil-on-plug (COP) ignition unit with its rubber boot
-sealing over the ceramic terminal and mounting flange resting flush on the boss.
+socket extension tool, rotate and thread it home into the combustion chamber seat,
+withdraw the tool and park it in its cradle, and install a coil-on-plug (COP) ignition
+unit with its hollow rubber boot sealing over the ceramic terminal and mounting flange
+resting flush on the boss.
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ WELL_DEPTH = 0.030
 WELL_BORE = 0.026
 WELL_TOP_Z = TOP + CYL_HEAD_SIZE[2]       # 0.7875 m
 WELL_SEAT_Z = WELL_TOP_Z - WELL_DEPTH     # 0.7575 m
+WELL_ENTRY_Z = WELL_SEAT_Z + 0.006        # 0.7635 m (thread entry counterbore)
 
 BOSS_XY = (0.295, 0.000)
 BOSS_Z = WELL_TOP_Z
@@ -123,8 +125,9 @@ kit.part("socket_tool", TOOL_START_POS,
           mk.box(HANDLE_BAR, at=(0, 0, SOCKET_CUP_H + 0.004 + TOOL_TUBE_H + HANDLE_BAR[2] / 2), color=BLACK)],
          mass=0.075, color=STEEL, contact_offset=0.0005)
 
-# 4. Ignition Coil Unit (silicone boot, head with connector, mounting ear)
+# 4. Ignition Coil Unit (hollow silicone boot, head with connector, mounting ear)
 BOOT_OD = 0.018
+BOOT_ID = 0.012  # hollow sleeve to slide over 10.5 mm spark plug ceramic
 BOOT_H = 0.024
 COIL_HEAD_SIZE = (0.045, 0.032, 0.020)
 EAR_SIZE = (0.022, 0.018, 0.006)
@@ -134,7 +137,7 @@ TARGET_COIL_BOTTOM_Z = WELL_TOP_Z - BOOT_H  # 0.7635 m
 
 COIL_START_POS = (COIL_STAND_XY[0], COIL_STAND_XY[1], COIL_STAND_Z)
 kit.part("ignition_coil", COIL_START_POS,
-         [*_oct_rod(BOOT_OD, 0.0, BOOT_H, color=BOOT_BLACK),
+         [*_square_ring(BOOT_OD, BOOT_ID, BOOT_H, 0.0, color=BOOT_BLACK),
           mk.box(COIL_HEAD_SIZE, at=(0, 0, BOOT_H + COIL_HEAD_SIZE[2] / 2), color=BLACK),
           mk.box(EAR_SIZE, at=(EAR_OFFSET_X, 0, BOOT_H + EAR_SIZE[2] / 2), color=STEEL)],
          mass=0.090, color=BLACK, contact_offset=0.0005)
@@ -144,7 +147,7 @@ kit.part("ignition_coil", COIL_START_POS,
 _TOOL_GRIP_PLUG = mk._T(None, (0.0, 0.0, -0.012))
 kit.catch("tool_plug_catch", "spark_plug", _TOOL_GRIP_PLUG, "socket_tool", mk._T())
 
-# B. Well seat holds spark plug when seated home
+# B. Well seat holds spark plug when threaded home
 _PLUG_SEAT_REF = mk._T(None, (WELL_XY[0], WELL_XY[1], WELL_SEAT_Z))
 kit.catch("plug_seated_catch", "spark_plug", _PLUG_SEAT_REF)
 
@@ -182,26 +185,63 @@ def _simulation_rules(objects):
             mk.MEMORY["plug_captured"] = True
             kit.engage("tool_plug_catch")
 
-    # 2. Seat plug in well: when plug is at well bottom and on axis
+    # 2. Thread and seat plug in well: requires entry at thread mouth, pitch-coupled clockwise rotation, and axial descent
     d_well_plug = math.dist((plug_pos[0], plug_pos[1]), WELL_XY)
-    if d_well_plug < 0.005 and abs(plug_pos[2] - WELL_SEAT_Z) < 0.005:
-        if not mk.MEMORY.get("plug_seated"):
-            mk.MEMORY["plug_seated"] = True
-            kit.engage("plug_seated_catch")
+    if d_well_plug < 0.008 and mk.MEMORY.get("plug_captured"):
+        tool_quat = tool_st.quat_xyzw if hasattr(tool_st, "quat_xyzw") else (0, 0, 0, 1)
+        curr_yaw = math.atan2(2.0 * (tool_quat[3] * tool_quat[2] + tool_quat[0] * tool_quat[1]),
+                              1.0 - 2.0 * (tool_quat[1]**2 + tool_quat[2]**2))
+
+        # Plug reaches the thread entry zone
+        if plug_pos[2] <= WELL_ENTRY_Z + 0.003:
+            if "thread_entry_z" not in mk.MEMORY:
+                mk.MEMORY["thread_entry_z"] = float(plug_pos[2])
+                mk.MEMORY["last_yaw"] = float(curr_yaw)
+                mk.MEMORY["cw_rotation"] = 0.0
+
+            dyaw = curr_yaw - mk.MEMORY["last_yaw"]
+            while dyaw > math.pi:
+                dyaw -= 2 * math.pi
+            while dyaw < -math.pi:
+                dyaw += 2 * math.pi
+            mk.MEMORY["last_yaw"] = float(curr_yaw)
+
+            # Clockwise tightening: looking down from +Z, negative yaw delta is clockwise
+            if dyaw < -1e-4:
+                mk.MEMORY["cw_rotation"] += (-dyaw)
+
+            axial_advance = mk.MEMORY["thread_entry_z"] - float(plug_pos[2])
+            expected_advance = mk.MEMORY.get("cw_rotation", 0.0) * (0.006 / 4.0)
+            pitch_coupled = abs(axial_advance - expected_advance) <= 0.0025
+
+            # Verified threading: >=3.5 rad CW rotation, >=4.5 mm axial advance, pitch coupled, and seated
+            if (mk.MEMORY.get("cw_rotation", 0.0) >= 3.5 and
+                axial_advance >= 0.0045 and
+                pitch_coupled and
+                abs(plug_pos[2] - WELL_SEAT_Z) <= 0.003):
+                mk.MEMORY["plug_threaded"] = True
+                if not mk.MEMORY.get("plug_seated"):
+                    mk.MEMORY["plug_seated"] = True
+                    kit.engage("plug_seated_catch")
 
     # Tool withdrawn above well mouth: releases tool catch
     if mk.MEMORY.get("plug_seated") and tool_pos[2] > WELL_TOP_Z + 0.010:
         kit.disengage("tool_plug_catch")
         mk.MEMORY["tool_withdrawn"] = True
 
-    # 3. Coil insertion and seating
+    # 3. Coil insertion and seating: requires boot in well AND mounting ear aligned flush over boss
     coil_st = objects["ignition_coil"]
     coil_pos = kit.point(objects, "ignition_coil", (0, 0, 0))
     d_coil_well_xy = math.dist((coil_pos[0], coil_pos[1]), WELL_XY)
+
+    ear_pos = kit.point(objects, "ignition_coil", (EAR_OFFSET_X, 0.0, BOOT_H))
+    d_ear_boss_xy = math.dist((ear_pos[0], ear_pos[1]), BOSS_XY)
+    ear_is_flush = (d_ear_boss_xy <= 0.004 and abs(ear_pos[2] - BOSS_Z) <= 0.002)
+
     if mk.MEMORY.get("plug_seated") and mk.MEMORY.get("tool_withdrawn"):
         if d_coil_well_xy < 0.012 and coil_pos[2] < WELL_TOP_Z + 0.010:
             mk.MEMORY["coil_entered"] = True
-        if d_coil_well_xy < 0.005 and abs(coil_pos[2] - TARGET_COIL_BOTTOM_Z) < 0.005:
+        if d_coil_well_xy < 0.005 and abs(coil_pos[2] - TARGET_COIL_BOTTOM_Z) < 0.004 and ear_is_flush:
             mk.MEMORY["coil_seated"] = True
             kit.engage("coil_seated_catch")
 
@@ -232,18 +272,27 @@ def score(objects) -> float:
     tool_pos = kit.point(objects, "socket_tool", (0, 0, 0))
     coil_pos = kit.point(objects, "ignition_coil", (0, 0, 0))
 
-    # Check 1.0 condition: plug seated, tool clear, coil seated, arms clear
+    # Check 1.0 condition:
+    # 1. Plug seated home on axis, correct depth, and verified threaded
     d_well_plug = math.dist((plug_pos[0], plug_pos[1]), WELL_XY)
-    plug_is_home = (d_well_plug <= 0.003 and abs(plug_pos[2] - WELL_SEAT_Z) <= 0.003)
+    plug_is_home = (d_well_plug <= 0.003 and abs(plug_pos[2] - WELL_SEAT_Z) <= 0.003 and mk.MEMORY.get("plug_threaded", False))
 
-    tool_is_clear = (tool_pos[2] >= WELL_TOP_Z + 0.010 or math.dist((tool_pos[0], tool_pos[1]), WELL_XY) >= 0.040)
+    # 2. Tool parked in cradle or withdrawn clear of well
+    d_tool_cradle = math.dist((tool_pos[0], tool_pos[1]), TOOL_CRADLE_XY)
+    tool_is_parked = (d_tool_cradle <= 0.030 and tool_pos[2] <= TOOL_CRADLE_Z + 0.025)
+    tool_is_clear = (tool_is_parked or (tool_pos[2] >= WELL_TOP_Z + 0.010 and math.dist((tool_pos[0], tool_pos[1]), WELL_XY) >= 0.040))
 
+    # 3. Coil seated home over terminal and mounting ear aligned flush with boss (<= 1.5 mm vertical)
     d_well_coil = math.dist((coil_pos[0], coil_pos[1]), WELL_XY)
-    coil_is_home = (d_well_coil <= 0.003 and abs(coil_pos[2] - TARGET_COIL_BOTTOM_Z) <= 0.003)
+    ear_pos = kit.point(objects, "ignition_coil", (EAR_OFFSET_X, 0.0, BOOT_H))
+    d_ear_boss_xy = math.dist((ear_pos[0], ear_pos[1]), BOSS_XY)
+    ear_flush = (d_ear_boss_xy <= 0.003 and abs(ear_pos[2] - BOSS_Z) <= 0.0015)
+    coil_is_home = (d_well_coil <= 0.003 and abs(coil_pos[2] - TARGET_COIL_BOTTOM_Z) <= 0.003 and ear_flush)
 
-    arms_clear = _released(plug_st) and _released(coil_st)
+    # 4. Arms released and clear of all objects
+    arms_clear = _released(plug_st) and _released(coil_st) and _released(tool_st)
 
-    if plug_is_home and tool_is_clear and coil_is_home and arms_clear:
+    if plug_is_home and tool_is_parked and coil_is_home and arms_clear:
         return 1.0
 
     if plug_is_home and (coil_is_home or mk.MEMORY.get("coil_entered")):
@@ -252,7 +301,8 @@ def score(objects) -> float:
     if plug_is_home:
         return 0.50 if tool_is_clear else 0.25
 
-    if mk.MEMORY.get("plug_captured") or plug_pos[2] > PLUG_TRAY_Z + 0.010:
+    # 0.25 requires BOTH capture AND lift clear of tray
+    if mk.MEMORY.get("plug_captured") and plug_pos[2] > PLUG_TRAY_Z + 0.010:
         return 0.25
 
     return 0.0
@@ -299,15 +349,25 @@ def demo():
             Waypoint(1.5, (px, py, TRAVEL), FINGER_CLOSED, "lift plug out of tray"),
         ]
 
-    # 3. Carry over well, descend and seat plug at bottom
+    # 3. Carry over well, lower to thread entry, and execute two-turn threading down to seat
     (wx, wy) = WELL_XY
+    FINGER_REGRIP = 0.025
     r_plan += [
         Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry over well mouth"),
-        Waypoint(2.0, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "lower plug into well"),
-        Waypoint(1.0, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "thread home into seat"),
+        Waypoint(1.8, (wx, wy, WELL_ENTRY_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "lower to thread entry", yaw=1.0),
+        # Turn 1: rotate CW from +1.0 to -1.0 while descending 3 mm (coupled to pitch)
+        Waypoint(1.2, (wx, wy, WELL_ENTRY_Z - 0.003 + 0.012 + grip_to_bottom), FINGER_CLOSED, "thread turn 1", yaw=-1.0),
+        # Re-grip: open slightly, reset wrist yaw to +1.0 CCW
+        Waypoint(0.5, (wx, wy, WELL_ENTRY_Z - 0.003 + 0.012 + grip_to_bottom), FINGER_REGRIP, "release for regrip", yaw=-1.0),
+        Waypoint(0.8, (wx, wy, WELL_ENTRY_Z - 0.003 + 0.012 + grip_to_bottom), FINGER_REGRIP, "reset wrist yaw", yaw=1.0),
+        Waypoint(0.5, (wx, wy, WELL_ENTRY_Z - 0.003 + 0.012 + grip_to_bottom), FINGER_CLOSED, "regrip handle", yaw=1.0),
+        # Turn 2: rotate CW from +1.0 to -1.0 while descending final 3 mm to seat
+        Waypoint(1.2, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "thread turn 2 to seat", yaw=-1.0),
+        Waypoint(0.6, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "torque stop", yaw=-1.0),
+        Waypoint(0.8, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "recenter yaw", yaw=0.0),
         Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "withdraw tool from well"),
         Waypoint(1.8, (tx, ty, TRAVEL), FINGER_CLOSED, "carry tool to cradle"),
-        Waypoint(1.2, (tx, ty, th_z + TIP), FINGER_CLOSED, "lower tool"),
+        Waypoint(1.2, (tx, ty, th_z + TIP), FINGER_CLOSED, "lower tool to cradle"),
         Waypoint(0.8, (tx, ty, th_z + TIP), FINGER_OPEN, "release tool"),
         Waypoint(1.2, (tx, ty, TRAVEL), FINGER_OPEN, "right arm retreat"),
     ]
@@ -318,24 +378,24 @@ def demo():
     coil_grip_to_bottom = (ch_z - cz) + TIP
 
     l_finger_end = FINGER_CLOSED if variant == "touching_coil" else FINGER_OPEN
+    coil_end_pos = (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom) if variant == "touching_coil" else (cx, cy, TRAVEL)
 
     if variant == "no_coil":
         l_plan = [
-            Waypoint(30.0, (cx, cy, TRAVEL), FINGER_OPEN, "idle negative control"),
+            Waypoint(33.0, (cx, cy, TRAVEL), FINGER_OPEN, "idle negative control"),
         ]
     else:
         l_plan = [
-            Waypoint(16.0, (cx, cy, TRAVEL), FINGER_OPEN, "wait for plug seating"),
+            Waypoint(21.0, (cx, cy, TRAVEL), FINGER_OPEN, "wait for plug seating"),
             Waypoint(2.0, (cx, cy, TRAVEL), FINGER_OPEN, "move over ignition coil"),
             Waypoint(1.5, (cx, cy, ch_z + TIP), FINGER_OPEN, "lower to coil head"),
             Waypoint(0.8, (cx, cy, ch_z + TIP), FINGER_CLOSED, "grip coil head"),
-            Waypoint(1.2, (cx, cy, TRAVEL), FINGER_CLOSED, "lift coil"),
+            Waypoint(1.2, (cx, cy, TRAVEL), FINGER_CLOSED, "lift coil from stand"),
             Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry coil over well mouth"),
-            Waypoint(2.0, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "insert boot down well"),
-            Waypoint(1.0, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "press ear flush"),
+            Waypoint(1.5, (wx, wy, TARGET_COIL_BOTTOM_Z + 0.010 + coil_grip_to_bottom), FINGER_CLOSED, "lower boot into well mouth"),
+            Waypoint(1.5, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "press coil boot over terminal flush on boss"),
             Waypoint(0.8, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), l_finger_end, "release coil"),
-            Waypoint(1.5, (wx, wy, TRAVEL), l_finger_end, "lift clear" if variant != "touching_coil" else "hold coil"),
-            Waypoint(1.5, (cx, cy, TRAVEL), l_finger_end, "left arm retreat" if variant != "touching_coil" else "hold coil"),
+            Waypoint(1.5, coil_end_pos, l_finger_end, "hold coil" if variant == "touching_coil" else "left arm retreat"),
         ]
 
     return {"left": l_plan, "right": r_plan}
@@ -352,33 +412,45 @@ def self_test():
     mk.MEMORY["plug_dropped_defect"] = True
     assert score(st_init) == 0.0, "dropped plug defect must score 0.0"
 
-    # 3. Plug captured in tray -> 0.25
+    # 3. Plug captured in tray but not lifted -> 0.0 (anti-cheat: requires lifting!)
     mk.new_episode()
     mk.MEMORY["plug_captured"] = True
-    assert score(st_init) == 0.25, "captured plug must score 0.25"
+    assert score(st_init) == 0.0, "captured but unlifted plug must score 0.0"
 
-    # 4. Plug seated in well, but tool not withdrawn yet -> 0.25
+    # 4. Plug captured AND lifted clear of tray -> 0.25
+    st_plug_lifted = kit.fake_states(moved={
+        "spark_plug": (np.array([PLUG_TRAY_XY[0], PLUG_TRAY_XY[1], PLUG_TRAY_Z + 0.020]), np.array([0, 0, 0, 1])),
+    })
+    assert score(st_plug_lifted) == 0.25, "captured and lifted plug must score 0.25"
+
+    # 5. Plug seated in well, but tool not withdrawn yet -> 0.25
     mk.new_episode()
+    mk.MEMORY["plug_captured"] = True
+    mk.MEMORY["plug_threaded"] = True
     st_plug_seated_tool_down = kit.fake_states(moved={
         "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z]), np.array([0, 0, 0, 1])),
         "socket_tool": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z + 0.010]), np.array([0, 0, 0, 1])),
     })
     assert score(st_plug_seated_tool_down) == 0.25, "plug seated but tool not withdrawn must score 0.25"
 
-    # 5. Plug seated and tool parked in cradle -> 0.50
+    # 6. Plug seated and tool parked in cradle -> 0.50
     mk.new_episode()
+    mk.MEMORY["plug_captured"] = True
+    mk.MEMORY["plug_threaded"] = True
     st_seated = kit.fake_states(moved={
         "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z]), np.array([0, 0, 0, 1])),
         "socket_tool": (np.array([TOOL_CRADLE_XY[0], TOOL_CRADLE_XY[1], TOOL_CRADLE_Z]), np.array([0, 0, 0, 1])),
     })
     assert score(st_seated) == 0.50, "plug seated and tool clear must score 0.50"
 
-    # 6. Coil entered well mouth -> 0.75
+    # 7. Coil entered well mouth -> 0.75
     mk.new_episode()
+    mk.MEMORY["plug_captured"] = True
+    mk.MEMORY["plug_threaded"] = True
     mk.MEMORY["coil_entered"] = True
     assert score(st_seated) == 0.75, "coil entered must score 0.75"
 
-    # 7. Coil seated but hands still touching -> 0.75
+    # 8. Coil seated but hands still touching -> 0.75
     global _TEST_TCPS
     _TEST_TCPS = [np.array([WELL_XY[0], WELL_XY[1], TARGET_COIL_BOTTOM_Z + 0.035]), np.array([0.10, -0.20, 0.90])]
     st_touching = kit.fake_states(moved={
@@ -388,7 +460,7 @@ def self_test():
     })
     assert score(st_touching) == 0.75, "hands touching coil must not award 1.0 (scores 0.75)"
 
-    # 8. Full success: plug seated, tool clear, coil seated, arms clear -> 1.0
+    # 9. Full success: plug seated, tool parked, coil seated & aligned, arms clear -> 1.0
     _TEST_TCPS = [np.array([0.10, 0.20, 0.90]), np.array([0.10, -0.20, 0.90])]
     st_success = kit.fake_states(moved={
         "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z]), np.array([0, 0, 0, 1])),
@@ -398,11 +470,19 @@ def self_test():
     assert score(st_success) == 1.0, "full success must score 1.0"
     assert success(st_success) is True, "success() must return True"
 
-    # 9. Defect overrides complete state -> 0.0
+    # 10. Coil ear unaligned / rotated off boss -> not 1.0
+    st_misaligned_coil = kit.fake_states(moved={
+        "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z]), np.array([0, 0, 0, 1])),
+        "socket_tool": (np.array([TOOL_CRADLE_XY[0], TOOL_CRADLE_XY[1], TOOL_CRADLE_Z]), np.array([0, 0, 0, 1])),
+        "ignition_coil": (np.array([WELL_XY[0], WELL_XY[1], TARGET_COIL_BOTTOM_Z]), np.array([0, 0, 0.7071, 0.7071])),
+    })
+    assert score(st_misaligned_coil) != 1.0, "rotated coil ear must not award 1.0"
+
+    # 11. Defect overrides complete state -> 0.0
     mk.MEMORY["plug_dropped_defect"] = True
     assert score(st_success) == 0.0, "dropped defect must override complete seating to 0.0"
 
-    # 10. Plug off-axis / tilted -> 0.0
+    # 12. Plug off-axis in well -> 0.0
     mk.new_episode()
     st_cocked = kit.fake_states(moved={
         "spark_plug": (np.array([WELL_XY[0] + 0.015, WELL_XY[1], WELL_SEAT_Z]), np.array([0, 0, 0, 1])),
@@ -410,7 +490,7 @@ def self_test():
     })
     assert score(st_cocked) == 0.0, "plug off-axis in well must score 0.0"
 
-    # 11. Test simulation rules end-to-end on capture
+    # 13. Test simulation rules end-to-end on capture
     mk.new_episode()
     st_capture_test = kit.fake_states(moved={
         "socket_tool": (np.array([PLUG_START_POS[0], PLUG_START_POS[1], PLUG_START_POS[2] + 0.012]), np.array([0, 0, 0, 1])),
@@ -419,9 +499,44 @@ def self_test():
     _simulation_rules(st_capture_test)
     assert mk.MEMORY.get("plug_captured") is True, "_simulation_rules must trigger plug_captured when tool cup descends over plug"
 
+    # 14. Test pitch-coupled clockwise threading rule
+    mk.new_episode()
+    mk.MEMORY["plug_captured"] = True
+    # At entry zone with initial yaw +1.0
+    st_entry = kit.fake_states(moved={
+        "socket_tool": (np.array([WELL_XY[0], WELL_XY[1], WELL_ENTRY_Z + 0.012]), np.array([0, 0, 0.4794, 0.8776])),
+        "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_ENTRY_Z]), np.array([0, 0, 0, 1])),
+    })
+    _simulation_rules(st_entry)
+    assert not mk.MEMORY.get("plug_threaded"), "must not be threaded at entry without rotation"
+
+    # Turn 1: CW turn to yaw -1.0 (2.0 rad CW) and 3 mm descent (matches pitch)
+    st_turn1 = kit.fake_states(moved={
+        "socket_tool": (np.array([WELL_XY[0], WELL_XY[1], WELL_ENTRY_Z - 0.003 + 0.012]), np.array([0, 0, -0.4794, 0.8776])),
+        "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_ENTRY_Z - 0.003]), np.array([0, 0, 0, 1])),
+    })
+    _simulation_rules(st_turn1)
+    assert not mk.MEMORY.get("plug_threaded"), "must not be threaded after only 1 turn and 3 mm descent"
+
+    # Regrip: wrist resets to +1.0 CCW while holding depth
+    st_regrip = kit.fake_states(moved={
+        "socket_tool": (np.array([WELL_XY[0], WELL_XY[1], WELL_ENTRY_Z - 0.003 + 0.012]), np.array([0, 0, 0.4794, 0.8776])),
+        "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_ENTRY_Z - 0.003]), np.array([0, 0, 0, 1])),
+    })
+    _simulation_rules(st_regrip)
+
+    # Turn 2: CW turn to yaw -1.0 (accumulated 4.0 rad CW) and descent to seat (6 mm total)
+    st_turn2 = kit.fake_states(moved={
+        "socket_tool": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z + 0.012]), np.array([0, 0, -0.4794, 0.8776])),
+        "spark_plug": (np.array([WELL_XY[0], WELL_XY[1], WELL_SEAT_Z]), np.array([0, 0, 0, 1])),
+    })
+    _simulation_rules(st_turn2)
+    assert mk.MEMORY.get("plug_threaded") is True, "pitch-coupled clockwise threading must trigger plug_threaded"
+    assert mk.MEMORY.get("plug_seated") is True, "threaded plug must engage plug_seated"
+
     _TEST_TCPS = None
     mk.new_episode()
-    return 11
+    return 14
 
 
 if __name__ == "__main__":
