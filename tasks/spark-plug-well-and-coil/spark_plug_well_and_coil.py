@@ -11,6 +11,7 @@ sealing over the ceramic terminal and mounting flange resting flush on the boss.
 from __future__ import annotations
 
 import math
+import os
 import numpy as np
 
 from yam_arena.demo import Waypoint
@@ -274,6 +275,8 @@ FINGER_CLOSED = 0.008
 
 
 def demo():
+    variant = os.environ.get("DEMO_VARIANT", "normal")
+
     # Right Arm: handles socket tool and spark plug
     (tx, ty, tz) = TOOL_START_POS
     th_z = tz + SOCKET_CUP_H + 0.004 + TOOL_TUBE_H + HANDLE_BAR[2] / 2
@@ -288,12 +291,13 @@ def demo():
 
     # 2. Carry over spark plug in tray, press down to capture
     (px, py, pz) = PLUG_START_POS
-    r_plan += [
-        Waypoint(1.8, (px, py, TRAVEL), FINGER_CLOSED, "carry over spark plug"),
-        Waypoint(1.5, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "descend over plug"),
-        Waypoint(0.8, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "press to capture plug"),
-        Waypoint(1.5, (px, py, TRAVEL), FINGER_CLOSED, "lift plug out of tray"),
-    ]
+    if variant != "no_plug":
+        r_plan += [
+            Waypoint(1.8, (px, py, TRAVEL), FINGER_CLOSED, "carry over spark plug"),
+            Waypoint(1.5, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "descend over plug"),
+            Waypoint(0.8, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "press to capture plug"),
+            Waypoint(1.5, (px, py, TRAVEL), FINGER_CLOSED, "lift plug out of tray"),
+        ]
 
     # 3. Carry over well, descend and seat plug at bottom
     (wx, wy) = WELL_XY
@@ -313,19 +317,26 @@ def demo():
     ch_z = cz + BOOT_H + COIL_HEAD_SIZE[2] / 2
     coil_grip_to_bottom = (ch_z - cz) + TIP
 
-    l_plan = [
-        Waypoint(16.0, (cx, cy, TRAVEL), FINGER_OPEN, "wait for plug seating"),
-        Waypoint(2.0, (cx, cy, TRAVEL), FINGER_OPEN, "move over ignition coil"),
-        Waypoint(1.5, (cx, cy, ch_z + TIP), FINGER_OPEN, "lower to coil head"),
-        Waypoint(0.8, (cx, cy, ch_z + TIP), FINGER_CLOSED, "grip coil head"),
-        Waypoint(1.2, (cx, cy, TRAVEL), FINGER_CLOSED, "lift coil"),
-        Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry coil over well mouth"),
-        Waypoint(2.0, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "insert boot down well"),
-        Waypoint(1.0, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "press ear flush"),
-        Waypoint(0.8, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_OPEN, "release coil"),
-        Waypoint(1.5, (wx, wy, TRAVEL), FINGER_OPEN, "lift clear"),
-        Waypoint(1.5, (cx, cy, TRAVEL), FINGER_OPEN, "left arm retreat"),
-    ]
+    l_finger_end = FINGER_CLOSED if variant == "touching_coil" else FINGER_OPEN
+
+    if variant == "no_coil":
+        l_plan = [
+            Waypoint(30.0, (cx, cy, TRAVEL), FINGER_OPEN, "idle negative control"),
+        ]
+    else:
+        l_plan = [
+            Waypoint(16.0, (cx, cy, TRAVEL), FINGER_OPEN, "wait for plug seating"),
+            Waypoint(2.0, (cx, cy, TRAVEL), FINGER_OPEN, "move over ignition coil"),
+            Waypoint(1.5, (cx, cy, ch_z + TIP), FINGER_OPEN, "lower to coil head"),
+            Waypoint(0.8, (cx, cy, ch_z + TIP), FINGER_CLOSED, "grip coil head"),
+            Waypoint(1.2, (cx, cy, TRAVEL), FINGER_CLOSED, "lift coil"),
+            Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry coil over well mouth"),
+            Waypoint(2.0, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "insert boot down well"),
+            Waypoint(1.0, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), FINGER_CLOSED, "press ear flush"),
+            Waypoint(0.8, (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom), l_finger_end, "release coil"),
+            Waypoint(1.5, (wx, wy, TRAVEL), l_finger_end, "lift clear" if variant != "touching_coil" else "hold coil"),
+            Waypoint(1.5, (cx, cy, TRAVEL), l_finger_end, "left arm retreat" if variant != "touching_coil" else "hold coil"),
+        ]
 
     return {"left": l_plan, "right": r_plan}
 
