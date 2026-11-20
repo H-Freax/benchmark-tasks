@@ -143,6 +143,7 @@ rail = kit.part(
     pos=(RAIL_X, RAIL_Y, RAIL_Z),
     boxes=rail_boxes,
     mass=None,
+    contact_offset=0.0005,
 )
 
 # Fixed Terminal Block Stack (UT 2.5 x4) and Fixed Right Backing Stop
@@ -164,6 +165,7 @@ terminal_blocks = kit.part(
     pos=(RAIL_X, 0.000, RAIL_Z),
     boxes=terminal_boxes,
     mass=None,
+    contact_offset=0.0005,
 )
 
 # Tool Rest on bench
@@ -210,20 +212,18 @@ end_stop = kit.part(
     boxes=bracket_boxes,
     mass=0.035,  # 35 grams
     color=CLIPFIX_GREY,
+    contact_offset=0.0005,
 )
 
-# Prismatic slider for end_stop along the DIN rail (axis = Y, travel from START_Y to FLUSH_Y)
+# Axial slide guide for end_stop along the DIN rail (axis = Y, travel from START_Y to FLUSH_Y)
 SLIDE_TRAVEL = FLUSH_Y - START_Y
-kit.slider(
+kit.axial_guide(
     "rail_slide",
-    parent="din_rail",
-    child="end_stop",
+    "din_rail",
+    "end_stop",
     axis=(0, 1, 0),
-    lower=-0.010,
-    upper=SLIDE_TRAVEL,
-    start=0.0,
-    stiffness=0.0,
-    damping=0.0,
+    travel=SLIDE_TRAVEL,
+    clearance_parts=("panel",),
     friction=0.0,
 )
 

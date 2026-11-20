@@ -30,6 +30,7 @@ Public API (angles in the API are degrees unless the name says rad; lengths m; f
     kit.on_step(fn)                                          # fn(objects) every control step, sim only
     kit.release(name)                                        # switch a bond off now (sim; re-glued at reset)
     kit.catch(name, child, child_T, parent=None, parent_T=None)  # a disarmed weld; kit.engage(name) closes it
+    kit.disengage(name) / kit.pull(part, force, at)          # open a catch again; hold a force on a part
     kit.drive(name, target)                                  # move a sprung joint's rest point now (deg / m, sim)
     OBJECTS = [*kit.objects(), ...]
 
@@ -162,6 +163,29 @@ class BoxSpec:
     quat: tuple = (0.0, 0.0, 0.0, 1.0)
 
 
+@dataclass(frozen=True)
+class ConvexSpec(BoxSpec):
+    """One convex collision mesh; size/at retain its enclosing box for offline bounds."""
+    vertices: tuple = ()
+    faces: tuple = ()
+
+
+def convex(vertices, faces, at=(0.0, 0.0, 0.0), color=None) -> ConvexSpec:
+    """A convex polyhedron with metre-scale vertices and consistently wound polygon faces, at a local offset."""
+    points = np.asarray(vertices, float)
+    faces = tuple(tuple(int(i) for i in face) for face in faces)
+    if points.ndim != 2 or points.shape[1] != 3 or len(points) < 4 or not np.isfinite(points).all():
+        raise ValueError("a convex mesh needs at least four finite 3-D vertices")
+    if not faces or any(len(face) < 3 or min(face) < 0 or max(face) >= len(points) for face in faces):
+        raise ValueError("convex mesh faces must index at least three valid vertices")
+    lo, hi = points.min(0), points.max(0)
+    if min(hi - lo) <= 0:
+        raise ValueError("a convex mesh must have positive volume bounds")
+    center = (lo + hi) / 2
+    return ConvexSpec(tuple(float(v) for v in hi - lo), tuple(float(v) for v in np.asarray(at, float) + center), color,
+                      vertices=tuple(tuple(float(v) for v in p) for p in points - center), faces=faces)
+
+
 def box(size, at=(0.0, 0.0, 0.0), color=None, yaw: float = 0.0, quat=None) -> BoxSpec:
     """One box of a part: edge lengths ``size`` (m), centre ``at`` in the part frame, turned ``yaw`` (rad) about
     the part's z (or by ``quat`` xyzw); ``color`` overrides the part's."""
@@ -181,6 +205,8 @@ class MechPart(Box):
     origin: tuple = (0.0, 0.0, 0.0)  # spawn pose of the part frame (world)
     origin_quat: tuple = (0.0, 0.0, 0.0, 1.0)
     kit_id: int = 0
+    contact_offset: float | None = None
+    solver_position_iterations: int | None = None
 
 
 @dataclass
@@ -193,6 +219,8 @@ class _Part:
     lo: np.ndarray = field(default=None)  # local AABB of the geometry (part frame)
     hi: np.ndarray = field(default=None)
     parent_joint: str | None = None
+    contact_offset: float | None = None
+    solver_position_iterations: int | None = None
 
     @property
     def free(self) -> bool:
@@ -239,12 +267,14 @@ class Kit:
         self._steps: list = []
         self._released: set = set()
         self.catches: dict = {}
+        self.guides: dict = {}
         self.id = len(_KITS)
         _KITS.append(self)
 
     # -- declaring --------------------------------------------------------------------------------------------
 
-    def part(self, name, pos, boxes, mass=None, color=GREY, yaw: float = 0.0, quat=None) -> str:
+    def part(self, name, pos, boxes, mass=None, color=GREY, yaw: float = 0.0, quat=None,
+             contact_offset=None, solver_position_iterations=None) -> str:
         """A rigid body made of ``boxes`` (see :func:`box`), its frame at world ``pos`` in the reference pose.
         ``mass`` None: fixed in place (static); otherwise a free body of that mass (kg)."""
         if not str(name).isidentifier():
@@ -256,8 +286,13 @@ class Kit:
             raise ValueError(f"part {name!r} needs at least one box")
         if mass is not None and not mass > 0:
             raise ValueError(f"part {name!r}: mass must be positive or None")
+        if solver_position_iterations is not None and (not isinstance(solver_position_iterations, int)
+                                                       or not 1 <= solver_position_iterations <= 255):
+            raise ValueError("solver_position_iterations must be an integer in [1, 255] or None")
         q = quat if quat is not None else yaw_quat(yaw)
         p = _Part(name, _T(quat_to_mat(q), np.asarray(pos, dtype=float)), boxes, mass, tuple(color))
+        p.contact_offset = contact_offset
+        p.solver_position_iterations = solver_position_iterations
         corners = []
         for b in boxes:
             r = quat_to_mat(b.quat)
@@ -347,6 +382,32 @@ class Kit:
         """Call ``fn(objects)`` after every control step in sim, before success()/score() (e.g. a release rule)."""
         self._steps.append(fn)
 
+    def axial_guide(self, name, parent, child, axis, travel, clearance_parts=(), friction=0.1) -> None:
+        """Prebuilt bore guide for a body already inserted at reset. It permits axial sliding until explicitly
+        cleared, then restores normal contacts; it never captures or moves an outside body into the bore."""
+        j = _Joint(name, "slider", parent, child, self.parts[child].ref[:3, 3].copy(), _unit(axis),
+                   lower=0.0, upper=float(travel), friction=float(friction))
+        self.guides[name] = (j, tuple(clearance_parts))
+
+    def clear_guide(self, name) -> None:
+        """Release an axial guide after its body has physically cleared the bore. One-way until reset."""
+        if MEMORY.get(("guide_cleared", self.id, name)):
+            return
+        _set_joint_enabled(self, name, False)
+        if _SIM["stage"] is not None:
+            _guide_contacts(self, name, False)
+        MEMORY[("guide_cleared", self.id, name)] = True
+
+    def guide_limits(self, name, lower, upper) -> None:
+        """Set the axial clamp limits of an existing guide without moving its body or creating a joint."""
+        path = _SIM["joint_paths"].get((self.id, name))
+        if path and _SIM["stage"] is not None:
+            from pxr import UsdPhysics
+
+            joint = UsdPhysics.PrismaticJoint(_SIM["stage"].GetPrimAtPath(path))
+            joint.GetLowerLimitAttr().Set(float(lower))
+            joint.GetUpperLimitAttr().Set(float(upper))
+
     # -- kinematics -------------------------------------------------------------------------------------------
 
     def _motion(self, j: _Joint, value: float) -> np.ndarray:
@@ -396,7 +457,8 @@ class Kit:
             fl = lambda v: tuple(float(c) for c in v)  # plain floats: Isaac turns numpy float64 into doubles
             out.append(MechPart(name=name, pos=fl((lo + hi) / 2), color=fl(p.color), mass=p.mass,
                                 size=fl(np.maximum(hi - lo, 1e-4)), boxes=p.boxes, origin=fl(t[:3, 3]),
-                                origin_quat=fl(mat_to_quat(t[:3, :3])), kit_id=self.id))
+                                origin_quat=fl(mat_to_quat(t[:3, :3])), kit_id=self.id, contact_offset=p.contact_offset,
+                                solver_position_iterations=p.solver_position_iterations))
         return out
 
     # -- readouts ---------------------------------------------------------------------------------------------
@@ -428,13 +490,16 @@ class Kit:
 
     def q(self, objects, name: str) -> float:
         """Hinge angle (rad) or slider travel (m), from the two bodies' poses."""
-        j = self.joints_[name]
+        j = self.joints_[name] if name in self.joints_ else self.guides[name][0]
         m = self._joint_motion(objects, j)
         if j.kind == "hinge" or j.twist_axis is not None:
             quat = mat_to_quat(m[:3, :3])
             return float(2 * math.atan2(float(np.dot(quat[:3], j.axis)), float(quat[3])))
         if j.kind == "slider":
-            return float(np.dot(m[:3, 3], j.axis))
+            # Prismatic travel is the displacement of the slider's anchor, not of the world origin. A small
+            # solver rotation otherwise contributes (I-R)*reference_position, magnified by the world's lever arm.
+            displacement = m[:3, :3] @ j.anchor + m[:3, 3] - j.anchor
+            return float(np.dot(displacement, j.axis))
         raise ValueError(f"{name!r} is a plain bond; use broken() / slip()")
 
     def q_deg(self, objects, name: str) -> float:
@@ -518,6 +583,39 @@ class Kit:
 
             UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(True)
 
+    def disengage(self, name: str) -> None:
+        """Open catch ``name`` again now (sim), e.g. a collet's teeth let go while its release ring is pressed."""
+        path = _SIM["catch_paths"].get((self.id, name))
+        if path and _SIM["stage"] is not None:
+            from pxr import UsdPhysics
+
+            UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(False)
+
+    def pull(self, part: str, force=None, at=None) -> bool:
+        """Hold a steady ``force`` (N, world) on free part ``part`` at env point ``at``, applied at every physics
+        step until ``pull(part)`` (no force) stops it (sim only; returns False offline). Used for a tug test."""
+        if _EP["env"] is None or _SIM["stage"] is None:
+            return False
+        obj = _EP["env"].unwrapped.scene.rigid_objects.get(part)
+        if obj is None:
+            return False
+        composer = obj.permanent_wrench_composer
+        if force is None:
+            composer.reset()
+            _SIM["pulls"].pop(part, None)
+            return True
+        import warp as wp
+
+        f = wp.from_numpy(np.asarray(force, dtype=np.float32).reshape(1, 1, 3), dtype=wp.vec3f, device=obj.device)
+        p = wp.from_numpy(np.asarray(np.asarray(at, float) + _SIM["env_T"][:3, 3], dtype=np.float32).reshape(1, 1, 3),
+                          dtype=wp.vec3f, device=obj.device)
+        # The persistent tensor path is GPU-safe and scene.write_data_to_sim applies it at every physics substep.
+        # The low-level USD apply_force_at_pos API is illegal when PhysX direct GPU access is enabled.
+        composer.set_forces_and_torques_index(forces=f, torques=wp.zeros((1, 1), dtype=wp.vec3f, device=obj.device),
+                                              positions=p, is_global=True)
+        _SIM["pulls"][part] = composer
+        return True
+
     def drive(self, name: str, target: float) -> None:
         """Set the spring rest point of hinge (deg) or slider (m) ``name`` now (sim only; joints without friction)."""
         j = self.joints_[name]
@@ -570,6 +668,7 @@ def _world_aabb(t, lo, hi):
 def new_episode() -> None:
     """Forget per-episode latches (the sim calls this at every reset; self-tests call it between cases)."""
     MEMORY.clear()
+    _clear_pulls()
     for k in _KITS:
         k._released.clear()
 
@@ -595,6 +694,39 @@ def tcps() -> list:
         g = pos[names.index("gripper")]
         mid = (pos[names.index("tip_left")] + pos[names.index("tip_right")]) / 2
         out.append(g + (mid - g) / (np.linalg.norm(mid - g) + 1e-12) * TCP_PAST_GRIPPER)
+    return out
+
+
+def robot_collision_boxes() -> list:
+    """Per-collision-piece AABBs of both robots, in task/environment coordinates; [] offline.
+
+    Use the URDF's actual collision mesh vertices, including the palm and finger pads, and the measured link
+    poses rather than commanded joints or TCP offsets. The installed runtime supplies xyzw body quaternions.
+    Each mesh piece is bounded separately after rotation; the result conservatively contains its full surface.
+    """
+    env = _EP["env"]
+    if env is None:
+        return []
+    from yam_arena.analysis import link_hulls
+
+    def array(raw):
+        return getattr(raw, "torch", raw).detach().cpu().numpy().astype(float)
+
+    base = env.unwrapped
+    origin = array(base.scene.env_origins)[0]
+    meshes = link_hulls()  # cached URDF collision geometry, in each link's frame
+    out = []
+    for key in ("left_robot", "right_robot"):
+        art = base.scene[key]
+        if not {"gripper", "tip_left", "tip_right"}.issubset(art.body_names):
+            raise RuntimeError("Robot collision clearance needs the palm and both measured finger links")
+        pos = array(art.data.body_pos_w)[0] - origin  # simulator world -> task frame, once
+        quat = array(art.data.body_quat_w)[0]  # xyzw, matching body_link_quat_w in the installed runtime
+        for i, name in enumerate(art.body_names):
+            rotation = quat_to_mat(quat[i])
+            for mesh in meshes.get(name, ()):
+                vertices = mesh.vertices @ rotation.T + pos[i]
+                out.append((vertices.min(0), vertices.max(0)))
     return out
 
 
@@ -716,7 +848,7 @@ def _friction_step(kit: Kit, states: dict) -> None:
     """Elasto-plastic Coulomb friction: the stick point follows the joint once it has slipped past STICK."""
     from pxr import UsdPhysics
 
-    for j in kit.joints_.values():
+    for j in [*kit.joints_.values(), *(j for j, _ in kit.guides.values())]:
         if j.kind == "bond" or j.friction <= 0 or j.child not in states:
             continue
         key = (kit.id, j.name)
@@ -738,7 +870,8 @@ def _friction_reset() -> None:
     from pxr import UsdPhysics
 
     for (kid, name), path in _SIM["joint_paths"].items():
-        j = _KITS[kid].joints_[name]
+        kit = _KITS[kid]
+        j = kit.joints_[name] if name in kit.joints_ else kit.guides[name][0]
         if j.kind == "bond" or j.friction <= 0:
             continue
         _SIM["stick"][(kid, name)] = j.start
@@ -747,7 +880,16 @@ def _friction_reset() -> None:
         drive.GetTargetPositionAttr().Set(float(_drive_target(j, j.start) * scale))
 
 
-_SIM: dict = {"stage": None, "paths": {}, "env_T": np.eye(4), "joint_paths": {}, "gen": 0, "stick": {}, "catch_paths": {}}
+
+
+_SIM: dict = {"stage": None, "paths": {}, "env_T": np.eye(4), "joint_paths": {}, "gen": 0, "stick": {}, "catch_paths": {},
+              "pulls": {}}
+
+
+def _clear_pulls() -> None:
+    for composer in _SIM["pulls"].values():
+        composer.reset()
+    _SIM["pulls"].clear()
 
 
 def _author_all(stage, env_path: str) -> None:
@@ -769,6 +911,11 @@ def _author_all(stage, env_path: str) -> None:
             p = _author_catch(stage, k, name, paths, env_T)
             if p:
                 _SIM["catch_paths"][(k.id, name)] = p
+        for name, (j, _) in k.guides.items():
+            p = _author_joint(stage, k, j, paths, env_T)
+            if p:
+                _SIM["joint_paths"][(k.id, name)] = p
+                _guide_contacts(k, name, True)
     print(f"[mechkit {__version__}] parts {sorted(paths)}; joints {sorted(n for _, n in _SIM['joint_paths'])}",
           flush=True)
 
@@ -780,6 +927,19 @@ def _set_joint_enabled(kit: Kit, name: str, on: bool) -> None:
     from pxr import UsdPhysics
 
     UsdPhysics.Joint(_SIM["stage"].GetPrimAtPath(path)).GetJointEnabledAttr().Set(bool(on))
+
+
+def _guide_contacts(kit: Kit, name, guided) -> None:
+    from pxr import Sdf, UsdPhysics
+
+    j, clearance = kit.guides[name]
+    pairs = UsdPhysics.FilteredPairsAPI.Apply(_SIM["stage"].GetPrimAtPath(_SIM["paths"][j.child]))
+    for other in (j.parent, *clearance):
+        target = Sdf.Path(_SIM["paths"][other])
+        if guided:
+            pairs.CreateFilteredPairsRel().AddTarget(target)
+        else:
+            pairs.GetFilteredPairsRel().RemoveTarget(target)
 
 
 def _reglue() -> None:
@@ -806,6 +966,7 @@ def _spawn_part_fn(mod):
     import isaaclab.sim as sim_utils
     from isaaclab.sim import schemas
     from isaaclab.sim.spawners.shapes import spawn_cuboid
+    from isaaclab.sim.spawners.shapes.shapes import _spawn_geom_from_prim_type
     from isaaclab.sim.utils import clone, create_prim, get_current_stage
 
     @clone
@@ -814,6 +975,8 @@ def _spawn_part_fn(mod):
         stage = get_current_stage()
         create_prim(prim_path, prim_type="Xform", translation=translation, orientation=orientation, stage=stage)
         coll = mod._contact_props() if spec.free else mod.PhysxCollisionPropertiesCfg()
+        if spec.contact_offset is not None:
+            coll = mod.PhysxCollisionPropertiesCfg(contact_offset=spec.contact_offset, rest_offset=0.0)
         for i, b in enumerate(spec.boxes):
             color = b.color if b.color is not None else spec.color
             bcfg = sim_utils.CuboidCfg(
@@ -822,11 +985,27 @@ def _spawn_part_fn(mod):
                 physics_material=mod._grippy(),
                 visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=mod.linear_rgb(color), roughness=0.4),
             )
-            spawn_cuboid.__wrapped__(f"{prim_path}/box{i}", bcfg, translation=tuple(float(v) for v in b.at),
-                                     orientation=tuple(float(v) for v in b.quat))
+            if isinstance(b, ConvexSpec):
+                from pxr import UsdPhysics
+
+                def convex_collision(path, stage=None):
+                    UsdPhysics.MeshCollisionAPI.Apply(stage.GetPrimAtPath(path)).CreateApproximationAttr().Set("convexHull")
+
+                points = np.asarray(b.vertices, float)
+                _spawn_geom_from_prim_type(
+                    f"{prim_path}/box{i}", bcfg, "Mesh",
+                    {"points": list(b.vertices), "faceVertexCounts": [len(face) for face in b.faces],
+                     "faceVertexIndices": [index for face in b.faces for index in face],
+                     "extent": [tuple(float(v) for v in points.min(0)), tuple(float(v) for v in points.max(0))],
+                     "subdivisionScheme": "none"},
+                    translation=tuple(float(v) for v in b.at), orientation=tuple(float(v) for v in b.quat),
+                    stage=stage, geometry_schema_func=convex_collision)
+            else:
+                spawn_cuboid.__wrapped__(f"{prim_path}/box{i}", bcfg, translation=tuple(float(v) for v in b.at),
+                                         orientation=tuple(float(v) for v in b.quat))
         if spec.free:
             schemas.define_rigid_body_properties(
-                prim_path, mod.PhysxRigidBodyPropertiesCfg(solver_position_iteration_count=16,
+                prim_path, mod.PhysxRigidBodyPropertiesCfg(solver_position_iteration_count=spec.solver_position_iterations or 16,
                                                            solver_velocity_iteration_count=2), stage=stage)
             schemas.define_mass_properties(prim_path, sim_utils.MassPropertiesCfg(mass=spec.mass), stage=stage)
         return stage.GetPrimAtPath(prim_path)
@@ -891,9 +1070,16 @@ def _patch_embodiment(ie) -> None:
         return out
 
     def reset(self, *a, **k):
+        _clear_pulls()  # no verification force may persist into reset0's settling steps
         if _SIM["stage"] is not None:
             _open_catches()
             _friction_reset()
+            for kit in _KITS:
+                for name in kit.guides:
+                    _set_joint_enabled(kit, name, True)
+                    _guide_contacts(kit, name, True)
+                    j = kit.guides[name][0]
+                    kit.guide_limits(name, j.lower, j.upper)
         obs = reset0(self, *a, **k)
         _reglue()
         new_episode()
