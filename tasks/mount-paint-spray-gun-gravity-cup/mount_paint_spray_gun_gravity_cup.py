@@ -402,38 +402,31 @@ def success(objects: dict) -> bool:
 # -- Scripted Demo & Cheat Variants --------------------------------------------
 
 try:
-    from yam_arena.demo import Waypoint as _BaseWaypoint
+    from yam_arena.demo import Waypoint
     from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN
 except ImportError:
-    class _BaseWaypoint:
-        pass
+    class Waypoint:
+        def __init__(self, duration: float, pos: tuple[float, float, float] | None = None, finger: float | None = None, label: str = "", yaw: float = 0.0, *, xyz: tuple[float, float, float] | None = None, gripper: float | None = None):
+            self.duration = float(duration)
+            self.pos = pos if pos is not None else xyz
+            self.finger = finger if finger is not None else gripper
+            self.label = label
+            self.yaw = float(yaw)
+        @property
+        def xyz(self) -> tuple[float, float, float]:
+            return self.pos
+        @xyz.setter
+        def xyz(self, val: tuple[float, float, float]):
+            self.pos = val
+        @property
+        def gripper(self) -> float:
+            return self.finger
+        @gripper.setter
+        def gripper(self, val: float):
+            self.finger = val
+
     FINGER_CLOSED = 0.0
     FINGER_OPEN = -0.04695
-
-
-@dataclass
-class Waypoint(_BaseWaypoint):
-    duration: float
-    pos: tuple[float, float, float]
-    finger: float
-    label: str = ""
-    yaw: float = 0.0
-
-    @property
-    def xyz(self) -> tuple[float, float, float]:
-        return self.pos
-
-    @xyz.setter
-    def xyz(self, val: tuple[float, float, float]):
-        self.pos = val
-
-    @property
-    def gripper(self) -> float:
-        return self.finger
-
-    @gripper.setter
-    def gripper(self, val: float):
-        self.finger = val
 
 
 def demo() -> dict[str, list[Waypoint]]:
