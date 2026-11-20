@@ -186,8 +186,6 @@ def _pot_boxes() -> list[mk.BoxSpec]:
         mk.box((0.008, 0.018, 0.005), at=(b_dx - 0.006, b_dy, POT_TOTAL_H + 0.0025), color=DARK_STAINLESS),
         # Welded right tubular loop handle
         mk.box((0.020, 0.012, 0.040), at=(h_dx, h_dy, 0.045), color=DARK_STAINLESS),
-        # Broth liquid visual simulant interior block
-        *_oct_solid(POT_INNER_ACROSS - 0.006, POT_FLOOR_H, BROTH_DEPTH, color=BROTH_GOLD),
     ]
 
 
