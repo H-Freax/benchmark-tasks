@@ -350,15 +350,12 @@ kit.on_step(_update_mechanics)
 
 
 def _released(obj_state: ObjectState, margin: float = CLEAR_MARGIN_M) -> bool:
-    """True if no robot gripper or finger is within margin of the object."""
+    """True if no robot gripper or finger is within margin of the object's bounding box."""
     tcps = mk.tcps()
     if not tcps:
         return True
-    p = np.asarray(obj_state.pos, dtype=float)
-    for tcp in tcps:
-        if np.linalg.norm(np.asarray(tcp, dtype=float) - p) < margin:
-            return False
-    return True
+    lo, hi = np.asarray(obj_state.low) - margin, np.asarray(obj_state.high) + margin
+    return not any(bool(np.all(np.asarray(t) >= lo) and np.all(np.asarray(t) <= hi)) for t in tcps)
 
 
 def cup_aligned(objects: dict) -> bool:
