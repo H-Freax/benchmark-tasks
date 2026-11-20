@@ -529,8 +529,15 @@ def demo():
     # Lower into hot broth
     add("left", 1.0, (px, py, pad_submerge_z), HANDLE_PINCH, "submerge paddle into broth", yaw_grip)
 
+    if variant == "no_agitation":
+        add("left", 2.0, (px, py, pad_submerge_z), HANDLE_PINCH, "dwell submerged without stirring", yaw_grip)
+        end_t = max(clock.values()) + 1.0
+        for arm in ("left", "right"):
+            wait_until(arm, end_t, "finish")
+        return plans
+
     # Circular agitation revolutions
-    n_revs = 0 if variant == "no_agitation" else 11
+    n_revs = 11
     px_stir = px
     py_stir = py
     R = 0.025
