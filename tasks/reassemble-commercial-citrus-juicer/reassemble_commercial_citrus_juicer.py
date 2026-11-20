@@ -71,7 +71,7 @@ COLLAR_Y = 0.000
 COLLAR_Z = TOP + 0.055
 
 # Collector Bowl initial & target poses
-BOWL_INIT_POS = np.array([0.220, -0.140, TOP + 0.025])
+BOWL_INIT_POS = np.array([0.220, -0.140, TOP + 0.030])
 BOWL_SEAT_Z = TOP + 0.050
 
 # Strainer Cone initial & target poses
