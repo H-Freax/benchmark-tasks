@@ -19,5 +19,5 @@
   "fidelity": "Rigid bodies. Commercial pricing gun housing modeled with true internal feed cavity and journal stops. Front door articulated with USD Physics revolute joint (0.05 N*m/rad stiffness, 0.10 N*m friction). Ink rollers modeled as 12 mm OD multi-faceted cylindrical bodies with steel axle pins seating into U-channel retention journals.",
   "scores": "Dream-1 run: 0.0; demo: 1.0 (two runs, 320 steps each).",
   "run_limit": "800 steps (40.0 s at 20 Hz).",
-  "media": "M-CTBF5L"
+  "media": "M-TDLLN8"
 }
