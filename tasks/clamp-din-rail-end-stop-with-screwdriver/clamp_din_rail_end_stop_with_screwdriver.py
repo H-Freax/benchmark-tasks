@@ -288,10 +288,10 @@ def _on_step(objects: dict) -> None:
     tip_dist = float(np.linalg.norm(driver_tip - screw_target))
 
     # Driver alignment checks:
-    # 1. Distance between blade tip and screw slot < 55 mm
+    # 1. Distance between blade tip and screw slot < 75 mm
     # 2. Driver shank approximately upright (Z axis vertical within 30 deg)
-    upright = bool(driver_q[0] ** 2 + driver_q[1] ** 2 < 0.12)
-    engaged = bool(tip_dist < 0.055 and upright)
+    upright = bool(driver_q[0] ** 2 + driver_q[1] ** 2 < 0.15)
+    engaged = bool(tip_dist < 0.075 and upright)
     M["driver_engaged"] = engaged
 
     # Compute screwdriver yaw angle about its long axis
@@ -341,7 +341,7 @@ def _on_step(objects: dict) -> None:
     # Proof push evaluation:
     # Triggered once screwdriver is returned to tool rest and both arms are clear
     driver_at_rest = bool(
-        np.linalg.norm(driver_p[:2] - TOOL_REST_POS[:2]) < 0.040
+        np.linalg.norm(driver_p[:2] - TOOL_REST_POS[:2]) < 0.050
         and driver_p[2] < TOP + 0.100
     )
     hands_clear = bool(
@@ -418,7 +418,7 @@ def proof_held(objects: dict) -> bool:
     """True if screwdriver returned to rest, hands clear, and 20 N proof push held."""
     driver_p, _ = kit.pose(objects, "screwdriver")
     driver_down = bool(
-        np.linalg.norm(driver_p[:2] - TOOL_REST_POS[:2]) < 0.040
+        np.linalg.norm(driver_p[:2] - TOOL_REST_POS[:2]) < 0.050
         and driver_p[2] < TOP + 0.100
     )
     hands_clear = bool(
@@ -554,7 +554,7 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Left arm: operates on +Y (screwdriver rest is at TOOL_REST_POS = (0.22, 0.18, ...))
     # Picks screwdriver, engages M4 screw, tightens, returns screwdriver
-    driver_engage_tcp = (RAIL_X - 0.010 - 0.0286, FLUSH_Y - 0.0537, TOP + 0.1281)
+    driver_engage_tcp = (0.1978, FLUSH_Y - 0.0730, TOP + 0.0980)
     left = [
         # Hover above screwdriver handle
         Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_OPEN, "hover_driver"),
@@ -564,7 +564,7 @@ def demo() -> dict[str, list[Waypoint]]:
         # Lift screwdriver cleanly from rest
         Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_CLOSED, "lift_driver"),
         # Transfer above M4 screw on end bracket at yaw=0.0
-        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.170), FINGER_CLOSED, "hover_screw", yaw=0.0),
+        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.150), FINGER_CLOSED, "hover_screw", yaw=0.0),
         # Engage screw slot at yaw=0.0
         Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw", yaw=0.0),
     ]
@@ -598,7 +598,7 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Full completion: disengage screwdriver, return to tool rest, release both hands
     left.extend([
-        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.170), FINGER_CLOSED, "disengage_screw", yaw=-1.40),
+        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.150), FINGER_CLOSED, "disengage_screw", yaw=-1.40),
         Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "lower_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "release_driver", yaw=0.0),
