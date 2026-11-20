@@ -397,3 +397,100 @@ def plan(variant="normal"):
     )
 
     return waypoints
+
+def demo() -> dict[str, list[Waypoint]]:
+    variant = os.environ.get("DEMO_VARIANT", "")
+    plans: dict[str, list[Waypoint]] = {"left": [], "right": []}
+    clock = {"left": 0.0, "right": 0.0}
+
+    def add(arm: str, dt: float, pos, finger: float, label: str = "", yaw: float = 0.0) -> None:
+        plans[arm].append(Waypoint(float(dt), tuple(float(v) for v in pos), float(finger), label, float(yaw)))
+        clock[arm] += float(dt)
+
+    def wait_until(arm: str, t: float, label: str = "wait") -> None:
+        dt = t - clock[arm]
+        if dt > 1e-6:
+            last = plans[arm][-1]
+            add(arm, dt, last.pos, last.finger, label, last.yaw)
+
+    # Initial grasp coordinates
+    t_grip_xy = (0.240, 0.040)
+    t_grip_z = GRILL_PLATE_Z + 0.020
+
+    tray_dest_xy = (TRAY_XY[0], TRAY_XY[1])
+    tray_dest_z = TOP + 0.022
+
+    LEFT_PARK = (0.160, -0.250, 0.920)
+    RIGHT_PARK = (0.160, 0.350, 0.920)
+
+    # Left arm starts parked clear
+    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park")
+
+    # Right arm: approach and grasp tongs on grill plate
+    add("right", 1.2, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.080), FINGER_OPEN, "approach tongs above grill")
+    add("right", 0.6, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_OPEN, "descend to tongs grip")
+    add("right", 0.4, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_CLOSED, "pinch tongs grip")
+    # Lift tongs clear (> 60 mm)
+    add("right", 0.8, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "lift tongs clear of grill")
+
+    if variant == "no_tray":
+        add("right", 2.0, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "hold tongs suspended")
+        end_t = max(clock.values()) + 1.0
+        for arm in ("left", "right"):
+            wait_until(arm, end_t, "finish")
+        return plans
+
+    # Transfer tongs across to side rest tray
+    add("right", 1.2, (tray_dest_xy[0], tray_dest_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "transfer tongs to tray")
+    add("right", 0.6, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_CLOSED, "lower tongs onto tray")
+    add("right", 0.4, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_OPEN, "release tongs")
+    # Retract right arm to clear park position
+    add("right", 0.8, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z + 0.080), FINGER_OPEN, "lift right arm")
+    add("right", 1.0, RIGHT_PARK, FINGER_OPEN, "park right arm")
+
+    if variant == "no_platen":
+        end_t = max(clock.values()) + 1.0
+        for arm in ("left", "right"):
+            wait_until(arm, end_t, "finish")
+        return plans
+
+    # Synchronize: left arm waits until tongs are resting on tray and right arm is clearing
+    wait_until("left", clock["right"] - 1.0, "wait for tongs clear")
+
+    # Left arm: approach insulated platen front handle in open position
+    handle_open_xy = (0.250, 0.040)
+    handle_open_z = 0.950
+
+    add("left", 1.2, (handle_open_xy[0], handle_open_xy[1], handle_open_z + 0.040), FINGER_OPEN, "approach insulated handle")
+    add("left", 0.6, (handle_open_xy[0], handle_open_xy[1], handle_open_z), FINGER_OPEN, "align with handle")
+    add("left", 0.4, (handle_open_xy[0], handle_open_xy[1], handle_open_z), FINGER_CLOSED, "grasp insulated handle")
+
+    # Lower platen smoothly along arc
+    # Mid-point (40 degrees)
+    add("left", 1.0, (0.325, 0.040, 0.885), FINGER_CLOSED, "pivot platen down mid")
+    # Bottom stop (0 degrees, closed)
+    handle_closed_xy = (0.395, 0.040)
+    handle_closed_z = GRILL_PLATE_Z + 0.025
+    add("left", 1.0, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_CLOSED, "seat platen flush on stop")
+
+    if variant == "no_release":
+        add("left", 2.0, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_CLOSED, "dwell without release")
+        end_t = max(clock.values()) + 1.0
+        for arm in ("left", "right"):
+            wait_until(arm, end_t, "finish")
+        return plans
+
+    # Release insulated handle and retract clear
+    add("left", 0.5, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_OPEN, "release handle")
+    add("left", 0.8, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z + 0.080), FINGER_OPEN, "lift left arm")
+    add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
+
+    # Ensure right arm remains parked clear
+    wait_until("right", clock["left"], "stay parked")
+
+    # 1.5 s stillness dwell
+    end_t = max(clock.values()) + 1.5
+    for arm in ("left", "right"):
+        wait_until(arm, end_t, "stillness hold")
+
+    return plans
