@@ -132,7 +132,7 @@ kit.part(
     mass=0.450,
 )
 
-# Revolute hinge joint for press lever with spring return to +25 deg rest position
+# Revolute hinge joint for press lever with spring return to +45 deg rest position
 kit.hinge(
     name="lever_pivot",
     parent="juicer_base",
@@ -140,9 +140,9 @@ kit.hinge(
     anchor=tuple(LEVER_ANCHOR),
     axis=(0.0, -1.0, 0.0),
     lower_deg=-5.0,
-    upper_deg=30.0,
-    start_deg=25.0,
-    rest_deg=25.0,
+    upper_deg=50.0,
+    start_deg=45.0,
+    rest_deg=45.0,
     stiffness=1.5,
     damping=0.3,
 )
@@ -235,12 +235,12 @@ def _on_step(objects: dict[str, Any]) -> None:
         M["cone_seated"] = True
 
     # 3. Press lever mechanical test stroke
-    min_lever = min(M.get("min_lever_deg", 25.0), lever_deg)
+    min_lever = min(M.get("min_lever_deg", 45.0), lever_deg)
     M["min_lever_deg"] = min_lever
     lever_stroked = bool(
         M.get("cone_seated")
         and min_lever <= LEVER_STROKE_THRESHOLD_DEG
-        and lever_deg >= 20.0  # Returned to top rest position (rest = 25 deg)
+        and lever_deg >= 25.0  # Returned to top rest position (rest = 45 deg)
     )
     if lever_stroked:
         M["lever_stroked"] = True
@@ -326,9 +326,9 @@ def lever_stroked(objects: dict) -> bool:
     """True if press lever completed stroke and returned to top rest."""
     if not cone_seated(objects):
         return False
-    min_l = mk.MEMORY.get("min_lever_deg", 25.0)
+    min_l = mk.MEMORY.get("min_lever_deg", 45.0)
     cur_l = kit.q_deg(objects, "lever_pivot")
-    return bool(mk.MEMORY.get("lever_stroked") or (min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= 20.0))
+    return bool(mk.MEMORY.get("lever_stroked") or (min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= 25.0))
 
 
 def failed(objects: dict) -> bool:
@@ -487,12 +487,12 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Mechanical test stroke: Left arm depresses press lever and releases
-    # Knob starts at (0.239, 0.000, 0.948) at +25 deg rest; strokes down to (0.245, 0.000, 0.903)
+    # Knob starts at (0.221, 0.000, 0.980) at +45 deg rest; strokes down to (0.245, 0.000, 0.903)
     left += [
-        Waypoint(1.2, (0.239, 0.000, 0.950), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (0.239, 0.000, 0.948), FINGER_CLOSED, "lever_grasp"),
+        Waypoint(1.2, (0.221, 0.000, 0.985), FINGER_OPEN, "lever_approach"),
+        Waypoint(0.8, (0.221, 0.000, 0.980), FINGER_CLOSED, "lever_grasp"),
         Waypoint(1.2, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke"),
-        Waypoint(0.8, (0.239, 0.000, 0.948), FINGER_OPEN, "lever_release"),
+        Waypoint(0.8, (0.221, 0.000, 0.980), FINGER_OPEN, "lever_release"),
         Waypoint(1.2, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
