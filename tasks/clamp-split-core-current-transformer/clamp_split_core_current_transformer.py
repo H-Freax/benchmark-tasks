@@ -348,11 +348,11 @@ def demo():
     ]
 
     left_plan = [
-        Waypoint(2.0, (0.335, 0.000, 0.900), FINGER_CLOSED, "approach_above_keeper"),
-        Waypoint(1.0, (0.335, 0.000, 0.880), FINGER_CLOSED, "contact_keeper_top"),
-        Waypoint(2.5, (0.335, 0.000, 0.850), FINGER_CLOSED, "press_keeper_shut"),
-        Waypoint(1.5, (0.335, 0.000, 0.850), FINGER_CLOSED, "hold_keeper_shut"),
-        Waypoint(1.0, (0.335, 0.000, 0.900), FINGER_OPEN, "retract_up"),
+        Waypoint(2.0, (0.335, 0.000, 0.900), FINGER_CLOSED, "approach_above_keeper", -np.pi / 2),
+        Waypoint(1.0, (0.335, 0.000, 0.880), FINGER_CLOSED, "contact_keeper_top", -np.pi / 2),
+        Waypoint(2.5, (0.335, 0.000, 0.835), FINGER_CLOSED, "press_keeper_shut", -np.pi / 2),
+        Waypoint(1.5, (0.335, 0.000, 0.835), FINGER_CLOSED, "hold_keeper_shut", -np.pi / 2),
+        Waypoint(1.0, (0.335, 0.000, 0.900), FINGER_OPEN, "retract_up", -np.pi / 2),
         Waypoint(1.5, PARK_L, FINGER_OPEN, "clear_left"),
         Waypoint(5.5, PARK_L, FINGER_OPEN, "proof_hold_left")
     ]
