@@ -1,0 +1,23 @@
+{
+  "title": "Clamp a split-core current transformer around an insulated conductor and verify latch lock",
+  "category": "Impact on jobs",
+  "keywords": [
+    "split-core",
+    "current transformer",
+    "submetering",
+    "electrician",
+    "power distribution",
+    "feeder cable",
+    "spring keeper",
+    "latch lock"
+  ],
+  "instruction": "Clamp the split-core current transformer around the insulated conductor until the hinged keeper clicks shut and locked, then clear both arms.",
+  "context": "Installing split-core current transformers (CTs) for power submetering, motor monitoring, and energy audits is a daily core task for electricians and industrial machinery mechanics (BLS SOC 47-2111 and 49-9041, over 1.2 million US workers; NFPA 70 Article 750). Standard commercial split-core CTs clamp around existing insulated power feeder cables without interrupting circuits. The technician steadies the open U-core housing around the conductor, compresses the spring-loaded upper keeper down flush against the lower core faces (air gap < 0.5 mm) until the mechanical retention latch clicks locked, and clears all tools. An active 15 N verification tug along the cable confirms that the clamped CT maintains core closure and mechanical retention without unseating.",
+  "setup": "Millimetres from the midpoint between arm bases (x forward, y left, z up from tabletop; arm bases at y +305 and -305). An insulated 350 kcmil copper feeder cable (22 mm OD x 260 mm length along Y, centered at x 320, z 827.5, 80 mm above bench) is rigidly bolted between two steel terminal standoffs (30 x 40 x 78 mm) at y +110 and -110. A commercial split-core current transformer (56 x 24 x 62 mm with a 24 x 24 mm central aperture, 0.27 kg total) rests positioned at the center witness mark on the cable. Its upper core keeper is held open at 45 deg by an internal spring. Both arms start open and clear.",
+  "scoring": "Evaluated at end of trial. Aligned: CT maintained in witness mark zone (|y| <= 20 mm). Clamped: upper keeper swung shut flush against lower core face (<= 5.0 deg) and retention catch locked. Arms clear: all robot collision pieces >= 20 mm clear. Proof test: once clamped and settled, an active 15 N verification tug is applied along the cable for 0.5 s; passes if CT maintains closure and stays retained. Score: 1.0 clamped, proof passed, arms clear, held 1.0 s (success); 0.75 retention catch locked; 0.50 keeper shut flush; 0.25 partial depression; 0.0 dropped or unlatched. Possible scores: 0.0, 0.25, 0.50, 0.75, 1.0.",
+  "run_limit": "600 steps (30 seconds at 20 Hz)",
+  "reset_notes": "Disengage the mechanical retention catch, hinge open the upper core keeper to 45 deg, and park both arms clear.",
+  "fidelity": "True 1:1 scale standard industrial split-core CT (Magnelab SCT style) and 350 kcmil insulated cable. 100% rigid contact physics with revolute core hinge and positive mechanical retention catch. Active 15 N verification tug tests retention along cable. Full URDF robot collision hulls checked.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-J22ZJ2"
+}
