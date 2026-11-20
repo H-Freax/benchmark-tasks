@@ -130,6 +130,9 @@ kit.part(
     mass=0.980
 )
 
+OBJECTS = [*kit.objects()]
+PARTS = ("dust_cover", "expired_bottle", "fresh_bottle")
+
 # Discard bench location
 DISCARD_X = 0.380
 DISCARD_Y = 0.160
