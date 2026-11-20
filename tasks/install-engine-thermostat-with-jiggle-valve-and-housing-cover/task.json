@@ -9,5 +9,5 @@
   "reset_notes": "Lift housing cover off studs and return to cradle; lift gasket from counterbore and return to stand; lift thermostat from housing recess and return upright to staging tray.",
   "fidelity": "Rigid bodies in PhysX (240 Hz). Octagonal box approximations reproduce round cylindrical thermostat flange, wax pellet body, annular rubber gasket, and housing counterbore. Kinematics verified with physical seating catches. Scorer enforces defect gating on table drop or inverted installation, precise +-15 deg rotational alignment for the 12 o'clock air bleed jiggle valve, and flush seating (<1.0 mm gap) of water outlet cover over dual guide studs.",
   "scores": "Dream-1 run: 0.0; demo: 1.0",
-  "media": "M-PENDING"
+  "media": "M-2W5XKY"
 }
