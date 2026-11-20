@@ -173,6 +173,9 @@ def _simulation_rules(objects):
     if t_pos[2] > THERMO_START_POS[2] + 0.015 and d_tray < 0.040:
         mk.MEMORY["thermo_lifted"] = True
 
+    step = mk.MEMORY.get("_step_cnt", 0)
+    mk.MEMORY["_step_cnt"] = step + 1
+
     # 2. Thermostat seated in housing with verified 12 o'clock jiggle pin orientation (+-15 deg)
     # In initial frame, jiggle pin is at local (+JIGGLE_OFFSET_R, 0, 0).
     # To point along world +Y (12 o'clock), yaw must be +pi/2 (90 degrees).
@@ -182,6 +185,11 @@ def _simulation_rules(objects):
     yaw_error = abs(curr_yaw - math.pi / 2)
     while yaw_error > math.pi:
         yaw_error = abs(yaw_error - 2 * math.pi)
+
+    if step % 20 == 0:
+        d_th_xy = math.dist((t_pos[0], t_pos[1]), HOUSING_XY)
+        d_th_z = abs(t_pos[2] - TARGET_THERMO_Z)
+        print(f"[STEP {step}] t_pos=({t_pos[0]:.3f},{t_pos[1]:.3f},{t_pos[2]:.4f}) yaw_err={math.degrees(yaw_error):.1f}deg d_xy={d_th_xy*1000:.1f}mm dz={d_th_z*1000:.1f}mm seated={mk.MEMORY.get('thermo_seated')}")
 
     # 20 degrees tolerance in radians = 0.349 rad
     jiggle_oriented = (yaw_error <= math.radians(20.0))
@@ -194,6 +202,7 @@ def _simulation_rules(objects):
             mk.MEMORY["thermo_oriented"] = True
             if not mk.MEMORY.get("thermo_seated"):
                 mk.MEMORY["thermo_seated"] = True
+                print(f"[CATCH ENGAGED] thermo_seated at step {step}!")
                 kit.engage("thermo_seated_catch")
 
     # 3. Gasket seated in counterbore groove over thermostat flange
@@ -204,6 +213,7 @@ def _simulation_rules(objects):
     if mk.MEMORY.get("thermo_seated") and d_gasket_house_xy <= 0.010 and gasket_depth_ok:
         if not mk.MEMORY.get("gasket_seated"):
             mk.MEMORY["gasket_seated"] = True
+            print(f"[CATCH ENGAGED] gasket_seated at step {step}!")
             kit.engage("gasket_seated_catch")
 
     # 4. Housing cover seated flush over guide studs
@@ -214,6 +224,7 @@ def _simulation_rules(objects):
     if mk.MEMORY.get("gasket_seated") and d_cover_house_xy <= 0.008 and cover_depth_ok:
         if not mk.MEMORY.get("cover_seated"):
             mk.MEMORY["cover_seated"] = True
+            print(f"[CATCH ENGAGED] cover_seated at step {step}!")
             kit.engage("cover_seated_catch")
 
 
@@ -260,6 +271,9 @@ def score(objects) -> float:
 
     # 4. Grippers released and retracted clear (>20 mm)
     arms_clear = _released(t_st) and _released(g_st) and _released(c_st)
+
+    print(f"[FINAL SCORE] t_home={t_is_home} g_home={g_is_home} c_home={c_is_home} arms_clear={arms_clear} "
+          f"t_pos={t_pos} g_pos={g_pos} c_pos={c_pos} memory={dict(mk.MEMORY)}")
 
     # Full assembly complete: 1.0
     if t_is_home and g_is_home and c_is_home and arms_clear:
