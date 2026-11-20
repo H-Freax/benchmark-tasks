@@ -159,10 +159,10 @@ kit.part(
         mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
         # Bottom drainage spout
         mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        # Extended handle shank through collar notch
-        mk.box((0.018, 0.045, 0.014), at=(0.000, -0.065, 0.030), color=STAINLESS_BRIGHT),
-        # Ergonomic handle grip block with smooth parallel planar faces
-        mk.box((0.024, 0.020, 0.035), at=(0.000, -0.090, 0.030), color=CAST_BLACK),
+        # Low-profile connector strut through collar notch
+        mk.box((0.012, 0.045, 0.008), at=(0.000, -0.065, 0.012), color=STAINLESS_BRIGHT),
+        # Vertical cylindrical grip post with flat parallel faces for firm gripper clamp
+        mk.box((0.022, 0.022, 0.045), at=(0.000, -0.090, 0.035), color=CAST_BLACK),
         # Bayonet locking tabs on rim
         mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
@@ -170,6 +170,8 @@ kit.part(
         mk.box((0.070, 0.070, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
     ],
     mass=0.045,
+    contact_offset=0.0005,
+    solver_position_iterations=128,
 )
 
 # -- 4. Stainless Perforated Strainer Cone Insert ------------------------------
@@ -182,9 +184,11 @@ kit.part(
         # Outer seating flange lip
         mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
         # Central apex grasp knob stem with smooth parallel planar grip faces
-        mk.box((0.024, 0.020, 0.035), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
+        mk.box((0.022, 0.022, 0.035), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
+    contact_offset=0.0005,
+    solver_position_iterations=128,
 )
 
 # Bayonet detent latch for collector bowl and seating lock for strainer cone
@@ -403,7 +407,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Bowl handle coordinates (at -Y rim of the bowl, aligned with gripper fingers)
     h_x = BOWL_INIT_POS[0]
     h_y = BOWL_INIT_POS[1] - 0.090
-    h_z = BOWL_INIT_POS[2] + 0.030
+    h_z = BOWL_INIT_POS[2] + 0.035
     BOWL_CARRY_Z = TOP + 0.150
 
     # Cone knob coordinates (at center apex of strainer cone)
