@@ -40,31 +40,31 @@ DARK_STAINLESS = (0.45, 0.47, 0.50)
 STAND_STEEL = (0.55, 0.58, 0.62)
 PLUNGER_WHITE = (0.92, 0.92, 0.94)
 
-# 1. Stainless Fountain Jar (shallow/standard commercial countertop insert)
+# 1. Stainless Fountain Jar (standard commercial countertop insert)
 JAR_XY = (0.260, 0.080)
 JAR_W_X = 0.110  # 110 mm width
 JAR_D_Y = 0.130  # 130 mm depth
-JAR_H = 0.090    # 90 mm exterior height
+JAR_H = 0.075    # 75 mm exterior height
 JAR_THICK = 0.006
-JAR_RIM_Z = TOP + JAR_H  # 0.7475 + 0.090 = 0.8375 m
+JAR_RIM_Z = TOP + JAR_H  # 0.7475 + 0.075 = 0.8225 m
 JAR_KG = 1.20
 
 # Jar loop handle (on -Y side, towards right robot arm)
 JAR_HANDLE_XY = (JAR_XY[0], JAR_XY[1] - JAR_D_Y / 2 - 0.035)  # (0.260, -0.020) m
-JAR_HANDLE_Z = TOP + JAR_H / 2                               # 0.7925 m
+JAR_HANDLE_Z = TOP + JAR_H / 2                               # 0.7850 m
 
 # 2. Sanitary Wire Wash Rack
 RACK_XY = (0.240, 0.250)
 RACK_KG = 0.50
-RACK_H = 0.095
-SOCKET_DEPTH = 0.080
+RACK_H = 0.065
+SOCKET_DEPTH = 0.050
 
 # 3. Commercial Portion-Control Dispenser Pump
 PUMP_KG = 0.380
-TUBE_L = 0.080
-PUMP_COLLAR_INIT_Z = TOP + RACK_H + 0.002  # 0.8445 m
+TUBE_L = 0.065
+PUMP_COLLAR_INIT_Z = TOP + RACK_H + 0.002  # 0.8145 m
 PUMP_START_POS = (RACK_XY[0], RACK_XY[1], PUMP_COLLAR_INIT_Z)
-PUMP_GRIP_INIT_Z = PUMP_COLLAR_INIT_Z + 0.040  # center of 50 mm stem: 0.8845 m
+PUMP_GRIP_INIT_Z = PUMP_COLLAR_INIT_Z + 0.040  # center of 50 mm stem: 0.8545 m
 
 # Grasps
 STEM_PINCH = FINGER_CLOSED
@@ -310,9 +310,9 @@ def demo() -> dict[str, list[Waypoint]]:
     rx, ry = RACK_XY
     hx, hy = JAR_HANDLE_XY
 
-    carry_z = PUMP_GRIP_INIT_Z + 0.070  # 0.8845 + 0.070 = 0.9545 m
+    carry_z = 0.940  # 940 mm: generous clearance above both rack socket and jar rim
 
-    # Right arm: steady the stainless fountain jar side loop handle at (0.260, -0.020, 0.7925)
+    # Right arm: steady the stainless fountain jar side loop handle at (0.260, -0.020, 0.7850)
     add("right", 1.2, (hx, hy, JAR_HANDLE_Z + 0.040), FINGER_OPEN, "approach jar handle")
     add("right", 0.6, (hx, hy, JAR_HANDLE_Z), FINGER_OPEN, "descend to jar handle")
     add("right", 0.4, (hx, hy, JAR_HANDLE_Z), JAR_PINCH, "pinch jar handle")
@@ -321,7 +321,7 @@ def demo() -> dict[str, list[Waypoint]]:
     add("left", 1.0, (rx, ry, PUMP_GRIP_INIT_Z + 0.040), FINGER_OPEN, "approach rack above pump")
     add("left", 0.6, (rx, ry, PUMP_GRIP_INIT_Z), FINGER_OPEN, "descend onto pump stem")
     add("left", 0.5, (rx, ry, PUMP_GRIP_INIT_Z), STEM_PINCH, "grasp pump stem")
-    # Lift vertically clear of the 80 mm socket
+    # Lift vertically clear of the 50 mm socket
     add("left", 1.2, (rx, ry, carry_z), STEM_PINCH, "lift pump clear of rack socket")
 
     if variant == "no_insert":
@@ -335,10 +335,10 @@ def demo() -> dict[str, list[Waypoint]]:
     add("left", 1.5, (jx, jy, carry_z), STEM_PINCH, "coaxial align over jar")
 
     # Insert pick-up tube down into jar bore
-    add("left", 1.2, (jx, jy, JAR_RIM_Z + 0.050), STEM_PINCH, "insert tube halfway")
+    add("left", 1.2, (jx, jy, JAR_RIM_Z + 0.045), STEM_PINCH, "insert tube halfway")
 
     if variant == "no_seat":
-        add("left", 2.0, (jx, jy, JAR_RIM_Z + 0.050), STEM_PINCH, "hold suspended in bore")
+        add("left", 2.0, (jx, jy, JAR_RIM_Z + 0.045), STEM_PINCH, "hold suspended in bore")
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
