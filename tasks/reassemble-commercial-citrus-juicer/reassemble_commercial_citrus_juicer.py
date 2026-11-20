@@ -255,7 +255,7 @@ def _on_step(objects: dict[str, Any]) -> None:
 
     if step_idx % 10 == 0:
         print(
-            f"[{TAG}] step={step_idx} dr_b={dr_bowl:.3f} dz_b={dz_bowl:.3f} yaw_b={bowl_yaw_deg:.1f} "
+            f"[{TAG}] step={step_idx} bp=({bp[0]:.3f},{bp[1]:.3f},{bp[2]:.3f}) dr_b={dr_bowl:.3f} dz_b={dz_bowl:.3f} yaw_b={bowl_yaw_deg:.1f} "
             f"dr_c={dr_cone:.3f} dz_c={dz_cone:.3f} lever={lever_deg:.1f} min_l={min_lever:.1f} "
             f"placed={M.get('bowl_placed')} locked={M.get('bowl_locked')} seated={M.get('cone_seated')} "
             f"stroke={M.get('lever_stroked')} clear={hands_clear} hold={M.get('hold_timer',0)} "
