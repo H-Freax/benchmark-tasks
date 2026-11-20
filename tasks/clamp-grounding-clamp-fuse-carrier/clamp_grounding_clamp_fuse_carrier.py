@@ -27,8 +27,8 @@ CERAMIC_WHITE = (0.90, 0.90, 0.88)    # High-dielectric glazed ceramic carrier b
 CONTACT_BRASS = (0.80, 0.65, 0.25)    # Terminal clips and fuse ferrule contacts
 SAFETY_ORANGE = (0.88, 0.35, 0.12)    # Anti-static parts tray
 
-SCENE = "table"
-TABLE_TOP = {"table": 0.748}
+SCENE = "station"
+TABLE_TOP = {"station": 0.748}
 TOP = TABLE_TOP[SCENE]
 
 # Station Positions
