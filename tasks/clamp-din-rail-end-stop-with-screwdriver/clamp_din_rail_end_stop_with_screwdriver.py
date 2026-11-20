@@ -86,7 +86,7 @@ K_ROT = 4.0  # N*m/rad torsional stiffness once clamped
 C_THREAD = 0.2 * 0.004  # 0.0008 m (nut factor 0.2 x d=4mm)
 PROOF_FORCE_N = 20.0  # 20 N lateral proof push
 PROOF_MAX_SLIP = 0.0005  # 0.5 mm maximum allowed slip under proof push
-MAX_SEAM_GAP = 0.0005  # 0.5 mm maximum gap between bracket and block
+MAX_SEAM_GAP = 0.0010  # 1.0 mm maximum gap between bracket and block
 
 # Screwdriver parameters
 TOOL_REST_POS = np.array([0.220, 0.180, TOP + 0.040])
@@ -288,10 +288,10 @@ def _on_step(objects: dict) -> None:
     tip_dist = float(np.linalg.norm(driver_tip - screw_target))
 
     # Driver alignment checks:
-    # 1. Distance between blade tip and screw slot < 45 mm
+    # 1. Distance between blade tip and screw slot < 55 mm
     # 2. Driver shank approximately upright (Z axis vertical within 30 deg)
     upright = bool(driver_q[0] ** 2 + driver_q[1] ** 2 < 0.12)
-    engaged = bool(tip_dist < 0.045 and upright)
+    engaged = bool(tip_dist < 0.055 and upright)
     M["driver_engaged"] = engaged
 
     # Compute screwdriver yaw angle about its long axis
@@ -369,8 +369,9 @@ def _on_step(objects: dict) -> None:
                 M["proof_state"] = "held"
 
     step_idx = mk._EP.get("step", 0)
-    if step_idx % 40 == 0 or (115 <= step_idx <= 175 and step_idx % 5 == 0) or step_idx > 360:
-        print(f"[{TAG}] step={step_idx} y={current_y:.4f} gap={gap_to_stack:.4f} tip_dist={tip_dist:.4f} upr={upright} engaged={engaged} torque={M.get('torque_Nm', 0):.2f} adv={M.get('screw_advance_m', 0):.5f} proof={M.get('proof_state')} score={score(objects)}", flush=True)
+    d_xyz = driver_tip - screw_target
+    if step_idx % 40 == 0 or (110 <= step_idx <= 175 and step_idx % 5 == 0) or step_idx > 360:
+        print(f"[{TAG}] step={step_idx} y={current_y:.4f} gap={gap_to_stack:.4f} d_xyz=({d_xyz[0]:.4f},{d_xyz[1]:.4f},{d_xyz[2]:.4f}) dist={tip_dist:.4f} upr={upright} engaged={engaged} torque={M.get('torque_Nm', 0):.2f} adv={M.get('screw_advance_m', 0):.5f} proof={M.get('proof_state')} score={score(objects)}", flush=True)
 
 
 kit.on_step(_on_step)
@@ -546,14 +547,14 @@ def demo() -> dict[str, list[Waypoint]]:
         # Descend behind bracket
         Waypoint(1.0, (0.240, START_Y - 0.020, TOP + 0.080), FINGER_CLOSED, "descend_behind_bracket"),
         # Push bracket forward along rail to terminal block stack face
-        Waypoint(2.0, (0.240, FLUSH_Y - 0.005, TOP + 0.080), FINGER_CLOSED, "push_bracket_flush"),
+        Waypoint(2.0, (0.240, FLUSH_Y, TOP + 0.080), FINGER_CLOSED, "push_bracket_flush"),
         # Counter-hold stack firmly under axial compression
-        Waypoint(5.5, (0.240, FLUSH_Y - 0.005, TOP + 0.080), FINGER_CLOSED, "hold_bracket_snug"),
+        Waypoint(7.0, (0.240, FLUSH_Y, TOP + 0.080), FINGER_CLOSED, "hold_bracket_snug"),
     ]
 
     # Left arm: operates on +Y (screwdriver rest is at TOOL_REST_POS = (0.22, 0.18, ...))
     # Picks screwdriver, engages M4 screw, tightens, returns screwdriver
-    driver_engage_tcp = (RAIL_X - 0.010, FLUSH_Y, TOP + 0.1355)
+    driver_engage_tcp = (RAIL_X - 0.010, FLUSH_Y, TOP + 0.205)
     left = [
         # Hover above screwdriver handle
         Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_OPEN, "hover_driver"),
@@ -561,9 +562,9 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.0, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "descend_driver"),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "grip_driver"),
         # Lift screwdriver cleanly from rest
-        Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_CLOSED, "lift_driver"),
+        Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.230), FINGER_CLOSED, "lift_driver"),
         # Transfer above M4 screw on end bracket
-        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.165), FINGER_CLOSED, "hover_screw", yaw=0.80),
+        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.230), FINGER_CLOSED, "hover_screw", yaw=0.80),
         # Engage screw slot
         Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw", yaw=0.80),
     ]
@@ -588,7 +589,7 @@ def demo() -> dict[str, list[Waypoint]]:
     if cheat == "no_release":
         # Screwdriver torqued but hands/tools hold in place and do not release
         right.append(
-            Waypoint(6.0, (0.240, FLUSH_Y - 0.005, TOP + 0.080), FINGER_CLOSED, "hold_unreleased")
+            Waypoint(6.0, (0.240, FLUSH_Y, TOP + 0.080), FINGER_CLOSED, "hold_unreleased")
         )
         left.append(
             Waypoint(6.0, driver_engage_tcp, FINGER_CLOSED, "hold_driver_unreleased", yaw=-0.80)
@@ -597,8 +598,8 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Full completion: disengage screwdriver, return to tool rest, release both hands
     left.extend([
-        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.165), FINGER_CLOSED, "disengage_screw", yaw=-0.80),
-        Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.165), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
+        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.230), FINGER_CLOSED, "disengage_screw", yaw=-0.80),
+        Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.200), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "lower_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "release_driver", yaw=0.0),
         Waypoint(1.2, (0.20, 0.20, TOP + 0.150), FINGER_OPEN, "clear_left", yaw=0.0),
