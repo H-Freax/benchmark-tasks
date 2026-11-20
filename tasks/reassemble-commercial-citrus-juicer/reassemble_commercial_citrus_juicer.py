@@ -71,11 +71,11 @@ COLLAR_Y = 0.000
 COLLAR_Z = TOP + 0.055
 
 # Collector Bowl initial & target poses
-BOWL_INIT_POS = np.array([0.220, -0.160, TOP + 0.030])
+BOWL_INIT_POS = np.array([0.220, -0.140, TOP + 0.030])
 BOWL_SEAT_Z = TOP + 0.050
 
 # Strainer Cone initial & target poses
-CONE_INIT_POS = np.array([0.320, -0.160, TOP + 0.024])
+CONE_INIT_POS = np.array([0.320, -0.140, TOP + 0.024])
 CONE_SEAT_Z = TOP + 0.053
 
 # Lever Hinge Anchor & Parameters
@@ -416,9 +416,10 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.2, (h_x, h_y, BOWL_CARRY_Z), FINGER_OPEN, "bowl_approach"),
         Waypoint(0.8, (h_x, h_y, h_z), FINGER_CLOSED, "bowl_grasp"),
         Waypoint(1.0, (h_x, h_y, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_lift"),
-        # Carry bowl into receiver collar
-        Waypoint(0.8, (h_x, h_y + 0.050, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_1"),
-        Waypoint(0.8, (h_x, h_y + 0.100, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_2"),
+        # Carry bowl into receiver collar along proven linear trajectory
+        Waypoint(0.8, (h_x, h_y + 0.035, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_1"),
+        Waypoint(0.8, (h_x, h_y + 0.070, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_2"),
+        Waypoint(0.8, (h_x, h_y + 0.105, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_3"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y - 0.090, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y - 0.090, TOP + 0.080), FINGER_CLOSED, "bowl_insert"),
     ]
@@ -459,7 +460,8 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
         # Carry cone into collar along -Y approach corridor
-        Waypoint(0.8, (c_x, c_y + 0.050, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
+        Waypoint(0.8, (0.270, -0.090, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
+        Waypoint(0.8, (0.220, -0.040, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_seat"),
     ]
@@ -486,20 +488,19 @@ def demo() -> dict[str, list[Waypoint]]:
         ]
         return {"left": left, "right": right}
 
-    # Left arm: steadies press lever, then executes mechanical test stroke
-    # Bowl takes ~11.8s; cone takes ~8.0s (ready at t ~ 20.0s)
+    # Left arm: waits for cone to be seated (t = 19.8s), then executes mechanical test stroke
     left = [
-        # Move to lever knob and hold/steady in open rest position (t = 2.0s)
-        Waypoint(1.0, (0.160, 0.000, 1.025), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (0.160, 0.000, 1.018), FINGER_CLOSED, "lever_grasp"),
-        # Hold lever securely upright while Right arm seats bowl and cone (t = 18.0s)
-        Waypoint(18.0, (0.160, 0.000, 1.018), FINGER_CLOSED, "lever_hold_open"),
+        # Park left arm while Right arm installs bowl and cone
+        Waypoint(19.8, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_wait"),
+        # Approach and grasp lever knob with yaw=90 deg for infinite mechanical capture along stroke arc
+        Waypoint(1.0, (0.171, 0.000, 1.025), FINGER_OPEN, "lever_approach", yaw=math.radians(90.0)),
+        Waypoint(0.8, (0.171, 0.000, 1.016), FINGER_CLOSED, "lever_grasp", yaw=math.radians(90.0)),
         # Execute mechanical test stroke past 25 deg
-        Waypoint(0.8, (0.210, 0.000, 0.985), FINGER_CLOSED, "lever_stroke_1"),
-        Waypoint(0.8, (0.240, 0.000, 0.935), FINGER_CLOSED, "lever_stroke_2"),
-        Waypoint(0.8, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke_3"),
+        Waypoint(0.8, (0.210, 0.000, 0.985), FINGER_CLOSED, "lever_stroke_1", yaw=math.radians(90.0)),
+        Waypoint(0.8, (0.240, 0.000, 0.935), FINGER_CLOSED, "lever_stroke_2", yaw=math.radians(90.0)),
+        Waypoint(0.8, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke_3", yaw=math.radians(90.0)),
         # Release lever to spring-return to rest stop
-        Waypoint(0.8, (0.160, 0.000, 1.018), FINGER_OPEN, "lever_release"),
+        Waypoint(0.8, (0.171, 0.000, 1.016), FINGER_OPEN, "lever_release", yaw=math.radians(90.0)),
         Waypoint(1.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
