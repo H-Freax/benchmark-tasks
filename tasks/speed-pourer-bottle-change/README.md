@@ -11,13 +11,13 @@ demo waypoints and per-episode hooks, added to the stock runtime in memory), `RE
 Two 750 ml round liquor bottles stand loose on a rubber bar mat, 14 cm apart: the empty one (420 g) on the robot's
 left with the pourer in its neck, the new one (full, 1,130 g, cap already off) on the right. Each is 29.5 cm tall
 with a 7.6 cm body, a 2.9 cm neck and a 1.9 cm bore. The pourer is the common stainless free-flow type
-(Spill-Stop 285-50 pattern): a tapered spout on a 2.6 cm collar, with a finned stopper 3.2 cm long under the
-collar; 35 g, 11.8 cm tall overall. Nothing in the scene is powered or pressurised.
+(Spill-Stop 285-50 pattern): a tapered spout on a 2.6 cm collar, with a finned poly-cork stopper 3.2 cm long under the
+collar (16 mm core with five flexible ribbed sealing fins with outer tip diameter 21.5 mm that compress into the 19 mm bottle bore, plus an 11 mm lead); 35 g, 11.8 cm tall overall. Nothing in the scene is powered or pressurised.
 
 ## What is modelled
 
-- The stopper's fit. A real stopper's rubber fins are squeezed by the neck and grip it. Here the stopper is rigid
-  and 1.5 mm clear of the bore all round, and the fins' grip is a prismatic joint along the bore between the pourer
+- The stopper's fit. A real stopper's 21.5 mm flexible fins are squeezed by the 19 mm neck and grip it. In simulation the core is rigid
+  and 1.5 mm clear of the bore all round, and the fin compression fit is modeled as a prismatic joint along the bore between the pourer
   and the bottle, with 6 N of Coulomb friction (a position drive whose force is capped at 6 N and whose anchor
   follows the stopper once it has slipped; 0.5 mm of elastic give). While the joint is closed the stopper can only
   slide along the bore, from the seat (collar on the lip) outward. Both joints exist from the moment the scene is
