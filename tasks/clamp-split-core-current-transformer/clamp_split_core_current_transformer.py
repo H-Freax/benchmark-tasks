@@ -350,8 +350,8 @@ def demo():
     left_plan = [
         Waypoint(2.0, (0.335, 0.000, 0.880), FINGER_OPEN, "approach_above_keeper"),
         Waypoint(0.5, (0.335, 0.000, 0.880), FINGER_CLOSED, "close_gripper_pad"),
-        Waypoint(2.5, (0.355, 0.000, 0.770), FINGER_CLOSED, "press_keeper_shut"),
-        Waypoint(1.5, (0.355, 0.000, 0.770), FINGER_CLOSED, "hold_keeper_shut"),
+        Waypoint(2.5, (0.355, 0.000, 0.735), FINGER_CLOSED, "press_keeper_shut"),
+        Waypoint(1.5, (0.355, 0.000, 0.735), FINGER_CLOSED, "hold_keeper_shut"),
         Waypoint(1.0, (0.335, 0.000, 0.880), FINGER_OPEN, "retract_up"),
         Waypoint(1.5, PARK_L, FINGER_OPEN, "clear_left"),
         Waypoint(6.0, PARK_L, FINGER_OPEN, "proof_hold_left")
