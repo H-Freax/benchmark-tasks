@@ -216,6 +216,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     )
     if bowl_locked:
         M["bowl_locked"] = True
+        kit.catch("bowl_bayonet_lock", "collector_bowl", (bp, bq), "juicer_base")
 
     # 2. Strainer cone nested coaxially in collector bowl
     dr_cone = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
@@ -253,7 +254,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     else:
         M["hold_timer"] = 0
 
-    if step_idx % 10 == 0:
+    if step_idx % 40 == 0:
         print(
             f"[{TAG}] step={step_idx} bp=({bp[0]:.3f},{bp[1]:.3f},{bp[2]:.3f}) dr_b={dr_bowl:.3f} dz_b={dz_bowl:.3f} yaw_b={bowl_yaw_deg:.1f} "
             f"dr_c={dr_cone:.3f} dz_c={dz_cone:.3f} lever={lever_deg:.1f} min_l={min_lever:.1f} "
@@ -407,7 +408,10 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.2, (h_x, h_y, TOP + 0.140), FINGER_OPEN, "bowl_approach"),
         Waypoint(0.8, (h_x, h_y, h_z), FINGER_CLOSED, "bowl_grasp"),
         Waypoint(1.0, (h_x, h_y, TOP + 0.140), FINGER_CLOSED, "bowl_lift"),
-        Waypoint(1.5, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.140), FINGER_CLOSED, "bowl_align"),
+        Waypoint(0.8, (h_x, h_y + 0.035, TOP + 0.140), FINGER_CLOSED, "bowl_carry_1"),
+        Waypoint(0.8, (h_x, h_y + 0.070, TOP + 0.140), FINGER_CLOSED, "bowl_carry_2"),
+        Waypoint(0.8, (h_x, h_y + 0.105, TOP + 0.140), FINGER_CLOSED, "bowl_carry_3"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.140), FINGER_CLOSED, "bowl_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.080), FINGER_CLOSED, "bowl_insert"),
     ]
 
@@ -442,13 +446,16 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Left arm: waits for bowl to be placed, then picks strainer cone and seats it
     left = [
-        # Wait while right arm installs bowl (t = 6.9 s)
-        Waypoint(7.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_wait"),
+        # Wait while right arm installs bowl (t = 8.6 s)
+        Waypoint(8.6, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_wait"),
         # Approach strainer cone knob
         Waypoint(1.2, (c_x, c_y, TOP + 0.140), FINGER_OPEN, "cone_approach"),
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, TOP + 0.140), FINGER_CLOSED, "cone_lift"),
-        Waypoint(1.5, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "cone_align"),
+        Waypoint(0.8, (c_x, c_y - 0.035, TOP + 0.140), FINGER_CLOSED, "cone_carry_1"),
+        Waypoint(0.8, (c_x, c_y - 0.070, TOP + 0.140), FINGER_CLOSED, "cone_carry_2"),
+        Waypoint(0.8, (c_x, c_y - 0.105, TOP + 0.140), FINGER_CLOSED, "cone_carry_3"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "cone_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_CLOSED, "cone_seat"),
     ]
 
