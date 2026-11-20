@@ -358,8 +358,8 @@ def _step_rules(objects) -> None:
             theta = math.atan2(dy_pot, dx_pot)
             if "prev_theta" in mk.MEMORY:
                 prev_th = mk.MEMORY["prev_theta"]
-                d_th = (theta - prev_th + math.pi) % (2 * math.pi) - math.pi
-                if 0.005 < d_th < math.pi:
+                d_th = (theta - prev_th) % (2 * math.pi)
+                if 0.002 < d_th < 1.0:
                     mk.MEMORY["cum_phase"] = mk.MEMORY.get("cum_phase", 0.0) + d_th
             mk.MEMORY["prev_theta"] = theta
         else:
@@ -534,7 +534,7 @@ def demo():
     px_stir = px + 0.008
     py_stir = py - 0.006
     R = 0.035
-    t_step = 0.04 if variant == "fast_splash" else 0.28
+    t_step = 0.05 if variant == "fast_splash" else 0.45
     for rev in range(n_revs):
         for angle_deg in [0, 45, 90, 135, 180, 225, 270, 315]:
             th = math.radians(angle_deg)
