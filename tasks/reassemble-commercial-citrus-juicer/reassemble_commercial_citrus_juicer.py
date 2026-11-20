@@ -183,8 +183,10 @@ kit.part(
         mk.box((0.036, 0.036, 0.024), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
         # Outer seating flange lip (48 mm wide, clears 68 mm rotated bowl walls and rests flush on 54 mm internal shelf)
         mk.box((0.048, 0.048, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Elevated apex grasp knob stem (28 mm wide x 18 mm thick x 45 mm high) with generous clearance above reamer body
-        mk.box((0.028, 0.018, 0.045), at=(0.000, 0.000, 0.040), color=STAINLESS_BRIGHT),
+        # Elevated apex grasp knob stem (28 mm wide x 18 mm thick x 50 mm high) with generous clearance above reamer body
+        mk.box((0.028, 0.018, 0.050), at=(0.000, 0.000, 0.040), color=STAINLESS_BRIGHT),
+        # Anti-slip retention cap / T-bar flange (32 mm wide x 26 mm thick x 8 mm high) providing positive mechanical capture
+        mk.box((0.032, 0.026, 0.008), at=(0.000, 0.000, 0.065), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
     contact_offset=0.0005,
@@ -407,7 +409,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Cone knob coordinates (elevated apex knob stem for 100% collision-free finger clamp)
     c_x = CONE_INIT_POS[0]
     c_y = CONE_INIT_POS[1]
-    c_z = CONE_INIT_POS[2] + 0.042
+    c_z = CONE_INIT_POS[2] + 0.055
     CONE_CARRY_Z = TOP + 0.140
 
     # Right arm: installs collector bowl into base collar and locks bayonet detents
@@ -464,20 +466,20 @@ def demo() -> dict[str, list[Waypoint]]:
         # Front swing path to bypass juicer lever column
         Waypoint(0.8, (0.300, 0.140, CONE_CARRY_Z), FINGER_CLOSED, "cone_front_1"),
         Waypoint(0.8, (0.300, 0.000, CONE_CARRY_Z), FINGER_CLOSED, "cone_front_center"),
-        Waypoint(0.8, (0.260, 0.000, TOP + 0.125), FINGER_CLOSED, "cone_entry"),
-        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.108), FINGER_CLOSED, "cone_seat"),
+        Waypoint(0.8, (0.260, 0.000, TOP + 0.135), FINGER_CLOSED, "cone_entry"),
+        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.126), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
         # Keep left hand holding cone without releasing
         left += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.108), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.126), FINGER_CLOSED, "cone_hold"),
         ]
         return {"left": left, "right": right}
 
     left += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.108), FINGER_OPEN, "cone_release"),
-        Waypoint(0.8, (0.260, 0.000, TOP + 0.125), FINGER_OPEN, "cone_exit"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.126), FINGER_OPEN, "cone_release"),
+        Waypoint(0.8, (0.260, 0.000, TOP + 0.135), FINGER_OPEN, "cone_exit"),
         Waypoint(0.8, (0.300, 0.000, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
     ]
 
