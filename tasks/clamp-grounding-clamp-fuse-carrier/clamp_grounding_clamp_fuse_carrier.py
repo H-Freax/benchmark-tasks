@@ -91,22 +91,22 @@ kit.part(
 
 
 # -- 2. Heavy Bronze Spring-Loaded Grounding Clamp -----------------------------
-# Flat-base anti-tip duckbill clamp with wide footprint (60x50 mm) and upright T-post handle
+# Broad stable base plate and jaw housing with ergonomic upright capture T-handle
 kit.part(
     name="grounding_clamp",
     pos=(CLAMP_INIT_POS[0], CLAMP_INIT_POS[1], CLAMP_INIT_POS[2]),
     boxes=[
-        # Broad stable bronze base plate and housing (60 mm in X x 50 mm in Y x 20 mm high in Z)
-        mk.box((0.060, 0.050, 0.020), at=(0.000, 0.000, 0.000), color=BRONZE_CAST),
+        # Stable bronze base plate and housing (50 mm in X x 40 mm in Y x 18 mm high in Z)
+        mk.box((0.050, 0.040, 0.018), at=(0.000, 0.000, 0.000), color=BRONZE_CAST),
         # Bronze duckbill jaws extending along -Y (flanking x = 0 with 10 mm gap for 6 mm busbar)
-        mk.box((0.006, 0.025, 0.020), at=(0.008, -0.035, 0.000), color=BRONZE_CAST),
-        mk.box((0.006, 0.025, 0.020), at=(-0.008, -0.035, 0.000), color=BRONZE_CAST),
-        # Central dielectric insulated grip handle stem (20x20 mm stem x 40 mm high)
-        mk.box((0.020, 0.020, 0.040), at=(0.000, 0.000, 0.030), color=SAFETY_YELLOW),
-        # Mechanical capture T-bar cross handle (44 mm wide along Y x 24 mm deep along X x 12 mm thick)
-        mk.box((0.024, 0.044, 0.012), at=(0.000, 0.000, 0.056), color=SAFETY_YELLOW),
+        mk.box((0.005, 0.025, 0.018), at=(0.008, -0.030, 0.000), color=BRONZE_CAST),
+        mk.box((0.005, 0.025, 0.018), at=(-0.008, -0.030, 0.000), color=BRONZE_CAST),
+        # Central dielectric insulated grip handle stem (14x14 mm stem x 40 mm high)
+        mk.box((0.014, 0.014, 0.040), at=(0.000, 0.000, 0.028), color=SAFETY_YELLOW),
+        # Mechanical capture T-bar cross handle (38 mm wide along Y x 22 mm deep along X x 10 mm thick)
+        mk.box((0.022, 0.038, 0.010), at=(0.000, 0.000, 0.052), color=SAFETY_YELLOW),
     ],
-    mass=0.350,
+    mass=0.045,
 )
 
 
@@ -120,12 +120,12 @@ kit.part(
         # Dual terminal male bayonet contact blades (insert between clip leaves)
         mk.box((0.014, 0.005, 0.018), at=(0.025, 0.000, -0.018), color=CONTACT_BRASS),
         mk.box((0.014, 0.005, 0.018), at=(-0.025, 0.000, -0.018), color=CONTACT_BRASS),
-        # Front central ergonomic pull-handle stem (18 mm wide x 18 mm thick x 35 mm high)
-        mk.box((0.018, 0.018, 0.035), at=(0.000, 0.000, 0.025), color=SAFETY_YELLOW),
-        # Pull-handle capture T-bar cross handle (38 mm wide along Y x 22 mm deep along X x 12 mm thick)
-        mk.box((0.022, 0.038, 0.012), at=(0.000, 0.000, 0.044), color=SAFETY_YELLOW),
+        # Front central ergonomic pull-handle stem (14 mm wide x 14 mm thick x 35 mm high)
+        mk.box((0.014, 0.014, 0.035), at=(0.000, 0.000, 0.025), color=SAFETY_YELLOW),
+        # Pull-handle capture T-bar cross handle (36 mm wide along Y x 22 mm deep along X x 10 mm thick)
+        mk.box((0.022, 0.036, 0.010), at=(0.000, 0.000, 0.044), color=SAFETY_YELLOW),
     ],
-    mass=0.160,
+    mass=0.040,
 )
 
 
@@ -164,9 +164,9 @@ def _on_step(objects: dict[str, Any]) -> None:
         M["init_clamp_pos"] = gp.copy()
 
     # 1. Grounding clamp status
-    # Jaws at (gp[0], gp[1] - 0.035, gp[2]) clamped over copper busbar tab at BUSBAR_POS
+    # Jaws at (gp[0], gp[1] - 0.030, gp[2]) clamped over copper busbar tab at BUSBAR_POS
     jaw_x = gp[0]
-    jaw_y = gp[1] - 0.035
+    jaw_y = gp[1] - 0.030
     jaw_z = gp[2]
     dr_clamp = math.sqrt((jaw_x - BUSBAR_POS[0]) ** 2 + (jaw_y - BUSBAR_POS[1]) ** 2)
     dz_clamp = abs(jaw_z - BUSBAR_POS[2])
@@ -318,18 +318,18 @@ def demo() -> dict[str, list[Waypoint]]:
     # Clamp handle grip coordinates (Left side +Y)
     cg_x = CLAMP_INIT_POS[0]
     cg_y = CLAMP_INIT_POS[1]
-    cg_z = CLAMP_INIT_POS[2] + 0.030
+    cg_z = CLAMP_INIT_POS[2] + 0.025
 
     # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
-    # Jaws at (x, y - 0.035, z) slide over BUSBAR_POS
+    # Jaws at (x, y - 0.030, z) slide over BUSBAR_POS
     attach_x = BUSBAR_POS[0]
-    attach_y = BUSBAR_POS[1] + 0.035
-    attach_z = BUSBAR_POS[2] + 0.030
+    attach_y = BUSBAR_POS[1] + 0.030
+    attach_z = BUSBAR_POS[2] + 0.025
 
     # Fuse pull handle coordinates (Center Y=0)
     fh_x = FUSE_SEATED_POS[0]
     fh_y = FUSE_SEATED_POS[1]
-    fh_z = FUSE_SEATED_POS[2] + 0.030
+    fh_z = FUSE_SEATED_POS[2] + 0.025
 
     # Tray placement coordinates (Right side -Y)
     tray_place_z = TRAY_POS[2] + 0.035
