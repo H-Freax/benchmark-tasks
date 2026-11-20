@@ -538,8 +538,8 @@ def demo() -> dict[str, list[Waypoint]]:
 
     if cheat == "no_release":
         left.extend([
-            Waypoint(1.0, (INLET_X, ALIGN_Y, SEAT_TCP_Z), FINGER_CLOSED, "hold_unreleased"),
-            Waypoint(6.0, (INLET_X, ALIGN_Y, SEAT_TCP_Z), FINGER_CLOSED, "hold_unreleased_dwell"),
+            Waypoint(1.2, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "retreat_left_clear"),
+            Waypoint(8.0, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "park_left_clear"),
         ])
         right = [
             Waypoint(1.2, (GUN_X, GUN_Y - 0.035, TOP + 0.120), FINGER_OPEN, "hover_gun_handle"),
@@ -550,7 +550,7 @@ def demo() -> dict[str, list[Waypoint]]:
             Waypoint(1.0, (INLET_X + 0.020, INLET_Y, RING_Z + 0.020), FINGER_OPEN, "approach_ring_tab"),
             Waypoint(0.6, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "pinch_ring_tab"),
             Waypoint(1.5, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "rotate_collar_lock", yaw=-0.785),
-            Waypoint(6.0, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "hold_collar_unreleased"),
+            Waypoint(8.0, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "hold_collar_unreleased", yaw=-0.785),
         ]
         return {"left": left, "right": right}
 
