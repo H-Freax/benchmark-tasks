@@ -453,6 +453,7 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Left arm: waits for bowl to be placed, then picks strainer cone and seats it
+    # Uses front approach trajectory (+X) to completely bypass the upright press lever
     left = [
         # Wait while right arm installs bowl (t = 8.6 s)
         Waypoint(8.6, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_wait"),
@@ -460,23 +461,24 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.2, (c_x, c_y, CONE_CARRY_Z), FINGER_OPEN, "cone_approach"),
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
-        Waypoint(0.8, (c_x, c_y - 0.035, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
-        Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
-        Waypoint(0.8, (c_x, c_y - 0.105, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_3"),
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.090), FINGER_CLOSED, "cone_seat"),
+        # Front swing path to bypass juicer lever column
+        Waypoint(0.8, (0.300, 0.140, CONE_CARRY_Z), FINGER_CLOSED, "cone_front_1"),
+        Waypoint(0.8, (0.300, 0.000, CONE_CARRY_Z), FINGER_CLOSED, "cone_front_center"),
+        Waypoint(0.8, (0.260, 0.000, TOP + 0.115), FINGER_CLOSED, "cone_entry"),
+        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
         # Keep left hand holding cone without releasing
         left += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.090), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_CLOSED, "cone_hold"),
         ]
         return {"left": left, "right": right}
 
     left += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.090), FINGER_OPEN, "cone_release"),
-        Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_OPEN, "cone_release"),
+        Waypoint(0.8, (0.260, 0.000, TOP + 0.115), FINGER_OPEN, "cone_exit"),
+        Waypoint(0.8, (0.300, 0.000, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
     ]
 
     if cheat == "cone_seated":
@@ -487,13 +489,13 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Mechanical test stroke: Left arm depresses press lever and releases
-    # Knob starts at (0.221, 0.000, 0.980) at +45 deg rest; strokes down to (0.245, 0.000, 0.903)
+    # Knob starts at (0.221, 0.000, 0.980) at +45 deg rest; strokes down to (0.245, 0.000, 0.895)
     left += [
-        Waypoint(1.2, (0.221, 0.000, 0.985), FINGER_OPEN, "lever_approach"),
+        Waypoint(1.0, (0.221, 0.000, 0.985), FINGER_OPEN, "lever_approach"),
         Waypoint(0.8, (0.221, 0.000, 0.980), FINGER_CLOSED, "lever_grasp"),
         Waypoint(1.2, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke"),
         Waypoint(0.8, (0.221, 0.000, 0.980), FINGER_OPEN, "lever_release"),
-        Waypoint(1.2, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
+        Waypoint(1.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
 
