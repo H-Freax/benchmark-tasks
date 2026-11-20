@@ -11,7 +11,7 @@ ROOF=.014
 PLATE_TOP=ROOF-N*CARD_SIZE[2]
 SPRING_K=2500.
 SPRING_REST=.0008
-SLOT_BOTTOM=.01250
+SLOT_BOTTOM=.01285
 SLOT_HEIGHT=ROOF-SLOT_BOTTOM
 TRAY=np.array([.50,-.10,TABLE+.001])
 CASE_COLOR=(.16,.30,.44)
@@ -44,7 +44,7 @@ def engineering():
  case=dict(exterior_m=[.100,.064,.016],roof_bottom_m=ROOF,thumb_window_m=[.066,.040],single_slot_height_m=SLOT_HEIGHT,single_card_clearance_m=SLOT_HEIGHT-CARD_SIZE[2],two_card_interference_m=2*CARD_SIZE[2]-SLOT_HEIGHT,
  spring=dict(rate_N_per_m=SPRING_K,free_target_above_initial_m=SPRING_REST,initial_force_N=SPRING_K*SPRING_REST,travel_m=[-.005,.0038]),
  parts=[dict(name=s.name,center_m=s.center,size_m=s.size,density_kg_m3=s.density,mass_kg=s.mass)for s in case_shapes()+follower_shapes()]),
- provenance='Original manufacturable geometry. 0.76mm card format is sourced; friction .3, spring 200N/m and clearances are declared design values, not OEM calibration.',
+ provenance='Original manufacturable geometry. 0.76mm card format is sourced; friction .3, spring 2500N/m and clearances are declared design values, not OEM calibration.',
  table_top_m=TABLE,origin_m=ORIGIN.tolist(),runtime_physics=None)
 def rotation(q):
  x,y,z,w=q

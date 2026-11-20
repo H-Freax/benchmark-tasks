@@ -16,7 +16,7 @@ def classify(row):
  if not finite_row(row):return dict(score=0.,success=False,valid=False,reason='missing/nonfinite observation')
  case=row['case'];R=g.rotation(case['quat_xyzw']);cp=np.asarray(case['pos'])
  inside=[];output=[];presented=[];other=[]
- stable=np.linalg.norm(case['lin_vel'])<.01 and np.linalg.norm(case['ang_vel'])<.25
+ stable=np.linalg.norm(case['lin_vel'])<.005 and np.linalg.norm(case['ang_vel'])<.12
  for name,v in row['cards'].items():
   verts=g.corners(np.array(v['pos']),v['quat_xyzw'],g.CARD_SIZE)
   local=(verts-cp)@R
@@ -27,10 +27,10 @@ def classify(row):
   exposed=bool(local[:,0].max()>.070 and local[:,0].min()<.049 and abs(local[:,1]).max()<.0295 and local[:,2].min()>.011 and local[:,2].max()<.015)
   if in_case:
    inside.append(name)
-   stable=stable and (np.linalg.norm(v['lin_vel'])<.02 and np.linalg.norm(v['ang_vel'])<.40)
+   stable=stable and (np.linalg.norm(v['lin_vel'])<.005 and np.linalg.norm(v['ang_vel'])<.12)
   elif on_output:
    output.append(name)
-   stable=stable and (np.linalg.norm(v['lin_vel'])<.01 and np.linalg.norm(v['ang_vel'])<.20)
+   stable=stable and (np.linalg.norm(v['lin_vel'])<.005 and np.linalg.norm(v['ang_vel'])<.12)
   elif exposed:presented.append(name)
   else:other.append(name)
  integrity=not other and len(inside)+len(output)+len(presented)==g.N

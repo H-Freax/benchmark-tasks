@@ -45,9 +45,9 @@
   <!-- Two guided compression springs at x=-25 and x=+25 -->
   <rect x="586" y="201" width="8" height="63" fill="#ddd" stroke="#444" stroke-width="1"/>
   <rect x="786" y="201" width="8" height="63" fill="#ddd" stroke="#444" stroke-width="1"/>
-  <text x="530" y="236" font-size="11">2× guided steel springs (k = 0.10 N/mm each, L0 = 13.2 mm)</text>
+  <text x="530" y="236" font-size="11">2× guided steel springs (combined k = 2500 N/m, 1.25 N/mm each)</text>
   <text x="530" y="130" font-size="11">66.0 thumb window (x = -33 to +33)</text>
-  <text x="742" y="302" font-size="11" fill="#8b0000" font-weight="bold">Single-card slot: 0.95 × 58.0 mm</text>
+  <text x="742" y="302" font-size="11" fill="#8b0000" font-weight="bold">Single-card slot: 1.15 × 58.0 mm</text>
   <text x="742" y="317" font-size="11" fill="#444">(1 card = 0.76 mm passes; 2 cards = 1.52 mm blocked)</text>
 
   <!-- PART SUMMARY & BENCH LAYOUT -->
@@ -55,8 +55,8 @@
   <text x="46" y="390" font-size="13" font-weight="bold">3. Reproducible Parts, Commercial Stock &amp; Bench Mounting</text>
   <text x="46" y="412">• Cards (5×): Standard ISO/IEC 7810 ID-1 (CR80) blank white rigid PVC cards, 85.60 × 54.00 × 0.76 mm, ~4.9 g each (e.g. Evolis C4001).</text>
   <text x="46" y="432">• Case Base &amp; Lid: 3D-printed or CNC ABS (1050 kg/m³), 100.0 × 64.0 × 16.0 mm assembled, joined by 4× M2 × 12 mm countersunk screws.</text>
-  <text x="46" y="452">• Follower &amp; Springs: 84.0 × 52.0 × 1.0 mm 6061-T6 Al plate (11.8 g) on 2× 1.8 mm guide posts with 2× steel coil springs (0.20 mm wire, 2.95 mm mean</text>
-  <text x="56" y="469">coil dia., 6 active / 8 total turns, 13.2 mm free length, combined k = 200 N/m, 1.20 N upward preload at 5-card stack).</text>
+  <text x="46" y="452">• Follower &amp; Springs: 84.0 × 52.0 × 1.0 mm 6061-T6 Al plate (11.8 g) on 2× 1.8 mm guide posts with 2× steel coil springs (combined k = 2500 N/m,</text>
+  <text x="56" y="469">1.25 N/mm each, 2.0 N upward preload at 5-card stack).</text>
   <text x="46" y="489">• Bench Fixtures: 50 × 38 × 50 mm hardwood riser fixed to tabletop at (x = 340, y = -45 mm); case rests LOOSE on riser (unclamped). 140 × 100 × 2 mm</text>
   <text x="56" y="506">cream silicone mat adhered flat to tabletop at (x = 500, y = -100 mm).</text>
 </svg>

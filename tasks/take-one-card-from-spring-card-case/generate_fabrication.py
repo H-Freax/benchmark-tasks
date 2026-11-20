@@ -52,13 +52,13 @@ def build_all(root: Path) -> None:
     fab = root / "fabrication"
     fab.mkdir(parents=True, exist_ok=True)
 
-    # 1. Lower ABS housing (z = 0..14 mm; 0.95 mm front outlet gap is between z = 13.05 mm dam and z = 14.0 mm lid underside)
+    # 1. Lower ABS housing (z = 0..14 mm; 1.15 mm front outlet gap is between z = 12.85 mm dam and z = 14.0 mm lid underside)
     base_boxes = [
         (0.0, 0.0, 1.0, 100.0, 64.0, 2.0),         # floor 100 x 64 x 2 mm
         (0.0, 30.5, 8.0, 100.0, 3.0, 12.0),        # left wall z = 2..14 mm
         (0.0, -30.5, 8.0, 100.0, 3.0, 12.0),       # right wall z = 2..14 mm
         (-48.5, 0.0, 8.0, 3.0, 58.0, 12.0),        # rear wall z = 2..14 mm
-        (48.5, 0.0, 7.525, 3.0, 58.0, 11.05),      # lower front dam z = 2..13.05 mm (leaves 0.95 mm single-card slot below lid)
+        (48.5, 0.0, 7.425, 3.0, 58.0, 10.85),      # lower front dam z = 2..12.85 mm (leaves 1.15 mm single-card slot below lid)
         (-25.0, 0.0, 5.5, 1.8, 1.8, 7.0),          # rear spring guide post (x = -25 mm, z = 2..9 mm)
         (25.0, 0.0, 5.5, 1.8, 1.8, 7.0),           # front spring guide post (x = +25 mm, z = 2..9 mm)
     ]
@@ -142,9 +142,9 @@ def build_all(root: Path) -> None:
   <!-- Two guided compression springs at x=-25 and x=+25 -->
   <rect x="586" y="201" width="8" height="63" fill="#ddd" stroke="#444" stroke-width="1"/>
   <rect x="786" y="201" width="8" height="63" fill="#ddd" stroke="#444" stroke-width="1"/>
-  <text x="530" y="236" font-size="11">2× guided steel springs (k = 0.10 N/mm each, L0 = 13.2 mm)</text>
+  <text x="530" y="236" font-size="11">2× guided steel springs (combined k = 2500 N/m, 1.25 N/mm each)</text>
   <text x="530" y="130" font-size="11">66.0 thumb window (x = -33 to +33)</text>
-  <text x="742" y="302" font-size="11" fill="#8b0000" font-weight="bold">Single-card slot: 0.95 × 58.0 mm</text>
+  <text x="742" y="302" font-size="11" fill="#8b0000" font-weight="bold">Single-card slot: 1.15 × 58.0 mm</text>
   <text x="742" y="317" font-size="11" fill="#444">(1 card = 0.76 mm passes; 2 cards = 1.52 mm blocked)</text>
 
   <!-- PART SUMMARY & BENCH LAYOUT -->
@@ -152,8 +152,8 @@ def build_all(root: Path) -> None:
   <text x="46" y="390" font-size="13" font-weight="bold">3. Reproducible Parts, Commercial Stock &amp; Bench Mounting</text>
   <text x="46" y="412">• Cards (5×): Standard ISO/IEC 7810 ID-1 (CR80) blank white rigid PVC cards, 85.60 × 54.00 × 0.76 mm, ~4.9 g each (e.g. Evolis C4001).</text>
   <text x="46" y="432">• Case Base &amp; Lid: 3D-printed or CNC ABS (1050 kg/m³), 100.0 × 64.0 × 16.0 mm assembled, joined by 4× M2 × 12 mm countersunk screws.</text>
-  <text x="46" y="452">• Follower &amp; Springs: 84.0 × 52.0 × 1.0 mm 6061-T6 Al plate (11.8 g) on 2× 1.8 mm guide posts with 2× steel coil springs (0.20 mm wire, 2.95 mm mean</text>
-  <text x="56" y="469">coil dia., 6 active / 8 total turns, 13.2 mm free length, combined k = 200 N/m, 1.20 N upward preload at 5-card stack).</text>
+  <text x="46" y="452">• Follower &amp; Springs: 84.0 × 52.0 × 1.0 mm 6061-T6 Al plate (11.8 g) on 2× 1.8 mm guide posts with 2× steel coil springs (combined k = 2500 N/m,</text>
+  <text x="56" y="469">1.25 N/mm each, 2.0 N upward preload at 5-card stack).</text>
   <text x="46" y="489">• Bench Fixtures: 50 × 38 × 50 mm hardwood riser fixed to tabletop at (x = 340, y = -45 mm); case rests LOOSE on riser (unclamped). 140 × 100 × 2 mm</text>
   <text x="56" y="506">cream silicone mat adhered flat to tabletop at (x = 500, y = -100 mm).</text>
 </svg>
@@ -161,10 +161,10 @@ def build_all(root: Path) -> None:
     (root / "case_dimensions.svg").write_text(svg)
 
     bom = """part_id,name,qty,material,dimensions_mm,source_or_file,notes
-P1,case_base,1,ABS (FDM 100% infill or CNC),100.0 x 64.0 x 14.0,fabrication/case_base.stl,Includes 11.05 mm front dam and 2x 1.8 mm spring guide posts
-P2,case_lid,1,ABS (FDM 100% infill or CNC),100.0 x 64.0 x 2.0,fabrication/case_lid.stl,66.0 x 40.0 mm top window; underside z=14.0 mm forms 0.95 mm outlet throat
+P1,case_base,1,ABS (FDM 100% infill or CNC),100.0 x 64.0 x 14.0,fabrication/case_base.stl,Includes 10.85 mm front dam and 2x 1.8 mm spring guide posts
+P2,case_lid,1,ABS (FDM 100% infill or CNC),100.0 x 64.0 x 2.0,fabrication/case_lid.stl,66.0 x 40.0 mm top window; underside z=14.0 mm forms 1.15 mm outlet throat
 P3,follower_plate,1,6061-T6 aluminium sheet,84.0 x 52.0 x 1.0,fabrication/follower_plate.stl,11.8 g; two 2.2 x 2.2 mm slots clear the spring guide posts
-P4,follower_spring,2,Music-wire steel (G=77 GPa),d=0.20 wire x Dm=2.95 x L0=13.2 (6 active / 8 total turns),Commercial compression spring,0.10 N/mm each (200 N/m pair); compressed to 7.2 mm under 5 cards (1.2 N preload)
+P4,follower_spring,2,Music-wire steel (G=77 GPa),d=0.45 wire x Dm=3.2 x L0=16.0,Commercial compression spring,1.25 N/mm each (2500 N/m pair); 2.0 N preload (0.2 mm deflection under 2.5 N thumb press)
 P5,lid_screw,4,Stainless steel,M2 x 12 mm flat-head machine screw,ISO 7046 / commercial,Fastens P2 lid onto P1 corner pilot holes
 P6,pvc_card,5,Rigid white PVC (1400 kg/m3),85.60 x 54.00 x 0.76,ISO/IEC 7810 ID-1 CR80 (e.g. Evolis C4001),Standard blank loyalty/membership card (~4.9 g each)
 P7,desk_riser,1,Hardwood / birch block,50.0 x 38.0 x 50.0,fabrication/desk_riser.stl,Fixed to tabletop at (0.340, -0.045, 0.7475..0.7975 m); case rests loose on top
@@ -174,10 +174,10 @@ P8,output_mat,1,Cream silicone rubber sheet,140.0 x 100.0 x 2.0,Commercial 2 mm 
 
     assembly = """# Fabrication and Bench Assembly Instructions
 
-1. **Print or machine the enclosure (`case_base.stl`, `case_lid.stl`)** in rigid ABS at 1:1 millimetre scale. Lightly deburr the inner walls (`94.0 x 58.0 mm` pocket) and check the `11.05 mm` front dam height above the `2.0 mm` floor with calipers so that when the flat `case_lid` sits at `z = 14.00 mm`, the front outlet slot measures `0.95 +/- 0.05 mm` high across the `58.0 mm` inner width (a single `0.76 mm` CR80 PVC card slides freely; two stacked cards `1.52 mm` are blocked).
+1. **Print or machine the enclosure (`case_base.stl`, `case_lid.stl`)** in rigid ABS at 1:1 millimetre scale. Lightly deburr the inner walls (`94.0 x 58.0 mm` pocket) and check the `10.85 mm` front dam height above the `2.0 mm` floor with calipers so that when the flat `case_lid` sits at `z = 14.00 mm`, the front outlet slot measures `1.15 +/- 0.05 mm` high across the `58.0 mm` inner width (a single `0.76 mm` CR80 PVC card slides freely; two stacked cards `1.52 mm` are blocked).
 2. **Cut or mill `follower_plate.stl`** from `1.0 mm` 6061-T6 aluminium sheet (`84.0 x 52.0 x 1.0 mm`, mass `11.8 g`) and deburr the two `2.2 x 2.2 mm` guide slots at `x = +/-25.0 mm, y = 0`.
-3. **Install springs and follower:** place the two compression springs (`0.20 mm` music wire, `2.95 mm` mean diameter, `13.2 mm` free length, `0.10 N/mm` each; verify combined `~1.2 N` load at `7.2 mm` compressed height on a kitchen/spring scale) over the `1.8 x 1.8 mm` posts on `case_base`, then seat `follower_plate` onto the springs.
-4. **Close and load:** attach `case_lid` with four `M2 x 12 mm` corner screws, then insert five clean `85.60 x 54.00 x 0.76 mm` CR80 PVC cards (`Evolis C4001` or equivalent) backward through the front `0.95 mm` slot one at a time until squared inside the case.
+3. **Install springs and follower:** place the two compression springs (`d = 0.45 mm` wire, `3.2 mm` mean diameter, `16.0 mm` free length, `1.25 N/mm` each / `2500 N/m` pair; verify combined `2.0 N` preload at `5-card` stack height) over the `1.8 x 1.8 mm` posts on `case_base`, then seat `follower_plate` onto the springs.
+4. **Close and load:** attach `case_lid` with four `M2 x 12 mm` corner screws, then insert five clean `85.60 x 54.00 x 0.76 mm` CR80 PVC cards (`Evolis C4001` or equivalent) backward through the front `1.15 mm` slot one at a time until squared inside the case.
 5. **Mount station fixtures:** secure `desk_riser` (`50 x 38 x 50 mm`) to the station table centred at `(x = 0.340 m, y = -0.045 m)` with double-sided VHB tape or underside screws, and adhere the `140 x 100 x 2 mm` cream silicone `output_mat` flat at `(x = 0.500 m, y = -0.100 m)`. Set the loaded `card_case` **loose** (unclamped) centred on top of `desk_riser` with its `+X` outlet slot facing forward (`+X`).
 """
     (fab / "ASSEMBLY.md").write_text(assembly)
