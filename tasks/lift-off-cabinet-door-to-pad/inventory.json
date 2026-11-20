@@ -1,0 +1,1064 @@
+{
+  "objects": [
+    {
+      "id": "cabinet",
+      "type": "empty fixed storage cabinet carcase with two slip-joint pins",
+      "asset_origin_world_m": [
+        0.36,
+        0.0,
+        0.7575000000000001
+      ],
+      "asset_envelope_m": [
+        0.391,
+        0.248,
+        0.42000000000000004
+      ],
+      "bounding_box_center_world_m": [
+        0.5495,
+        0.2955,
+        0.9575
+      ],
+      "rotation_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "movable": false,
+      "mass_kg": null,
+      "asset_path": "assets/cabinet.usda",
+      "material": {
+        "intended": "18 mm poplar plywood carcase; 304 stainless fixed hinge halves and 3 mm screws",
+        "simulated": "Rigid box wood proxies and steel cylinders, per-collider PhysicsMaterialAPI 0.2/0.16 friction, displayColor only"
+      },
+      "asset_origin": "self-authored procedural USDA",
+      "representation": "task-local primitive compound; no third-party model",
+      "license_spdx": "MIT",
+      "license_file": "LICENSE",
+      "source_file": "SOURCES.md",
+      "reproducibility": "DIY cut-list and product procurement references in SOURCES.md; internal hinge pin/bore assumptions disclosed",
+      "components": [
+        {
+          "id": "near_side",
+          "shape": "Cube",
+          "size_m": [
+            0.018,
+            0.24,
+            0.42
+          ],
+          "center_asset_m": [
+            0.003,
+            0.2995,
+            0.2
+          ]
+        },
+        {
+          "id": "far_side",
+          "shape": "Cube",
+          "size_m": [
+            0.018,
+            0.24,
+            0.42
+          ],
+          "center_asset_m": [
+            0.376,
+            0.2995,
+            0.2
+          ]
+        },
+        {
+          "id": "floor",
+          "shape": "Cube",
+          "size_m": [
+            0.355,
+            0.24,
+            0.018
+          ],
+          "center_asset_m": [
+            0.1895,
+            0.2995,
+            -0.001
+          ]
+        },
+        {
+          "id": "roof",
+          "shape": "Cube",
+          "size_m": [
+            0.355,
+            0.24,
+            0.018
+          ],
+          "center_asset_m": [
+            0.1895,
+            0.2995,
+            0.401
+          ]
+        },
+        {
+          "id": "back",
+          "shape": "Cube",
+          "size_m": [
+            0.355,
+            0.018,
+            0.384
+          ],
+          "center_asset_m": [
+            0.1895,
+            0.4105,
+            0.2
+          ]
+        },
+        {
+          "id": "fixed_leaf_0",
+          "shape": "Cube",
+          "size_m": [
+            0.015,
+            0.0015,
+            0.04
+          ],
+          "center_asset_m": [
+            0.0085,
+            0.18025,
+            0.05
+          ]
+        },
+        {
+          "id": "fixed_leaf_1",
+          "shape": "Cube",
+          "size_m": [
+            0.015,
+            0.0015,
+            0.04
+          ],
+          "center_asset_m": [
+            0.0085,
+            0.18025,
+            0.31
+          ]
+        },
+        {
+          "id": "shoulder_web_0",
+          "shape": "Cube",
+          "size_m": [
+            0.006,
+            0.003,
+            0.018
+          ],
+          "center_asset_m": [
+            0.0145,
+            0.178,
+            0.04
+          ]
+        },
+        {
+          "id": "shoulder_web_1",
+          "shape": "Cube",
+          "size_m": [
+            0.006,
+            0.003,
+            0.018
+          ],
+          "center_asset_m": [
+            0.0145,
+            0.178,
+            0.3
+          ]
+        },
+        {
+          "id": "pin_0",
+          "shape": "Cylinder",
+          "radius_m": 0.0015,
+          "height_m": 0.018,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.059000000000000004
+          ]
+        },
+        {
+          "id": "shoulder_0",
+          "shape": "Cylinder",
+          "radius_m": 0.0035,
+          "height_m": 0.02,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.04
+          ]
+        },
+        {
+          "id": "pin_1",
+          "shape": "Cylinder",
+          "radius_m": 0.0015,
+          "height_m": 0.018,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.319
+          ]
+        },
+        {
+          "id": "shoulder_1",
+          "shape": "Cylinder",
+          "radius_m": 0.0035,
+          "height_m": 0.02,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "door",
+      "type": "real-size small storage cabinet door",
+      "asset_origin_world_m": [
+        0.36,
+        0.0,
+        0.7577
+      ],
+      "asset_envelope_m": [
+        0.062,
+        0.3535,
+        0.4
+      ],
+      "bounding_box_center_world_m": [
+        0.347,
+        0.0017500000000000016,
+        0.9577
+      ],
+      "rotation_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "movable": true,
+      "mass_kg": 1.267,
+      "asset_path": "assets/door.usda",
+      "material": {
+        "intended": "18 mm poplar plywood at nominal 450 kg/m3; 304 stainless moving hinge halves; stainless square T-bar pull; screws",
+        "simulated": "Single rigid assembly, 1.267 kg, mass/COM authored; PhysicsMaterialAPI 0.5/0.4 friction, displayColor; no deformation"
+      },
+      "asset_origin": "self-authored procedural USDA",
+      "representation": "task-local primitive compound; no third-party model",
+      "license_spdx": "MIT",
+      "license_file": "LICENSE",
+      "source_file": "SOURCES.md",
+      "reproducibility": "DIY cut-list and product procurement references in SOURCES.md; internal hinge pin/bore assumptions disclosed",
+      "components": [
+        {
+          "id": "panel",
+          "shape": "Cube",
+          "size_m": [
+            0.018,
+            0.35,
+            0.4
+          ],
+          "center_asset_m": [
+            0.0,
+            0.0,
+            0.2
+          ]
+        },
+        {
+          "id": "pull_bar",
+          "shape": "Cube",
+          "size_m": [
+            0.012,
+            0.202,
+            0.012
+          ],
+          "center_asset_m": [
+            -0.038,
+            0.0,
+            0.2
+          ]
+        },
+        {
+          "id": "pull_post_left",
+          "shape": "Cube",
+          "size_m": [
+            0.023,
+            0.012,
+            0.012
+          ],
+          "center_asset_m": [
+            -0.0205,
+            0.096,
+            0.2
+          ]
+        },
+        {
+          "id": "pull_post_right",
+          "shape": "Cube",
+          "size_m": [
+            0.023,
+            0.012,
+            0.012
+          ],
+          "center_asset_m": [
+            -0.0205,
+            -0.096,
+            0.2
+          ]
+        },
+        {
+          "id": "moving_leaf_0",
+          "shape": "Cube",
+          "size_m": [
+            0.0015,
+            0.015,
+            0.04
+          ],
+          "center_asset_m": [
+            0.00975,
+            0.1675,
+            0.05
+          ]
+        },
+        {
+          "id": "moving_leaf_1",
+          "shape": "Cube",
+          "size_m": [
+            0.0015,
+            0.015,
+            0.04
+          ],
+          "center_asset_m": [
+            0.00975,
+            0.1675,
+            0.31
+          ]
+        },
+        {
+          "id": "knuckle_web_0",
+          "shape": "Cube",
+          "size_m": [
+            0.003,
+            0.008,
+            0.02
+          ],
+          "center_asset_m": [
+            0.011,
+            0.171,
+            0.060000000000000005
+          ]
+        },
+        {
+          "id": "knuckle_web_1",
+          "shape": "Cube",
+          "size_m": [
+            0.003,
+            0.008,
+            0.02
+          ],
+          "center_asset_m": [
+            0.011,
+            0.171,
+            0.32
+          ]
+        },
+        {
+          "id": "ring_0_0",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 0,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_1",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 1,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_2",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 2,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_3",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 3,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_4",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 4,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_5",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 5,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_6",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 6,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_7",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 7,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_8",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 8,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_9",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 9,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_10",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 10,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_11",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 11,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_12",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 12,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_13",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 13,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_14",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 14,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_15",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 15,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_16",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 16,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_17",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 17,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_18",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 18,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_19",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 19,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_20",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 20,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_21",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 21,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_22",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 22,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_0_23",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 23,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.05
+          ]
+        },
+        {
+          "id": "ring_1_0",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 0,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_1",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 1,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_2",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 2,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_3",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 3,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_4",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 4,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_5",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 5,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_6",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 6,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_7",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 7,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_8",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 8,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_9",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 9,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_10",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 10,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_11",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 11,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_12",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 12,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_13",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 13,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_14",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 14,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_15",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 15,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_16",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 16,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_17",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 17,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_18",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 18,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_19",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 19,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_20",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 20,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_21",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 21,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_22",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 22,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        },
+        {
+          "id": "ring_1_23",
+          "shape": "convex annular sector",
+          "inner_radius_m": 0.0018,
+          "outer_radius_m": 0.0035,
+          "height_m": 0.02,
+          "angle_index": 23,
+          "center_asset_m": [
+            0.0145,
+            0.175,
+            0.31
+          ]
+        }
+      ]
+    },
+    {
+      "id": "landing_pad",
+      "type": "flat rubber bench pad",
+      "asset_origin_world_m": [
+        0.25,
+        0.0,
+        0.7495
+      ],
+      "asset_envelope_m": [
+        0.14,
+        0.41,
+        0.004
+      ],
+      "bounding_box_center_world_m": [
+        0.25,
+        0.0,
+        0.7495
+      ],
+      "rotation_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "movable": false,
+      "mass_kg": null,
+      "asset_path": "assets/landing_pad.usda",
+      "material": {
+        "intended": "Nonslip 4 mm rubber sheet taped to bench",
+        "simulated": "Kinematic rigid Cube, 0.8/0.64 static/dynamic friction, no compliance"
+      },
+      "asset_origin": "self-authored procedural USDA",
+      "representation": "task-local primitive compound; no third-party model",
+      "license_spdx": "MIT",
+      "license_file": "LICENSE",
+      "source_file": "SOURCES.md",
+      "reproducibility": "DIY cut-list and product procurement references in SOURCES.md; internal hinge pin/bore assumptions disclosed",
+      "components": [
+        {
+          "id": "rubber_pad",
+          "shape": "Cube",
+          "size_m": [
+            0.14,
+            0.41,
+            0.004
+          ],
+          "center_asset_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "ordered_ids": [
+    "cabinet",
+    "door",
+    "landing_pad"
+  ],
+  "runtime_context": "Official station table, arms, cameras, stand and room are upstream runtime assets, not extra task props",
+  "hinge_geometry": {
+    "pin_radius_m": 0.0015,
+    "pin_length_m": 0.018,
+    "bore_radius_m": 0.0018,
+    "outside_radius_m": 0.0035,
+    "knuckle_height_m": 0.02,
+    "shoulder_planes_asset_z_m": [
+      0.05,
+      0.31
+    ],
+    "contact_offset_m": 5e-05,
+    "dimensional_origin": "NH-40 external catalogue envelope; internal dimensions assumed"
+  },
+  "goal": "upright on bottom edge, released and supported on pad; no flip"
+}
