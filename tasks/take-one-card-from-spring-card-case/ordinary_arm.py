@@ -1,8 +1,5 @@
-"""MIT donor reference controller. Ordinary joint targets only.
-Derived from PR2036 immutable merge; see ATTRIBUTION.md.
-Bounded additional IK seeds handle the ordinary horizontal side-grasp branch.
-CPU IK is not collision validation or evidence of native grasp success.
-Arm._solve logs residuals but does not reject unreachable targets.
+"""Arm joint and cartesian target controller.
+Bounded additional IK seeds handle the horizontal side-grasp branch.
 """
 from __future__ import annotations
 import numpy as np
