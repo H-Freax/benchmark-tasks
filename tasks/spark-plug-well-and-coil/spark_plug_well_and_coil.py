@@ -13,12 +13,15 @@ from __future__ import annotations
 
 import math
 import os
+import sys
+from pathlib import Path
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mechkit as mk  # noqa: E402
 
 from yam_arena.demo import Waypoint
 from yam_arena.task_file import GREY, Box, ObjectState
-
-import mechkit as mk  # noqa: E402
 
 # Environment colors
 ALU = (0.75, 0.77, 0.80)
