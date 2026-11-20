@@ -223,8 +223,8 @@ kit.slider(
     upper=SLIDE_TRAVEL,
     start=0.0,
     stiffness=0.0,
-    damping=1.0,
-    friction=0.15,
+    damping=0.0,
+    friction=0.0,
 )
 
 # -- 3. Slotted Terminal Screwdriver -------------------------------------------
@@ -540,13 +540,13 @@ def demo() -> dict[str, list[Waypoint]]:
     # Slides CLIPFIX end stop bracket into flush contact with terminal stack
     right = [
         # Hover behind end bracket
-        Waypoint(1.2, (RAIL_X - 0.015, START_Y - 0.020, TOP + 0.140), FINGER_CLOSED, "hover_bracket"),
+        Waypoint(1.2, (0.240, START_Y - 0.020, TOP + 0.140), FINGER_CLOSED, "hover_bracket"),
         # Descend behind bracket
-        Waypoint(1.0, (RAIL_X - 0.015, START_Y - 0.020, TOP + 0.065), FINGER_CLOSED, "descend_behind_bracket"),
+        Waypoint(1.0, (0.240, START_Y - 0.020, TOP + 0.080), FINGER_CLOSED, "descend_behind_bracket"),
         # Push bracket forward along rail to terminal block stack face
-        Waypoint(2.0, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "push_bracket_flush"),
+        Waypoint(2.0, (0.240, FLUSH_Y - 0.005, TOP + 0.080), FINGER_CLOSED, "push_bracket_flush"),
         # Counter-hold stack firmly under axial compression
-        Waypoint(6.5, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "hold_bracket_snug"),
+        Waypoint(6.5, (0.240, FLUSH_Y - 0.005, TOP + 0.080), FINGER_CLOSED, "hold_bracket_snug"),
     ]
 
     # Left arm: operates on +Y (screwdriver rest is at TOOL_REST_POS = (0.22, 0.18, ...))
@@ -569,7 +569,7 @@ def demo() -> dict[str, list[Waypoint]]:
     if cheat == "slide_only":
         # Right arm pushes bracket flush then retreats; Left arm remains parked
         right.extend([
-            Waypoint(1.0, (RAIL_X - 0.015, FLUSH_Y - 0.040, TOP + 0.065), FINGER_CLOSED, "back_off"),
+            Waypoint(1.0, (0.240, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
             Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
             Waypoint(4.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "park_right"),
         ])
@@ -586,7 +586,7 @@ def demo() -> dict[str, list[Waypoint]]:
     if cheat == "no_release":
         # Screwdriver torqued but hands/tools hold in place and do not release
         right.append(
-            Waypoint(6.0, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "hold_unreleased")
+            Waypoint(6.0, (0.240, FLUSH_Y - 0.005, TOP + 0.080), FINGER_CLOSED, "hold_unreleased")
         )
         left.append(
             Waypoint(6.0, driver_engage_tcp, FINGER_CLOSED, "hold_driver_unreleased", yaw=-0.70)
@@ -604,7 +604,7 @@ def demo() -> dict[str, list[Waypoint]]:
     ])
 
     right.extend([
-        Waypoint(1.0, (RAIL_X - 0.015, FLUSH_Y - 0.040, TOP + 0.065), FINGER_CLOSED, "back_off"),
+        Waypoint(1.0, (0.240, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
         Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
         Waypoint(3.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_right"),
     ])
