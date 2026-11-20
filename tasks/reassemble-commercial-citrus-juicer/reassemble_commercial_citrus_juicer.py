@@ -71,11 +71,11 @@ COLLAR_Y = 0.000
 COLLAR_Z = TOP + 0.055
 
 # Collector Bowl initial & target poses
-BOWL_INIT_POS = np.array([0.220, -0.140, TOP + 0.030])
+BOWL_INIT_POS = np.array([0.220, -0.160, TOP + 0.030])
 BOWL_SEAT_Z = TOP + 0.050
 
 # Strainer Cone initial & target poses
-CONE_INIT_POS = np.array([0.220, 0.140, TOP + 0.024])
+CONE_INIT_POS = np.array([0.320, -0.160, TOP + 0.024])
 CONE_SEAT_Z = TOP + 0.053
 
 # Lever Hinge Anchor & Parameters
@@ -410,14 +410,15 @@ def demo() -> dict[str, list[Waypoint]]:
     c_z = CONE_INIT_POS[2] + 0.025
     CONE_CARRY_Z = TOP + 0.150
 
-    # Right arm: installs collector bowl into base collar and locks bayonet detents
+    # Right arm: installs collector bowl, locks bayonet detents, then seats strainer cone
     right = [
+        # 1. Grasp and lift collector bowl
         Waypoint(1.2, (h_x, h_y, BOWL_CARRY_Z), FINGER_OPEN, "bowl_approach"),
         Waypoint(0.8, (h_x, h_y, h_z), FINGER_CLOSED, "bowl_grasp"),
         Waypoint(1.0, (h_x, h_y, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_lift"),
-        Waypoint(0.8, (h_x, h_y + 0.035, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_1"),
-        Waypoint(0.8, (h_x, h_y + 0.070, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_2"),
-        Waypoint(0.8, (h_x, h_y + 0.105, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_3"),
+        # Carry bowl into receiver collar
+        Waypoint(0.8, (h_x, h_y + 0.050, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_1"),
+        Waypoint(0.8, (h_x, h_y + 0.100, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_carry_2"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y - 0.090, BOWL_CARRY_Z), FINGER_CLOSED, "bowl_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y - 0.090, TOP + 0.080), FINGER_CLOSED, "bowl_insert"),
     ]
@@ -434,72 +435,75 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Lock bowl with 30-deg clockwise bayonet rotation
-    # Bowl rotates -30 deg (CW): new handle position = (COLLAR_X - 0.090*sin(30), COLLAR_Y - 0.090*cos(30))
     lock_hx = COLLAR_X - 0.090 * math.sin(math.radians(30.0))
     lock_hy = COLLAR_Y - 0.090 * math.cos(math.radians(30.0))
     right += [
         Waypoint(1.2, (lock_hx, lock_hy, TOP + 0.080), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
         Waypoint(0.8, (lock_hx, lock_hy, TOP + 0.080), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
         Waypoint(1.0, (lock_hx, lock_hy, BOWL_CARRY_Z + 0.020), FINGER_OPEN, "bowl_clear", yaw=math.radians(-30.0)),
-        Waypoint(0.8, (lock_hx, -0.200, BOWL_CARRY_Z + 0.020), FINGER_OPEN, "right_retract_side", yaw=math.radians(-30.0)),
-        Waypoint(1.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
-        Waypoint(18.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_park"),
+        Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_OPEN, "cone_approach"),
     ]
 
     if cheat == "bowl_locked":
+        right += [
+            Waypoint(1.2, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
+            Waypoint(8.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_park"),
+        ]
         left = [
             Waypoint(12.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
         ]
         return {"left": left, "right": right}
 
-    # Left arm: waits for bowl to be placed, then picks strainer cone and seats it
-    # Carry directly along Y axis into the collar, then drop flush onto internal shelf
-    left = [
-        # Wait while right arm installs bowl (t = 8.6 s)
-        Waypoint(8.6, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_wait"),
-        # Approach strainer cone knob
-        Waypoint(1.2, (c_x, c_y, CONE_CARRY_Z), FINGER_OPEN, "cone_approach"),
+    # 2. Grasp and seat strainer cone
+    right += [
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
-        # Smooth direct Y approach into juicer collar with 28.5 mm clearance above bowl rim
-        Waypoint(0.8, (c_x, c_y - 0.035, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
-        Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
-        Waypoint(0.8, (c_x, c_y - 0.105, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_3"),
+        # Carry cone into collar along -Y approach corridor
+        Waypoint(0.8, (c_x, c_y + 0.050, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
-        # Keep left hand holding cone without releasing
-        left += [
+        right += [
             Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_hold"),
+        ]
+        left = [
+            Waypoint(12.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
         ]
         return {"left": left, "right": right}
 
-    left += [
+    right += [
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_OPEN, "cone_release"),
         Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
-        Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_OPEN, "cone_exit_side"),
+        Waypoint(1.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
+        Waypoint(12.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_park"),
     ]
 
     if cheat == "cone_seated":
-        left += [
-            Waypoint(1.2, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
-            Waypoint(8.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
+        left = [
+            Waypoint(12.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
         ]
         return {"left": left, "right": right}
 
-    # Mechanical test stroke: Left arm depresses press lever and releases
-    # Knob starts at (0.160, 0.000, 1.018) at rest; strokes down along arc to (0.245, 0.000, 0.895)
-    left += [
+    # Left arm: steadies press lever, then executes mechanical test stroke
+    # Bowl takes ~11.8s; cone takes ~8.0s (ready at t ~ 20.0s)
+    left = [
+        # Move to lever knob and hold/steady in open rest position (t = 2.0s)
         Waypoint(1.0, (0.160, 0.000, 1.025), FINGER_OPEN, "lever_approach"),
         Waypoint(0.8, (0.160, 0.000, 1.018), FINGER_CLOSED, "lever_grasp"),
+        # Hold lever securely upright while Right arm seats bowl and cone (t = 18.0s)
+        Waypoint(18.0, (0.160, 0.000, 1.018), FINGER_CLOSED, "lever_hold_open"),
+        # Execute mechanical test stroke past 25 deg
         Waypoint(0.8, (0.210, 0.000, 0.985), FINGER_CLOSED, "lever_stroke_1"),
         Waypoint(0.8, (0.240, 0.000, 0.935), FINGER_CLOSED, "lever_stroke_2"),
         Waypoint(0.8, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke_3"),
+        # Release lever to spring-return to rest stop
         Waypoint(0.8, (0.160, 0.000, 1.018), FINGER_OPEN, "lever_release"),
         Waypoint(1.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
+
+    return {"left": left, "right": right}
 
     return {"left": left, "right": right}
