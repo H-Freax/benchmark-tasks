@@ -253,7 +253,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     else:
         M["hold_timer"] = 0
 
-    if step_idx % 40 == 0 or (step_idx > 300 and step_idx % 10 == 0):
+    if step_idx % 10 == 0:
         print(
             f"[{TAG}] step={step_idx} dr_b={dr_bowl:.3f} dz_b={dz_bowl:.3f} yaw_b={bowl_yaw_deg:.1f} "
             f"dr_c={dr_cone:.3f} dz_c={dz_cone:.3f} lever={lever_deg:.1f} min_l={min_lever:.1f} "
