@@ -150,7 +150,8 @@ class TestMountPaintSprayGunGravityCupScoring(unittest.TestCase):
         # Verify all waypoint coordinates are within reachable tabletop bounds
         for arm in ["left", "right"]:
             for wp in traj[arm]:
-                x, y, z = wp.xyz
+                pos = wp.pos if hasattr(wp, "pos") else wp.xyz
+                x, y, z = pos
                 self.assertGreater(x, 0.05, f"{arm} {wp.label} x too close to base")
                 self.assertLess(x, 0.50, f"{arm} {wp.label} x too far")
                 self.assertGreater(y, -0.45, f"{arm} {wp.label} y too far right")

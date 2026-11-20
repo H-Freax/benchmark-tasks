@@ -30,7 +30,6 @@ import math
 import os
 from pathlib import Path
 import sys
-from dataclasses import dataclass
 
 import numpy as np
 
@@ -64,27 +63,26 @@ LID_BLACK = (0.15, 0.15, 0.16)
 REST_BLUE = (0.20, 0.45, 0.70)
 
 # -- Physical Coordinates & Dimensions (1:1 True Scale) -----------------------
-# Spray gun mounted in low-profile bench clamp stand
 GUN_X = 0.240
 GUN_Y = 0.050
 GUN_STAND_Z = TOP
 
-# Fluid inlet boss on top of gun body
 INLET_X = GUN_X
 INLET_Y = GUN_Y
-INLET_RIM_Z = TOP + 0.080  # 80 mm above table
-INLET_SEAT_Z = INLET_RIM_Z
+INLET_RIM_Z = TOP + 0.084
+INLET_SOCKET_FLOOR_Z = TOP + 0.068
 
-# Gravity paint cup (650 mL rigid nylon cup resting in cup holder tray)
+# Gravity paint cup staging pose
 CUP_START_X = 0.240
 CUP_START_Y = 0.170
-CUP_START_Z = TOP + 0.040  # Seated in cup rest tray
+CUP_START_Z = TOP + 0.0390  # In staging tray (lowest point at TOP + 0.0150)
 
-# When fully seated in inlet:
-CUP_SEATED_Z = TOP + 0.090  # Flush seated in inlet socket
+# When fully seated in inlet socket:
+# Spout lowest point (-0.024) rests on socket floor (TOP + 0.068)
+CUP_SEATED_Z = TOP + 0.0920
 
 # Locking collar cam ring:
-RING_Z = TOP + 0.075
+RING_Z = TOP + 0.076
 LOCK_ANGLE_DEG = 45.0
 LOCK_ANGLE_RAD = math.radians(LOCK_ANGLE_DEG)  # 0.7854 rad
 
@@ -99,6 +97,7 @@ CLEAR_MARGIN_M = 0.025  # 25 mm clearance margin for hands
 kit = mk.Kit()
 
 # -- 1. Spray Gun & Stand Assembly (Base Rigid Body) --------------------------
+# Combined heavy low-profile bench clamp and HVLP spray gun body with hollow inlet socket
 stand_gun_boxes = [
     # Low-profile heavy bench clamp base plate (120 x 80 x 10 mm)
     mk.box((0.120, 0.080, 0.010), (0.0, 0.0, 0.005), color=STAND_STEEL),
@@ -107,32 +106,35 @@ stand_gun_boxes = [
     # Spray gun handle: ergonomic grip (26 x 32 x 55 mm)
     mk.box((0.026, 0.032, 0.055), (0.0, 0.0, 0.035), color=GUN_BLUE),
     # Gun receiver frame & valve housing (32 x 36 x 22 mm)
-    mk.box((0.032, 0.036, 0.022), (0.0, 0.0, 0.068), color=GUN_SILVER),
+    mk.box((0.032, 0.036, 0.022), (0.0, 0.0, 0.057), color=GUN_SILVER),
     # Gun barrel extending forward (-X) (65 x 24 x 22 mm)
-    mk.box((0.065, 0.024, 0.022), (-0.035, 0.0, 0.068), color=GUN_SILVER),
+    mk.box((0.065, 0.024, 0.022), (-0.035, 0.0, 0.057), color=GUN_SILVER),
     # Forward air cap nozzle (20 x 22 x 22 mm)
-    mk.box((0.020, 0.022, 0.022), (-0.075, 0.0, 0.068), color=DARK_METAL),
+    mk.box((0.020, 0.022, 0.022), (-0.075, 0.0, 0.057), color=DARK_METAL),
     # Rear fluid micrometer knob (18 x 18 x 18 mm)
-    mk.box((0.018, 0.018, 0.018), (0.025, 0.0, 0.068), color=DARK_METAL),
-    # Fluid inlet boss extending vertically to receive gravity cup spout
-    mk.box((0.022, 0.022, 0.016), (0.0, 0.0, 0.080), color=GUN_SILVER),
+    mk.box((0.018, 0.018, 0.018), (0.025, 0.0, 0.057), color=DARK_METAL),
+    # Hollow Fluid Inlet Boss Socket (Outer 22x22 mm, Bore 16x16 mm, Height 16 mm from z=0.068 to 0.084)
+    mk.box((0.022, 0.003, 0.016), (0.0, 0.0095, 0.076), color=GUN_SILVER),
+    mk.box((0.022, 0.003, 0.016), (0.0, -0.0095, 0.076), color=GUN_SILVER),
+    mk.box((0.003, 0.016, 0.016), (0.0095, 0.0, 0.076), color=GUN_SILVER),
+    mk.box((0.003, 0.016, 0.016), (-0.0095, 0.0, 0.076), color=GUN_SILVER),
 ]
 
 spray_gun = kit.part(
     "spray_gun",
     (GUN_X, GUN_Y, GUN_STAND_Z),
     stand_gun_boxes,
-    mass=0.750,  # 750g stable clamped assembly
+    mass=0.850,  # 850g rigid clamped assembly
     color=GUN_SILVER,
 )
 
 # -- 2. Knurled Locking Cam Collar Ring (Revolute Mechanism) -------------------
 ring_boxes = [
-    # Knurled outer collar ring (OD 32 mm, ID 22 mm, height 12 mm)
-    mk.box((0.032, 0.005, 0.012), (0.0, 0.0135, 0.0), color=KNURLED_RING),
-    mk.box((0.032, 0.005, 0.012), (0.0, -0.0135, 0.0), color=KNURLED_RING),
-    mk.box((0.005, 0.022, 0.012), (0.0135, 0.0, 0.0), color=KNURLED_RING),
-    mk.box((0.005, 0.022, 0.012), (-0.0135, 0.0, 0.0), color=KNURLED_RING),
+    # Knurled outer collar ring (OD 32 mm, ID 24 mm, height 12 mm)
+    mk.box((0.032, 0.004, 0.012), (0.0, 0.0140, 0.0), color=KNURLED_RING),
+    mk.box((0.032, 0.004, 0.012), (0.0, -0.0140, 0.0), color=KNURLED_RING),
+    mk.box((0.004, 0.024, 0.012), (0.0140, 0.0, 0.0), color=KNURLED_RING),
+    mk.box((0.004, 0.024, 0.012), (-0.0140, 0.0, 0.0), color=KNURLED_RING),
     # Ergonomic thumb grip tab on collar (+X side, 8 x 12 x 8 mm)
     mk.box((0.008, 0.012, 0.008), (0.020, 0.0, 0.0), color=DARK_METAL),
 ]
@@ -160,11 +162,11 @@ kit.hinge(
 
 # Staging cup rest tray on bench
 cup_tray_boxes = [
-    mk.box((0.080, 0.080, 0.020), (0.0, 0.0, 0.010), color=REST_BLUE),
-    mk.box((0.090, 0.006, 0.035), (0.0, 0.042, 0.018), color=STAND_STEEL),
-    mk.box((0.090, 0.006, 0.035), (0.0, -0.042, 0.018), color=STAND_STEEL),
-    mk.box((0.006, 0.080, 0.035), (0.042, 0.0, 0.018), color=STAND_STEEL),
-    mk.box((0.006, 0.080, 0.035), (-0.042, 0.0, 0.018), color=STAND_STEEL),
+    mk.box((0.076, 0.076, 0.015), (0.0, 0.0, 0.0075), color=REST_BLUE),
+    mk.box((0.084, 0.004, 0.025), (0.0, 0.040, 0.0125), color=STAND_STEEL),
+    mk.box((0.084, 0.004, 0.025), (0.0, -0.040, 0.0125), color=STAND_STEEL),
+    mk.box((0.004, 0.076, 0.025), (0.040, 0.0, 0.0125), color=STAND_STEEL),
+    mk.box((0.004, 0.076, 0.025), (-0.040, 0.0, 0.0125), color=STAND_STEEL),
 ]
 
 cup_tray = kit.part(
@@ -175,18 +177,23 @@ cup_tray = kit.part(
     color=REST_BLUE,
 )
 
+# Catch weld: engaged when collar is turned past 40 deg detent
+cup_seated_T = np.eye(4)
+cup_seated_T[:3, 3] = [INLET_X, INLET_Y, CUP_SEATED_Z]
+kit.catch("cup_bayonet_lock", "paint_cup", cup_seated_T)
+
 # -- 3. Gravity Paint Cup (Free Rigid Body) -----------------------------------
 cup_boxes = [
-    # Main container body (OD 76 mm, height 70 mm)
-    mk.box((0.076, 0.076, 0.070), (0.0, 0.0, 0.030), color=CUP_TRANSLUCENT),
-    # Top vented screw lid (OD 78 mm, height 10 mm)
-    mk.box((0.078, 0.078, 0.010), (0.0, 0.0, 0.068), color=LID_BLACK),
-    # Bottom tapered funnel neck (OD 32 mm, height 12 mm)
-    mk.box((0.032, 0.032, 0.012), (0.0, 0.0, -0.010), color=CUP_TRANSLUCENT),
-    # Bottom cylindrical spout nozzle (OD 15 mm, length 16 mm)
-    mk.box((0.015, 0.015, 0.016), (0.0, 0.0, -0.022), color=DARK_METAL),
-    # Dual bayonet locking lugs on spout (width 4 mm)
-    mk.box((0.020, 0.004, 0.004), (0.0, 0.0, -0.018), color=DARK_METAL),
+    # Main container body (OD 70 mm, height 60 mm)
+    mk.box((0.070, 0.070, 0.060), (0.0, 0.0, 0.030), color=CUP_TRANSLUCENT),
+    # Top vented screw lid (OD 72 mm, height 8 mm)
+    mk.box((0.072, 0.072, 0.008), (0.0, 0.0, 0.064), color=LID_BLACK),
+    # Bottom tapered funnel neck (OD 30 mm, height 10 mm)
+    mk.box((0.030, 0.030, 0.010), (0.0, 0.0, -0.005), color=CUP_TRANSLUCENT),
+    # Bottom cylindrical spout nozzle (OD 14 mm, length 14 mm)
+    mk.box((0.014, 0.014, 0.014), (0.0, 0.0, -0.017), color=DARK_METAL),
+    # Dual bayonet locking lugs on spout (width 3.5 mm)
+    mk.box((0.018, 0.003, 0.003), (0.0, 0.0, -0.015), color=DARK_METAL),
 ]
 
 paint_cup = kit.part(
@@ -207,6 +214,7 @@ mk.MEMORY.update({
     "cup_aligned": False,
     "cup_seated": False,
     "ring_locked": False,
+    "locked_joint_engaged": False,
     "proof_state": "idle",
     "proof_timer": 0,
     "proof_start_z": 0.0,
@@ -249,10 +257,10 @@ def _update_mechanics(objects: dict):
     )
     M["cup_aligned"] = aligned
 
-    # 2. Seated check (coaxial within 3.5 mm XY, seated depth within 3.5 mm Z, tilt <= 6 deg)
+    # 2. Seated check (coaxial within 3.5 mm XY, seated depth within 4.0 mm Z, tilt <= 6 deg)
     seated = bool(
         xy_offset <= SEAT_MAX_XY_ERR
-        and abs(z_diff) <= 0.0035
+        and abs(z_diff) <= 0.0040
         and tilt_deg <= SEAT_MAX_TILT_DEG
     )
     M["cup_seated"] = seated
@@ -266,6 +274,11 @@ def _update_mechanics(objects: dict):
     # Locking condition: cup is seated and ring is rotated clockwise >= 40 deg
     ring_locked = bool(seated and abs(ring_angle) >= 40.0)
     M["ring_locked"] = ring_locked
+
+    # Engage rigid locking catch once ring is turned past 40 deg
+    if ring_locked and not M.get("locked_joint_engaged"):
+        M["locked_joint_engaged"] = True
+        kit.engage("cup_bayonet_lock")
 
     # 4. Proof pull evaluation:
     hands_clear = bool(
@@ -441,15 +454,16 @@ def demo() -> dict[str, list[Waypoint]]:
         ]
         return {"left": left, "right": right}
 
-    CUP_GRIP_Z = 0.015
-    SEAT_TCP_Z = CUP_SEATED_Z + CUP_GRIP_Z  # TOP + 0.105
-    START_TCP_Z = CUP_START_Z + CUP_GRIP_Z  # TOP + 0.055
+    # Grasp TCP height: grasps cup body waist (center at z = +0.030 m)
+    CUP_GRIP_Z = 0.025
+    SEAT_TCP_Z = CUP_SEATED_Z + CUP_GRIP_Z  # TOP + 0.1170
+    START_TCP_Z = CUP_START_Z + CUP_GRIP_Z  # TOP + 0.0640
 
     # LEFT ARM: Manipulates paint cup
     left = [
         # Hover over cup in tray
         Waypoint(1.2, (CUP_START_X, CUP_START_Y, TOP + 0.140), FINGER_OPEN, "hover_cup"),
-        # Descend to grip cup body
+        # Descend to grip cup body waist
         Waypoint(1.0, (CUP_START_X, CUP_START_Y, START_TCP_Z), FINGER_OPEN, "descend_cup"),
         Waypoint(0.8, (CUP_START_X, CUP_START_Y, START_TCP_Z), FINGER_CLOSED, "grip_cup"),
         # Lift cup clear of tray
@@ -466,7 +480,7 @@ def demo() -> dict[str, list[Waypoint]]:
             Waypoint(4.0, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "retreat_left"),
         ])
         right = [
-            Waypoint(8.0, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_CLOSED, "brace_gun_handle")
+            Waypoint(8.0, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "brace_gun_handle")
         ]
         return {"left": left, "right": right}
 
@@ -474,7 +488,7 @@ def demo() -> dict[str, list[Waypoint]]:
     left.extend([
         Waypoint(1.2, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_CLOSED, "seat_spout_in_boss"),
         # Hold seated firmly while collar is rotated
-        Waypoint(5.0, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_CLOSED, "hold_cup_seated"),
+        Waypoint(4.5, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_CLOSED, "hold_cup_seated"),
     ])
 
     if cheat == "seat_only":
@@ -483,7 +497,7 @@ def demo() -> dict[str, list[Waypoint]]:
             Waypoint(4.0, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "retreat_left"),
         ])
         right = [
-            Waypoint(8.0, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_CLOSED, "brace_gun_handle"),
+            Waypoint(8.0, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "brace_gun_handle"),
             Waypoint(4.0, (0.20, -0.22, TOP + 0.150), FINGER_OPEN, "park_right"),
         ]
         return {"left": left, "right": right}
@@ -502,10 +516,10 @@ def demo() -> dict[str, list[Waypoint]]:
         ])
         right = [
             Waypoint(1.2, (GUN_X, GUN_Y - 0.035, TOP + 0.120), FINGER_OPEN, "hover_gun_handle"),
-            Waypoint(1.0, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_OPEN, "approach_handle"),
-            Waypoint(0.8, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_CLOSED, "brace_gun_handle"),
-            Waypoint(4.0, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_CLOSED, "counter_hold_brace"),
-            Waypoint(0.6, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_OPEN, "release_handle"),
+            Waypoint(1.0, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_OPEN, "approach_handle"),
+            Waypoint(0.8, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "brace_gun_handle"),
+            Waypoint(3.5, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "counter_hold_brace"),
+            Waypoint(0.6, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_OPEN, "release_handle"),
             Waypoint(1.0, (INLET_X + 0.020, INLET_Y, RING_Z + 0.020), FINGER_OPEN, "approach_ring_tab"),
             Waypoint(0.6, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "pinch_ring_tab"),
             Waypoint(1.5, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "rotate_collar_lock", yaw=-0.785),
@@ -528,12 +542,12 @@ def demo() -> dict[str, list[Waypoint]]:
     right = [
         # Hover near spray gun handle
         Waypoint(1.2, (GUN_X, GUN_Y - 0.035, TOP + 0.120), FINGER_OPEN, "hover_gun_handle"),
-        Waypoint(1.0, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_OPEN, "approach_handle"),
-        Waypoint(0.8, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_CLOSED, "brace_gun_handle"),
+        Waypoint(1.0, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_OPEN, "approach_handle"),
+        Waypoint(0.8, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "brace_gun_handle"),
         # Maintain rigid counter-hold during cup insertion
-        Waypoint(4.0, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_CLOSED, "counter_hold_brace"),
+        Waypoint(3.5, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "counter_hold_brace"),
         # Release handle to engage collar ring
-        Waypoint(0.6, (GUN_X, GUN_Y - 0.035, TOP + 0.050), FINGER_OPEN, "release_handle"),
+        Waypoint(0.6, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_OPEN, "release_handle"),
         # Approach collar ring tab
         Waypoint(1.0, (INLET_X + 0.020, INLET_Y, RING_Z + 0.020), FINGER_OPEN, "approach_ring_tab"),
         Waypoint(0.6, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "pinch_ring_tab"),
