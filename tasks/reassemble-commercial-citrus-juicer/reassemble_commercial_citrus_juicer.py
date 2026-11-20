@@ -75,12 +75,12 @@ BOWL_INIT_POS = np.array([0.220, -0.140, TOP + 0.030])
 BOWL_SEAT_Z = TOP + 0.050
 
 # Strainer Cone initial & target poses
-CONE_INIT_POS = np.array([0.220, 0.140, TOP + 0.020])
-CONE_SEAT_Z = TOP + 0.065
+CONE_INIT_POS = np.array([0.220, 0.140, TOP + 0.024])
+CONE_SEAT_Z = TOP + 0.053
 
 # Lever Hinge Anchor & Parameters
 LEVER_ANCHOR = np.array([BASE_X - 0.080, 0.000, TOP + 0.165])
-LEVER_STROKE_THRESHOLD_DEG = 15.0
+LEVER_STROKE_THRESHOLD_DEG = 25.0
 
 
 # -- 1. Cast Iron Base Assembly (bench-mounted) --------------------------------
@@ -179,12 +179,12 @@ kit.part(
     name="strainer_cone",
     pos=(CONE_INIT_POS[0], CONE_INIT_POS[1], CONE_INIT_POS[2]),
     boxes=[
-        # Conical reamer body (36 mm wide, 24 mm high, drops inside 68 mm funnel cup opening)
-        mk.box((0.036, 0.036, 0.024), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
-        # Outer seating flange lip (48 mm wide, clears 68 mm rotated bowl walls and rests flush on 54 mm internal shelf)
-        mk.box((0.048, 0.048, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Ergonomic grasp knob post (28 mm wide x 18 mm thick x 45 mm high) matching handle profile for solid clamp
-        mk.box((0.028, 0.018, 0.045), at=(0.000, 0.000, 0.035), color=STAINLESS_BRIGHT),
+        # Perforated strainer basket (34 mm wide x 20 mm high, hangs down into bowl cup)
+        mk.box((0.034, 0.034, 0.020), at=(0.000, 0.000, -0.014), color=STAINLESS_MATTE),
+        # Outer seating flange lip (48 mm wide, rests flush on 54 mm internal shelf)
+        mk.box((0.048, 0.048, 0.008), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
+        # Central grasp handle knob post (28 mm wide x 18 mm thick x 42 mm high) in 100% open clear air
+        mk.box((0.028, 0.018, 0.042), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
     contact_offset=0.0005,
@@ -225,7 +225,7 @@ def _on_step(objects: dict[str, Any]) -> None:
 
     # 2. Strainer cone nested coaxially in collector bowl
     dr_cone = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
-    dz_cone = abs(cp[2] - (bp[2] + 0.015))
+    dz_cone = abs(cp[2] - (bp[2] + 0.003))
     cone_seated = bool(
         M.get("bowl_locked")
         and dr_cone <= 0.020
@@ -240,7 +240,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     lever_stroked = bool(
         M.get("cone_seated")
         and min_lever <= LEVER_STROKE_THRESHOLD_DEG
-        and lever_deg >= 35.0  # Returned to top rest position (rest = 70 deg)
+        and lever_deg >= 45.0  # Returned to top rest position (rest ~ 67 deg)
     )
     if lever_stroked:
         M["lever_stroked"] = True
@@ -318,7 +318,7 @@ def cone_seated(objects: dict) -> bool:
     bp, _ = kit.pose(objects, "collector_bowl")
     cp, _ = kit.pose(objects, "strainer_cone")
     dr = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
-    dz = abs(cp[2] - (bp[2] + 0.015))
+    dz = abs(cp[2] - (bp[2] + 0.003))
     return bool(mk.MEMORY.get("cone_seated") or (dr <= 0.020 and dz <= 0.018))
 
 
@@ -328,7 +328,7 @@ def lever_stroked(objects: dict) -> bool:
         return False
     min_l = mk.MEMORY.get("min_lever_deg", 70.0)
     cur_l = kit.q_deg(objects, "lever_pivot")
-    return bool(mk.MEMORY.get("lever_stroked") or (min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= 35.0))
+    return bool(mk.MEMORY.get("lever_stroked") or (min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= 45.0))
 
 
 def failed(objects: dict) -> bool:
@@ -407,8 +407,8 @@ def demo() -> dict[str, list[Waypoint]]:
     # Cone knob coordinates (elevated apex knob stem for 100% collision-free finger clamp)
     c_x = CONE_INIT_POS[0]
     c_y = CONE_INIT_POS[1]
-    c_z = CONE_INIT_POS[2] + 0.035
-    CONE_CARRY_Z = TOP + 0.140
+    c_z = CONE_INIT_POS[2] + 0.025
+    CONE_CARRY_Z = TOP + 0.125
 
     # Right arm: installs collector bowl into base collar and locks bayonet detents
     right = [
@@ -466,18 +466,18 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
         Waypoint(0.8, (c_x, c_y - 0.105, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_3"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
-        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.105), FINGER_CLOSED, "cone_seat"),
+        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
         # Keep left hand holding cone without releasing
         left += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.105), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_hold"),
         ]
         return {"left": left, "right": right}
 
     left += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.105), FINGER_OPEN, "cone_release"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_OPEN, "cone_release"),
         Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
         Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_OPEN, "cone_exit_side"),
     ]
@@ -490,13 +490,13 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Mechanical test stroke: Left arm depresses press lever and releases
-    # Knob starts at (0.185, 0.000, 1.010) at rest; strokes down to (0.245, 0.000, 0.880)
+    # Knob starts at (0.190, 0.000, 1.008) at rest; strokes down to (0.242, 0.000, 0.925)
     left += [
-        Waypoint(1.0, (0.185, 0.000, 1.015), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (0.185, 0.000, 1.008), FINGER_CLOSED, "lever_grasp"),
-        Waypoint(0.8, (0.225, 0.000, 0.970), FINGER_CLOSED, "lever_stroke_1"),
-        Waypoint(1.0, (0.245, 0.000, 0.880), FINGER_CLOSED, "lever_stroke_2"),
-        Waypoint(0.8, (0.185, 0.000, 1.008), FINGER_OPEN, "lever_release"),
+        Waypoint(1.0, (0.190, 0.000, 1.015), FINGER_OPEN, "lever_approach"),
+        Waypoint(0.8, (0.190, 0.000, 1.008), FINGER_CLOSED, "lever_grasp"),
+        Waypoint(0.8, (0.220, 0.000, 0.970), FINGER_CLOSED, "lever_stroke_1"),
+        Waypoint(1.0, (0.242, 0.000, 0.925), FINGER_CLOSED, "lever_stroke_2"),
+        Waypoint(0.8, (0.190, 0.000, 1.008), FINGER_OPEN, "lever_release"),
         Waypoint(1.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
