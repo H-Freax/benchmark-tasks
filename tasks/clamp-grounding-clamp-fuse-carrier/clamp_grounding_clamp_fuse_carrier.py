@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import math
 import os
+import pathlib
 import sys
+
+# Ensure task directory is on sys.path for local helper modules like mechkit
+_TASK_DIR = str(pathlib.Path(__file__).resolve().parent)
+if _TASK_DIR not in sys.path:
+    sys.path.insert(0, _TASK_DIR)
 from typing import Any
 
 import numpy as np
