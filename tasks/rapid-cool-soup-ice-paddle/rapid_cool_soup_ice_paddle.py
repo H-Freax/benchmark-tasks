@@ -501,9 +501,10 @@ def demo():
 
     pad_grasp_z = PADDLE_START_POS[2] + PADDLE_GRIP_Z_LOCAL
     pad_carry_z = 0.950
-    pad_submerge_z = (BROTH_SURFACE_Z - 0.025) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
-    pad_drain_z = (BROTH_SURFACE_Z + 0.008) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
-    bracket_seat_z = (BRACKET_SEAT_Z + 0.004) + PADDLE_GRIP_Z_LOCAL
+    pad_submerge_z = 0.847
+    pad_drain_z = 0.882
+    bracket_seat_z = 0.837
+    bracket_approach_z = 0.873
 
     yaw_grip = 0.0
 
@@ -547,8 +548,6 @@ def demo():
         add("left", 1.2, (px, py, pad_drain_z), HANDLE_PINCH, "drain broth dwell", yaw_grip)
 
     # Move paddle towards rim hanging bracket
-    bracket_approach_z = bracket_seat_z + 0.035
-
     add("left", 1.2, (bx, by - 0.015, bracket_approach_z), HANDLE_PINCH, "approach rim bracket", yaw_grip)
     add("left", 0.8, (bx, by - 0.015, bracket_seat_z), HANDLE_PINCH, "lower hook onto bracket", yaw_grip)
     add("left", 0.6, (bx, by - 0.015, bracket_seat_z), FINGER_OPEN, "release hook", yaw_grip)
