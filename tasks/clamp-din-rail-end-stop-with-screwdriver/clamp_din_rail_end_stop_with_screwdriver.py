@@ -542,19 +542,19 @@ def demo() -> dict[str, list[Waypoint]]:
     # Right arm: operates on -Y (bracket is at START_Y = -0.080)
     # Slides CLIPFIX end stop bracket into flush contact with terminal stack
     right = [
-        # Hover behind end bracket
-        Waypoint(1.2, (0.240, START_Y - 0.020, TOP + 0.140), FINGER_CLOSED, "hover_bracket"),
+        # Hover behind end bracket on +X side to avoid collision with screwdriver
+        Waypoint(1.2, (0.260, START_Y - 0.020, TOP + 0.140), FINGER_CLOSED, "hover_bracket"),
         # Descend behind bracket
-        Waypoint(1.0, (0.240, START_Y - 0.020, TOP + 0.080), FINGER_CLOSED, "descend_behind_bracket"),
+        Waypoint(1.0, (0.260, START_Y - 0.020, TOP + 0.080), FINGER_CLOSED, "descend_behind_bracket"),
         # Push bracket forward along rail to terminal block stack face
-        Waypoint(2.0, (0.240, FLUSH_Y, TOP + 0.080), FINGER_CLOSED, "push_bracket_flush"),
+        Waypoint(2.0, (0.260, FLUSH_Y - 0.002, TOP + 0.080), FINGER_CLOSED, "push_bracket_flush"),
         # Counter-hold stack firmly under axial compression
-        Waypoint(7.0, (0.240, FLUSH_Y, TOP + 0.080), FINGER_CLOSED, "hold_bracket_snug"),
+        Waypoint(7.0, (0.260, FLUSH_Y - 0.002, TOP + 0.080), FINGER_CLOSED, "hold_bracket_snug"),
     ]
 
     # Left arm: operates on +Y (screwdriver rest is at TOOL_REST_POS = (0.22, 0.18, ...))
     # Picks screwdriver, engages M4 screw, tightens, returns screwdriver
-    driver_engage_tcp = (RAIL_X - 0.010, FLUSH_Y, TOP + 0.205)
+    driver_engage_tcp = (RAIL_X - 0.010, FLUSH_Y, TOP + 0.163)
     left = [
         # Hover above screwdriver handle
         Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_OPEN, "hover_driver"),
@@ -562,17 +562,17 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.0, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "descend_driver"),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "grip_driver"),
         # Lift screwdriver cleanly from rest
-        Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.230), FINGER_CLOSED, "lift_driver"),
-        # Transfer above M4 screw on end bracket
-        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.230), FINGER_CLOSED, "hover_screw", yaw=0.80),
-        # Engage screw slot
-        Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw", yaw=0.80),
+        Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.200), FINGER_CLOSED, "lift_driver"),
+        # Transfer above M4 screw on end bracket at yaw=0.0
+        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.200), FINGER_CLOSED, "hover_screw", yaw=0.0),
+        # Engage screw slot at yaw=0.0
+        Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw", yaw=0.0),
     ]
 
     if cheat == "slide_only":
         # Right arm pushes bracket flush then retreats; Left arm remains parked
         right.extend([
-            Waypoint(1.0, (0.240, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
+            Waypoint(1.0, (0.260, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
             Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
             Waypoint(4.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "park_right"),
         ])
@@ -583,27 +583,33 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Tighten M4 screw: rotate wrist clockwise
     left.extend([
-        Waypoint(1.8, driver_engage_tcp, FINGER_CLOSED, "turn_torque", yaw=-0.80),
+        Waypoint(1.8, driver_engage_tcp, FINGER_CLOSED, "turn_torque", yaw=-1.40),
     ])
 
     if cheat == "no_release":
         # Screwdriver torqued but hands/tools hold in place and do not release
         right.append(
-            Waypoint(6.0, (0.240, FLUSH_Y, TOP + 0.080), FINGER_CLOSED, "hold_unreleased")
+            Waypoint(6.0, (0.260, FLUSH_Y - 0.002, TOP + 0.080), FINGER_CLOSED, "hold_unreleased")
         )
         left.append(
-            Waypoint(6.0, driver_engage_tcp, FINGER_CLOSED, "hold_driver_unreleased", yaw=-0.80)
+            Waypoint(6.0, driver_engage_tcp, FINGER_CLOSED, "hold_driver_unreleased", yaw=-1.40)
         )
         return {"left": left, "right": right}
 
     # Full completion: disengage screwdriver, return to tool rest, release both hands
     left.extend([
-        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.230), FINGER_CLOSED, "disengage_screw", yaw=-0.80),
-        Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.200), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
+        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.200), FINGER_CLOSED, "disengage_screw", yaw=-1.40),
+        Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "lower_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "release_driver", yaw=0.0),
         Waypoint(1.2, (0.20, 0.20, TOP + 0.150), FINGER_OPEN, "clear_left", yaw=0.0),
         Waypoint(10.0, (0.20, 0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_left", yaw=0.0),
+    ])
+
+    right.extend([
+        Waypoint(1.0, (0.260, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
+        Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
+        Waypoint(10.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_right"),
     ])
 
     right.extend([
