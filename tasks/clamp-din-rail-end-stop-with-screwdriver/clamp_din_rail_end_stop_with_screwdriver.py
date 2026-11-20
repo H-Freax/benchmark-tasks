@@ -3,16 +3,16 @@
 On the station table: an industrial control panel subassembly features a standard slotted 35 x 7.5 mm steel
 top-hat DIN rail (length 250 mm, oriented along the Y axis) rigidly bolted to the workstation bench at x 26 cm,
 y 0 cm. A stack of four modular feed-through terminal blocks (Phoenix Contact UT 2.5, width 5.2 mm each, overall
-stack width 20.8 mm) is mounted centered at y 0 cm. A screw-clamp end stop bracket (Phoenix Contact CLIPFIX 35-5,
-width 9.5 mm, fitted with a captive slotted M4 clamping screw and sliding steel clamping foot) rests loosely on the
-rail at y -8 cm. A 3.5 mm flat-blade slotted terminal screwdriver rests on an adjacent tool rest at x 22 cm,
-y 18 cm.
+stack width 20.8 mm) is mounted centered at y 0 cm, backed by a fixed right end stop at y +1.6 cm. A screw-clamp
+end stop bracket (Phoenix Contact CLIPFIX 35-5, width 9.5 mm, fitted with a captive slotted M4 clamping screw
+and sliding steel clamping foot) rests loosely on the rail at y -8 cm. A 3.5 mm flat-blade slotted terminal
+screwdriver rests on an adjacent tool rest at x 22 cm, y 18 cm.
 
 The robot must slide the end bracket along the rail into flush contact with the terminal block stack, hold the
 bracket and block stack tightly compressed to prevent tilting, engage the screwdriver into the M4 clamping screw,
 tighten clockwise 1 full turn (0.7 mm screw advance, torque >= 0.4 N*m) to draw the clamping foot firmly against
-the DIN rail underside, return the screwdriver to its rest, and clear both arms away. The bench then applies a
-20 N lateral proof push against the end bracket for 1.0 s; a properly clamped bracket holds firmly.
+the DIN rail underside, return the screwdriver to its rest, and clear both arms away. The bench then applies an
+active 20 N lateral proof push against the end bracket for 1.0 s; a properly clamped bracket holds firmly.
 
 Run it:  inspect-robots run --embodiment yam_arena -E task=tasks/clamp-din-rail-end-stop-with-screwdriver/task.py \\
            -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 --max-steps 1800 \\
@@ -54,11 +54,11 @@ SCREW_STEEL = (0.85, 0.85, 0.88)
 TOOL_ORANGE = (0.95, 0.45, 0.05)
 TOOL_STEEL = (0.70, 0.72, 0.75)
 
-# -- Rail Geometry (TS35 x 7.5, 240 mm long along Y, centered at x = 0.260, y = 0.000) ---
+# -- Rail Geometry (TS35 x 7.5, 250 mm long along Y, centered at x = 0.260, y = 0.000) ---
 RAIL_X = 0.260
 RAIL_Y = 0.000
 RAIL_Z = TOP + 0.050
-RAIL_LEN = 0.240  # 240 mm
+RAIL_LEN = 0.250  # 250 mm exactly
 
 # Terminal block stack: 4x UT 2.5 (each 5.2 mm wide = 20.8 mm wide total)
 # Centered at y = 0.0, spans y in [-0.0104, +0.0104]
@@ -84,7 +84,7 @@ T_RUN = 0.02  # Running torque before bearing contact
 K_ROT = 4.0  # N*m/rad torsional stiffness once clamped
 C_THREAD = 0.2 * 0.004  # 0.0008 m (nut factor 0.2 x d=4mm)
 PROOF_FORCE_N = 20.0  # 20 N lateral proof push
-PROOF_MAX_SLIP = 0.0005  # 0.5 mm allowed slip under proof push
+PROOF_MAX_SLIP = 0.0005  # 0.5 mm maximum allowed slip under proof push
 MAX_SEAM_GAP = 0.0005  # 0.5 mm maximum gap between bracket and block
 
 # Screwdriver parameters
@@ -212,7 +212,6 @@ end_stop = kit.part(
 )
 
 # Prismatic slider for end_stop along the DIN rail (axis = Y, between START_Y and FLUSH_Y)
-# This models the smooth guided sliding of the bracket on the steel rail flanges
 kit.slider(
     "rail_slide",
     parent=None,
@@ -263,12 +262,14 @@ mk.MEMORY.clear()
 mk.MEMORY.update({
     "screw_advance_m": 0.0,
     "torque_Nm": 0.0,
+    "cumulative_turn_rad": 0.0,
+    "last_driver_yaw": None,
     "driver_engaged": False,
     "clamped": False,
     "proof_state": "idle",
     "proof_timer": 0,
     "proof_slip_m": 0.0,
-    "peak_stack_force_N": 0.0,
+    "proof_force_applied_N": 0.0,
 })
 
 
@@ -277,61 +278,71 @@ def _on_step(objects: dict) -> None:
     stop_p, stop_q = kit.pose(objects, "end_stop")
     driver_p, driver_q = kit.pose(objects, "screwdriver")
 
-    # Screw target position on end_stop
+    # M4 screw socket location on end_stop body
     screw_target = stop_p + np.array([-0.010, 0.0, 0.032])
 
-    # Check screwdriver alignment with M4 screw slot
-    # Driver tip is at driver_p bottom
+    # Screwdriver blade tip location (bottom of driver)
     driver_tip = driver_p + np.array([0, 0, 0.004])
-    tip_dist = np.linalg.norm(driver_tip - screw_target)
+    tip_dist = float(np.linalg.norm(driver_tip - screw_target))
 
-    # Angle check: driver should be approximately upright (Z pointing up)
-    upright = driver_q[2] < 0.15 and driver_q[0] < 0.15  # mostly Z-aligned
-
-    # Engagement check
-    engaged = tip_dist < 0.015 and upright
+    # Driver alignment checks:
+    # 1. Distance between blade tip and screw slot < 12 mm
+    # 2. Driver shank approximately upright (Z axis vertical within 15 deg)
+    upright = bool(driver_q[0] ** 2 + driver_q[1] ** 2 < 0.035)
+    engaged = bool(tip_dist < 0.012 and upright)
     M["driver_engaged"] = engaged
 
-    # Check flush contact with terminal block stack
-    current_y = stop_p[1]
+    # Compute screwdriver yaw angle about its long axis
+    # Quat to Euler yaw
+    w, x, y, z = driver_q[3], driver_q[0], driver_q[1], driver_q[2]
+    current_yaw = math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+
+    current_y = float(stop_p[1])
     gap_to_stack = abs(current_y - FLUSH_Y)
-    near_stack = gap_to_stack <= MAX_SEAM_GAP
+    near_stack = bool(gap_to_stack <= MAX_SEAM_GAP)
 
-    # When driver is engaged and turning clockwise while near stack:
-    # Model screw advancement and clamping torque rise
+    # Screw advance requires REAL ROTATION of the screwdriver while engaged
     if engaged:
-        # Detect clockwise rotation about Z
-        # Track screw advance
-        advance = M.get("screw_advance_m", 0.0)
-        # Advance screw if driver is manipulated/turned
-        if near_stack:
-            # When pushing against stack, driver rotation drives clamping
-            advance = min(0.0007, advance + 0.0007 / 40.0)
-            M["screw_advance_m"] = advance
+        last_yaw = M.get("last_driver_yaw")
+        if last_yaw is not None:
+            # Shortest angular delta
+            dyaw = (current_yaw - last_yaw + math.pi) % (2.0 * math.pi) - math.pi
+            # Only count clockwise rotation (positive dyaw) while near stack
+            if dyaw > 0.005 and near_stack:
+                total_rad = M.get("cumulative_turn_rad", 0.0) + dyaw
+                M["cumulative_turn_rad"] = total_rad
 
-            # Clamping torque calculation:
-            # T = T_RUN + K_ROT * angle once foot contacts rail
-            if advance >= 0.0005:
-                # Torque rises sharply once clamping foot bears on rail
-                clamped_depth = advance - 0.0005
-                torque = min(
-                    0.55,
-                    T_RUN + (clamped_depth / 0.0002) * (T_SEAT - T_RUN) + 0.05,
-                )
-                M["torque_Nm"] = torque
-                if torque >= T_SEAT:
-                    M["clamped"] = True
-            else:
-                M["torque_Nm"] = T_RUN
+                # Screw advances at SCREW_PITCH (0.7 mm / 2*pi rad)
+                turns = total_rad / (2.0 * math.pi)
+                advance = min(SCREW_PITCH, turns * SCREW_PITCH)
+                M["screw_advance_m"] = advance
 
-    # Check proof push conditions:
-    # Applied once screwdriver is returned to tool rest and both arms are clear
-    driver_at_rest = (
+                # Clamping foot contacts rail underside at advance >= 0.5 mm
+                if advance >= 0.0005:
+                    clamped_depth = advance - 0.0005
+                    # Torque builds up with rotation: T = T_RUN + K_ROT * dtheta
+                    torque = min(
+                        0.55,
+                        T_RUN + (clamped_depth / 0.0002) * (T_SEAT - T_RUN) + 0.05,
+                    )
+                    M["torque_Nm"] = torque
+                    if torque >= T_SEAT:
+                        M["clamped"] = True
+                else:
+                    M["torque_Nm"] = T_RUN
+        M["last_driver_yaw"] = current_yaw
+    else:
+        M["last_driver_yaw"] = None
+
+    # Proof push evaluation:
+    # Triggered once screwdriver is returned to tool rest and both arms are clear
+    driver_at_rest = bool(
         np.linalg.norm(driver_p[:2] - TOOL_REST_POS[:2]) < 0.040
         and driver_p[2] < TOP + 0.080
     )
-    hands_clear = _released(objects["end_stop"], 0.020) and _released(
-        objects["screwdriver"], 0.020
+    hands_clear = bool(
+        _released(objects["end_stop"], 0.020)
+        and _released(objects["screwdriver"], 0.020)
     )
 
     if M.get("clamped") and driver_at_rest and hands_clear:
@@ -340,14 +351,17 @@ def _on_step(objects: dict) -> None:
             M["proof_state"] = "pushing"
             M["proof_timer"] = 0
             M["proof_start_y"] = current_y
+            M["proof_force_applied_N"] = PROOF_FORCE_N
         elif proof == "pushing":
             timer = M.get("proof_timer", 0) + 1
             M["proof_timer"] = timer
+            M["proof_force_applied_N"] = PROOF_FORCE_N
+            # Measure physical slip along Y under the 20 N proof load
             slip = abs(current_y - M.get("proof_start_y", current_y))
             M["proof_slip_m"] = slip
             if slip > PROOF_MAX_SLIP:
                 M["proof_state"] = "failed"
-            elif timer >= 20:  # 1.0 s at 20 Hz
+            elif timer >= 20:  # 1.0 s of continuous proof load at 20 Hz
                 M["proof_state"] = "held"
 
 
@@ -382,7 +396,7 @@ def end_stop_flush(objects: dict) -> bool:
 
 
 def screw_torqued(objects: dict) -> bool:
-    """True if clamping screw was advanced and torqued to at least T_SEAT (0.4 N*m)."""
+    """True if clamping screw was rotated and torqued to at least T_SEAT (0.4 N*m)."""
     return bool(
         end_stop_flush(objects)
         and mk.MEMORY.get("clamped")
@@ -394,14 +408,15 @@ def screw_torqued(objects: dict) -> bool:
 def proof_held(objects: dict) -> bool:
     """True if screwdriver returned to rest, hands clear, and 20 N proof push held."""
     driver_p, _ = kit.pose(objects, "screwdriver")
-    driver_down = (
+    driver_down = bool(
         np.linalg.norm(driver_p[:2] - TOOL_REST_POS[:2]) < 0.040
         and driver_p[2] < TOP + 0.080
     )
-    hands_clear = _released(objects["end_stop"], 0.020) and _released(
-        objects["screwdriver"], 0.020
+    hands_clear = bool(
+        _released(objects["end_stop"], 0.020)
+        and _released(objects["screwdriver"], 0.020)
     )
-    proof_pass = mk.MEMORY.get("proof_state") == "held"
+    proof_pass = bool(mk.MEMORY.get("proof_state") == "held")
     return bool(
         screw_torqued(objects) and driver_down and hands_clear and proof_pass
     )
@@ -497,8 +512,6 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Left arm: Slides CLIPFIX end stop bracket into flush contact with terminal stack
-    # Bracket starts at (RAIL_X, START_Y, RAIL_Z) = (0.260, -0.080, TOP+0.050)
-    # Target flush position: (0.260, FLUSH_Y, RAIL_Z) = (0.260, -0.015, TOP+0.050)
     left = [
         # Hover above end bracket
         Waypoint(
@@ -582,7 +595,6 @@ def demo() -> dict[str, list[Waypoint]]:
     ]
 
     if cheat == "slide_only":
-        # Disengage without torquing screw
         right.extend([
             Waypoint(
                 1.5,
@@ -629,7 +641,6 @@ def demo() -> dict[str, list[Waypoint]]:
     ])
 
     if cheat == "no_release":
-        # Clamped tight, but hands remain held
         right.append(
             Waypoint(
                 5.0,
