@@ -16,5 +16,5 @@
   "reset_notes": "Return all 5 cards into squared stack inside the case under the rim with follower below them; set case loose on riser and clear output mat. Zero independent object jitter.",
   "fidelity": "Full-size rigid CR80 PVC cards (0.76 mm thickness) and native physical contact. Passive prismatic spring follower. Rigid-body approximation omits thin card flex. Reproducible CAD and drawings in fabrication/.",
   "scores": "Dream-1 run: 0.0; demo: 1.0",
-  "media": "M-PENDING"
+  "media": "M-TDA3QS"
 }
