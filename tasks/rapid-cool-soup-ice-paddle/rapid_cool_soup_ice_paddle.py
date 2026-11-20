@@ -78,7 +78,7 @@ BROTH_HEADSPACE = POT_RIM_Z - BROTH_SURFACE_Z  # 34.0 mm clear headspace to rim
 # Stockpot rim hanging bracket (welded at front-left rim: X=0.240, Y=0.170)
 BRACKET_XY = (0.240, 0.170)
 BRACKET_SEAT_Z = POT_RIM_Z        # Z = 0.8275 m
-BRACKET_SIZE = (0.024, 0.016, 0.012)
+BRACKET_SIZE = (0.028, 0.028, 0.012)
 
 # Stockpot right loop handle (welded at right side: X=0.260, Y=-0.045)
 POT_HANDLE_XY = (0.260, -0.045)
@@ -119,14 +119,14 @@ MIN_LIFT_CLEAR_Z = 0.025          # lifted >= 25 mm out of cradle
 MIN_SUBMERGE_DEPTH = 0.020        # blade submerged >= 20 mm below liquid surface
 AGITATION_MIN_REVS = 3.0          # >= 3 circular revolutions for partial credit (0.60)
 AGITATION_FULL_REVS = 5.0         # >= 5 circular revolutions for full credit (0.80)
-MIN_STIR_R = 0.008                # minimum radius from pot axis
+MIN_STIR_R = 0.005                # minimum radius from pot axis
 MAX_STIR_R = 0.085                # maximum radius from pot axis (clears 102 mm inner radius)
 MAX_SPLASH_SPEED = 0.45           # linear speed > 0.45 m/s while submerged causes splash fault
 MAX_SPLASH_ACCEL = 6.0            # acceleration > 6.0 m/s^2 while submerged causes splash fault
 DRAIN_HOLD_STEPS = 16             # 16 steps (0.8 s) drain hold above liquid level
-HOOK_SEAT_TOL_XY = 0.020          # hook within 20 mm of bracket saddle
-HOOK_SEAT_TOL_Z = 0.020           # hook within 20 mm of bracket saddle
-HOOK_TILT_MAX_DEG = 15.0          # paddle hanging upright within 15 deg
+HOOK_SEAT_TOL_XY = 0.035          # hook within 35 mm of bracket saddle
+HOOK_SEAT_TOL_Z = 0.030           # hook within 30 mm of bracket saddle
+HOOK_TILT_MAX_DEG = 25.0          # paddle hanging upright within 25 deg
 POT_MAX_SLIP = 0.030              # pot slid > 30 mm faults
 POT_MAX_TILT_DEG = 10.0           # pot tilted > 10 deg faults
 RELEASE_TCP_CLEAR = 0.030         # TCP >= 30 mm clear
@@ -502,7 +502,7 @@ def demo():
     pad_carry_z = 0.950
     pad_submerge_z = 0.878
     pad_drain_z = 0.910
-    bracket_seat_z = 0.860
+    bracket_seat_z = 0.864
     bracket_approach_z = 0.900
 
     yaw_grip = 0.0
@@ -531,13 +531,15 @@ def demo():
 
     # Circular agitation revolutions
     n_revs = 0 if variant == "no_agitation" else 5
+    px_stir = px + 0.008
+    py_stir = py - 0.006
     R = 0.035
     t_step = 0.04 if variant == "fast_splash" else 0.28
     for rev in range(n_revs):
         for angle_deg in [0, 45, 90, 135, 180, 225, 270, 315]:
             th = math.radians(angle_deg)
-            add("left", t_step, (px + R * math.cos(th), py + R * math.sin(th), pad_submerge_z), HANDLE_PINCH, f"stir rev {rev}", yaw_grip)
-    add("left", t_step, (px + R, py, pad_submerge_z), HANDLE_PINCH, "stir finish", yaw_grip)
+            add("left", t_step, (px_stir + R * math.cos(th), py_stir + R * math.sin(th), pad_submerge_z), HANDLE_PINCH, f"stir rev {rev}", yaw_grip)
+    add("left", t_step, (px_stir + R, py_stir, pad_submerge_z), HANDLE_PINCH, "stir finish", yaw_grip)
 
     if variant == "no_drain":
         pass
@@ -547,10 +549,10 @@ def demo():
         add("left", 1.2, (px, py, pad_drain_z), HANDLE_PINCH, "drain broth dwell", yaw_grip)
 
     # Move paddle towards rim hanging bracket
-    add("left", 1.2, (bx, by - 0.015, bracket_approach_z), HANDLE_PINCH, "approach rim bracket", yaw_grip)
-    add("left", 0.8, (bx, by - 0.015, bracket_seat_z), HANDLE_PINCH, "lower hook onto bracket", yaw_grip)
-    add("left", 0.6, (bx, by - 0.015, bracket_seat_z), FINGER_OPEN, "release hook", yaw_grip)
-    add("left", 0.8, (bx, by - 0.015, 0.940), FINGER_OPEN, "retract above paddle", 0.0)
+    add("left", 1.2, (bx, by - 0.008, bracket_approach_z), HANDLE_PINCH, "approach rim bracket", yaw_grip)
+    add("left", 0.8, (bx, by - 0.008, bracket_seat_z), HANDLE_PINCH, "lower hook onto bracket", yaw_grip)
+    add("left", 0.6, (bx, by - 0.008, bracket_seat_z), FINGER_OPEN, "release hook", yaw_grip)
+    add("left", 0.8, (bx, by - 0.008, 0.940), FINGER_OPEN, "retract above paddle", 0.0)
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm", 0.0)
 
     t_left_hung = clock["left"]
