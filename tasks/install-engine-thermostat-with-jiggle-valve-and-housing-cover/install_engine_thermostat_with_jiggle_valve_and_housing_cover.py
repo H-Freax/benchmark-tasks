@@ -56,7 +56,7 @@ TARGET_THERMO_Z = RECESS_SEAT_Z                # 0.7815 m (flange rests on reces
 GASKET_ID = 0.054
 GASKET_OD = 0.062
 GASKET_H = 0.003                               # 3 mm thick
-GASKET_START_POS = (0.220, 0.160, TOP + 0.015)
+GASKET_START_POS = (0.220, 0.160, TOP + GASKET_H / 2)
 TARGET_GASKET_Z = RECESS_SEAT_Z + THERMO_FLANGE_H + GASKET_H / 2  # 0.7850 m
 
 # 3. Cast Aluminum Thermostat Housing Outlet Cover / Water Neck (120 g)
@@ -84,8 +84,8 @@ kit.part("coolant_housing", (HOUSING_XY[0], HOUSING_XY[1], TOP), housing_boxes)
 tray_boxes = [
     # Thermostat pocket tray (prevents rolling, holds upright)
     mk.box((0.080, 0.080, 0.020), at=(0.220, -0.160, TOP + 0.010), color=DARK_GREY),
-    # Gasket staging locating spool (30 mm diameter, allows gripper fingers to clear perimeter)
-    mk.box((0.030, 0.030, 0.015), at=(0.220, 0.160, TOP + 0.0075), color=DARK_GREY),
+    # Gasket staging mat on table deck
+    mk.box((0.070, 0.070, 0.001), at=(0.220, 0.160, TOP + 0.0005), color=DARK_GREY),
     # Housing cover staging cradle
     mk.box((0.090, 0.060, 0.004), at=(0.280, 0.160, TOP + 0.002), color=DARK_GREY),
 ]
@@ -349,7 +349,7 @@ def demo():
 
     # Left Arm: Handles Gasket then Housing Outlet Cover
     (gx, gy, gz) = GASKET_START_POS
-    gasket_grasp_z = gz + 0.003
+    gasket_grasp_z = gz + 0.005
     gasket_grip_offset = gasket_grasp_z - gz
 
     (cx, cy, cz) = COVER_START_POS
