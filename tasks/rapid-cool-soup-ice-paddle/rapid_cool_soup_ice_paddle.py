@@ -1,0 +1,666 @@
+"""Submerge an ice cooling paddle into a commercial stockpot of hot soup, agitate to chill, and hang the paddle on the rim bracket.
+
+On the commercial kitchen prep counter stands a 16 qt heavy-gauge stainless steel stockpot (Vollrath / Winco style:
+260 mm outer diameter, 240 mm inner diameter, 130 mm tall, 2.8 kg) sitting on a silicone heat mat at (0.260, 0.080).
+The stockpot contains 8 L of hot broth simulant (liquid depth 70 mm, surface at Z = 0.8285 m, 54 mm headspace to the rim).
+The front-left rim of the pot features a welded stainless paddle hanging bracket with an 18 mm horizontal resting saddle
+at (0.240, 0.180, Z = 0.8825 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.060, Z = 0.820 m).
+To the robot's left stands a sanitary stainless paddle stand (120 x 120 x 50 mm, 600 g) at (0.220, 0.220) holding an upright
+commercial rapid cooling paddle (San Jamar Rapi-Kool style: 650 g, 110 mm finned HDPE cooling blade, 25 mm collar with
+radial hanging hook extending 30 mm, and 65 mm cylindrical grip handle).
+
+Restaurant cooks (1.44M US jobs, O*NET 35-2014.00) and food preparation workers (891k, O*NET 35-2021.00) rapidly chill
+large stockpots of cooked soups, stocks, and chili under FDA Food Code 3-501.14 (cooling from 135 deg F to 70 deg F within
+2 hours and to 41 deg F within 4 hours to prevent spore germination of Clostridium perfringens and Bacillus cereus).
+Leaving hot stockpots to cool passively in ambient air violates food safety limits. Cooks use hollow polyethylene ice
+cooling wands filled with frozen core water. The cook retrieves the heavy frozen paddle from its stand, submerges the
+finned blade deep into the hot broth, agitates with circular stirring strokes to circulate liquid around the cold fins
+without splashing scalding broth over the rim, raises the paddle to allow broth to drain back into the pot, and hooks
+the integrated collar hook onto the pot rim bracket so the paddle stays suspended.
+
+Mechanism parts come from mechkit.py (in this folder), which adds joints and catches to the stock runtime in memory.
+
+Run it:  inspect-robots run --embodiment yam_arena -E task=tasks/rapid-cool-soup-ice-paddle/rapid_cool_soup_ice_paddle.py \\
+           -E object_jitter=0 -E control_hz=20 -E cam_width=640 -E cam_height=352 --max-steps 1600 \\
+           --instruction "<the instruction in task.json>" --scorer task_score ...
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import math
+import os
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mechkit as mk  # noqa: E402
+
+from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN  # noqa: E402
+from yam_arena.demo import Waypoint  # noqa: E402
+from yam_arena.task_file import TABLE_TOP, Box  # noqa: E402
+
+SCENE = "station"
+TOP = TABLE_TOP[SCENE]
+MM = 0.001
+STEP_S = 0.05  # 20 Hz control
+SUCCESS_HOLD_S = 1.0
+SCORE_OVER = "end"
+
+# Material / visual colours
+STAINLESS = (0.75, 0.77, 0.80)
+DARK_STAINLESS = (0.42, 0.44, 0.46)
+BROTH_GOLD = (0.78, 0.52, 0.12)
+ICE_PADDLE_CYAN = (0.75, 0.88, 0.95)
+PADDLE_HANDLE_BLUE = (0.12, 0.30, 0.55)
+HOOK_RED = (0.80, 0.22, 0.18)
+MAT_CHARCOAL = (0.22, 0.23, 0.25)
+STAND_STEEL = (0.65, 0.67, 0.70)
+
+# Station layout coordinates (metres, x forward from arm-base line, y left, z up; arm bases at (0, +-0.305, 0.75))
+POT_XY = (0.260, 0.080)          # 16 qt stockpot centre
+STAND_XY = (0.220, 0.220)        # paddle storage stand cradle centre
+MAT_XY = (0.260, 0.080)          # silicone heat mat directly under stockpot
+
+# Heat mat under pot
+MAT_SIZE = (0.290, 0.290, 0.005)
+MAT_TOP = TOP + MAT_SIZE[2]       # Z = 0.7525 m
+
+# 16 qt Commercial Stockpot
+POT_WALL_THICK = 0.010
+POT_OUTER_ACROSS = 0.260          # 260 mm outer flat-to-flat
+POT_INNER_ACROSS = 0.240          # 240 mm inner flat-to-flat
+POT_FLOOR_H = 0.006
+POT_TOTAL_H = 0.130
+POT_FLOOR_Z = MAT_TOP + POT_FLOOR_H  # Z = 0.7585 m
+POT_RIM_Z = MAT_TOP + POT_TOTAL_H    # Z = 0.8825 m
+POT_KG = 2.80
+
+# Hot broth simulant inside pot
+BROTH_DEPTH = 0.070               # 70 mm broth depth
+BROTH_SURFACE_Z = POT_FLOOR_Z + BROTH_DEPTH  # Z = 0.8285 m
+BROTH_HEADSPACE = POT_RIM_Z - BROTH_SURFACE_Z  # 54.0 mm clear headspace to rim
+
+# Stockpot rim hanging bracket (welded at front-left rim: X=0.240, Y=0.180)
+BRACKET_XY = (0.240, 0.180)
+BRACKET_SEAT_Z = POT_RIM_Z        # Z = 0.8825 m
+BRACKET_SIZE = (0.024, 0.018, 0.014)
+
+# Stockpot right loop handle (welded at right side: X=0.260, Y=-0.060)
+POT_HANDLE_XY = (0.260, -0.060)
+POT_HANDLE_Z = MAT_TOP + 0.068    # Z = 0.8205 m
+
+# Paddle sanitary stand (weighted stainless cradle with vertical socket)
+STAND_SIZE = (0.120, 0.120, 0.050)
+STAND_TOP = TOP + STAND_SIZE[2]   # Z = 0.7975 m
+STAND_SOCKET_DEPTH = 0.040
+STAND_FLOOR_Z = STAND_TOP - STAND_SOCKET_DEPTH  # Z = 0.7575 m
+STAND_KG = 0.60
+
+# Ice cooling paddle (San Jamar Rapi-Kool style wand)
+# Frame origin at collar/hook center: blade hangs downwards (-z), handle extends upwards (+z)
+PADDLE_BLADE_W = 0.060            # 60 mm wide along Y
+PADDLE_BLADE_T = 0.032            # 32 mm thick along X
+PADDLE_BLADE_L = 0.110            # 110 mm long along -Z (bottom tip at z = -0.110 m)
+PADDLE_COLLAR_H = 0.025           # collar from z = 0.0 to +0.025 m
+PADDLE_HOOK_PROJ = 0.030          # hook extends 30 mm radially along +Y
+PADDLE_HOOK_LIP = 0.014           # downward retaining lip
+PADDLE_HANDLE_DIA = 0.028         # 28 mm cylindrical grip handle
+PADDLE_HANDLE_L = 0.065           # handle from z = +0.025 to +0.090 m
+PADDLE_GRIP_Z_LOCAL = 0.050       # ergonomic grip centre in paddle frame (+50 mm above collar)
+PADDLE_KG = 0.650                 # simulated 650 g (frozen water core in HDPE shell)
+
+# Initial placement of paddle in stand:
+# Paddle rests blade-down in stand socket. Blade bottom at STAND_FLOOR_Z = 0.7575 m.
+# Collar origin z = STAND_FLOOR_Z + PADDLE_BLADE_L = 0.7575 + 0.110 = 0.8675 m.
+# Handle grip centre in world frame = 0.8675 + 0.050 = 0.9175 m.
+PADDLE_START_POS = (STAND_XY[0], STAND_XY[1], STAND_FLOOR_Z + PADDLE_BLADE_L)
+
+# Local hook engagement point in paddle frame
+HOOK_LOCAL = (0.0, 0.030, 0.005)
+
+# Tolerances and scoring thresholds
+MIN_LIFT_CLEAR_Z = 0.035          # lifted >= 35 mm out of cradle
+MIN_SUBMERGE_DEPTH = 0.045        # blade submerged >= 45 mm below liquid surface
+AGITATION_MIN_REVS = 3.0          # >= 3 circular revolutions for partial credit (0.60)
+AGITATION_FULL_REVS = 5.0         # >= 5 circular revolutions for full credit (0.80)
+MIN_STIR_R = 0.020                # minimum radius from pot axis
+MAX_STIR_R = 0.080                # maximum radius from pot axis (clears 120 mm inner radius)
+MAX_SPLASH_SPEED = 0.45           # linear speed > 0.45 m/s while submerged causes splash fault
+MAX_SPLASH_ACCEL = 4.0            # acceleration > 4.0 m/s^2 while submerged causes splash fault
+DRAIN_HOLD_STEPS = 16             # 16 steps (0.8 s) drain hold above liquid level
+HOOK_SEAT_TOL_XY = 0.020          # hook within 20 mm of bracket saddle
+HOOK_SEAT_TOL_Z = 0.020           # hook within 20 mm of bracket saddle
+HOOK_TILT_MAX_DEG = 15.0          # paddle hanging upright within 15 deg
+POT_MAX_SLIP = 0.030              # pot slid > 30 mm faults
+POT_MAX_TILT_DEG = 10.0           # pot tilted > 10 deg faults
+RELEASE_TCP_CLEAR = 0.030         # TCP >= 30 mm clear
+RELEASE_HULL_CLEAR = 0.005        # collision hulls >= 5 mm clear
+
+_T22 = math.tan(math.radians(22.5))
+
+
+def _oct_solid(across: float, z0: float, h: float, color=None, xy=(0.0, 0.0)) -> list[mk.BoxSpec]:
+    """Regular octagon ``across`` flats, from ``z0`` to ``z0 + h``."""
+    return [
+        mk.box((across, across * _T22, h), at=(xy[0], xy[1], z0 + h / 2), color=color, yaw=k * math.pi / 4)
+        for k in range(4)
+    ]
+
+
+def _oct_ring(across_outer: float, wall: float, z0: float, h: float, color=None, xy=(0.0, 0.0)) -> list[mk.BoxSpec]:
+    """Hollow 8-sided ring with outer flat-to-flat width ``across_outer`` and wall thickness ``wall``."""
+    r_mid = across_outer / 2 - wall / 2
+    side = across_outer * _T22 + 0.0010
+    out = []
+    for k in range(8):
+        th = k * math.pi / 4
+        out.append(
+            mk.box(
+                (wall, side, h),
+                at=(xy[0] + r_mid * math.cos(th), xy[1] + r_mid * math.sin(th), z0 + h / 2),
+                color=color,
+                yaw=th,
+            )
+        )
+    return out
+
+
+def _pot_boxes() -> list[mk.BoxSpec]:
+    """Vollrath / Winco style 16 qt heavy stainless steel stockpot with base, walls, rim, bracket, and handle."""
+    wall_h = POT_TOTAL_H - POT_FLOOR_H
+    rim_bead_h = 0.008
+    
+    # Bracket relative to pot centre:
+    b_dx = BRACKET_XY[0] - POT_XY[0]
+    b_dy = BRACKET_XY[1] - POT_XY[1]
+    
+    # Handle relative to pot centre:
+    h_dx = POT_HANDLE_XY[0] - POT_XY[0]
+    h_dy = POT_HANDLE_XY[1] - POT_XY[1]
+
+    return [
+        # Solid base floor
+        *_oct_solid(POT_INNER_ACROSS, 0.0, POT_FLOOR_H, color=STAINLESS),
+        # 8-sided deep pot wall
+        *_oct_ring(POT_OUTER_ACROSS, POT_WALL_THICK, POT_FLOOR_H, wall_h, color=STAINLESS),
+        # Rolled top rim lip
+        *_oct_ring(POT_OUTER_ACROSS + 0.010, 0.010, POT_TOTAL_H - rim_bead_h, rim_bead_h, color=DARK_STAINLESS),
+        # Welded front-left paddle hanging bracket
+        mk.box(BRACKET_SIZE, at=(b_dx, b_dy, POT_TOTAL_H - BRACKET_SIZE[2] / 2), color=STAINLESS),
+        mk.box((0.008, 0.020, 0.006), at=(b_dx - 0.008, b_dy, POT_TOTAL_H + 0.003), color=DARK_STAINLESS),
+        # Welded right tubular loop handle
+        mk.box((0.024, 0.014, 0.050), at=(h_dx, h_dy, 0.068), color=DARK_STAINLESS),
+        # Broth liquid visual simulant interior block
+        *_oct_solid(POT_INNER_ACROSS - 0.008, POT_FLOOR_H, BROTH_DEPTH, color=BROTH_GOLD),
+    ]
+
+
+def _stand_boxes() -> list[mk.BoxSpec]:
+    """Sanitary stainless paddle stand with square base and vertical hollow receiving socket."""
+    base_w, base_d, base_h = STAND_SIZE
+    wall_t = 0.012
+    return [
+        # Solid weighted base bottom
+        mk.box((base_w, base_d, base_h - STAND_SOCKET_DEPTH), at=(0.0, 0.0, (base_h - STAND_SOCKET_DEPTH) / 2), color=STAND_STEEL),
+        # 4 socket side walls
+        mk.box((wall_t, base_d, STAND_SOCKET_DEPTH), at=(-base_w / 2 + wall_t / 2, 0.0, base_h - STAND_SOCKET_DEPTH / 2), color=STAND_STEEL),
+        mk.box((wall_t, base_d, STAND_SOCKET_DEPTH), at=(base_w / 2 - wall_t / 2, 0.0, base_h - STAND_SOCKET_DEPTH / 2), color=STAND_STEEL),
+        mk.box((base_w - 2 * wall_t, wall_t, STAND_SOCKET_DEPTH), at=(0.0, -base_d / 2 + wall_t / 2, base_h - STAND_SOCKET_DEPTH / 2), color=STAND_STEEL),
+        mk.box((base_w - 2 * wall_t, wall_t, STAND_SOCKET_DEPTH), at=(0.0, base_d / 2 - wall_t / 2, base_h - STAND_SOCKET_DEPTH / 2), color=STAND_STEEL),
+    ]
+
+
+def _paddle_boxes() -> list[mk.BoxSpec]:
+    """San Jamar Rapi-Kool cooling wand: finned blade (-z), collar + hook (z~0), handle (+z)."""
+    return [
+        # Main cooling blade (downwards from collar, z in [-0.110, 0.0])
+        mk.box((PADDLE_BLADE_T, PADDLE_BLADE_W, PADDLE_BLADE_L), at=(0.0, 0.0, -PADDLE_BLADE_L / 2), color=ICE_PADDLE_CYAN),
+        # Cooling ribs/fins along blade faces (increases heat dissipation in commercial use)
+        mk.box((PADDLE_BLADE_T + 0.006, PADDLE_BLADE_W - 0.012, 0.012), at=(0.0, 0.0, -0.030), color=ICE_PADDLE_CYAN),
+        mk.box((PADDLE_BLADE_T + 0.006, PADDLE_BLADE_W - 0.012, 0.012), at=(0.0, 0.0, -0.060), color=ICE_PADDLE_CYAN),
+        mk.box((PADDLE_BLADE_T + 0.006, PADDLE_BLADE_W - 0.012, 0.012), at=(0.0, 0.0, -0.090), color=ICE_PADDLE_CYAN),
+        # Collar between blade and handle (z in [0.0, 0.025])
+        mk.box((0.036, 0.036, PADDLE_COLLAR_H), at=(0.0, 0.0, PADDLE_COLLAR_H / 2), color=PADDLE_HANDLE_BLUE),
+        # Radial hanging hook projection (+Y)
+        mk.box((0.020, PADDLE_HOOK_PROJ, 0.012), at=(0.0, 0.018 + PADDLE_HOOK_PROJ / 2, 0.016), color=HOOK_RED),
+        # Downward retaining lip of hook
+        mk.box((0.020, 0.008, PADDLE_HOOK_LIP), at=(0.0, 0.018 + PADDLE_HOOK_PROJ - 0.004, 0.016 - PADDLE_HOOK_LIP / 2), color=HOOK_RED),
+        # Cylindrical grip handle (z in [0.025, 0.090])
+        mk.box((PADDLE_HANDLE_DIA, PADDLE_HANDLE_DIA, PADDLE_HANDLE_L), at=(0.0, 0.0, PADDLE_COLLAR_H + PADDLE_HANDLE_L / 2), color=PADDLE_HANDLE_BLUE),
+    ]
+
+
+kit = mk.Kit()
+
+# Fixed sanitary stand on counter
+kit.part("storage_stand", (STAND_XY[0], STAND_XY[1], TOP), _stand_boxes(), mass=None, color=STAND_STEEL)
+
+# 16 qt stockpot on silicone heat mat (free rigid body, sits solidly with friction)
+kit.part("stockpot", (POT_XY[0], POT_XY[1], MAT_TOP), _pot_boxes(), mass=POT_KG, color=STAINLESS)
+
+# Commercial rapid cooling ice paddle (starts upright in storage stand)
+kit.part("ice_paddle", PADDLE_START_POS, _paddle_boxes(), mass=PADDLE_KG, color=ICE_PADDLE_CYAN)
+
+# Prebuilt catch: engages when paddle hook is seated on the stockpot rim bracket
+_pot_ref_T = mk._T(pos=(POT_XY[0], POT_XY[1], MAT_TOP))
+_paddle_hung_T = mk._T(pos=(BRACKET_XY[0], BRACKET_XY[1] - 0.030, BRACKET_SEAT_Z + 0.006))
+kit.catch("paddle_rim_hang", "ice_paddle", _paddle_hung_T, parent="stockpot", parent_T=_pot_ref_T)
+
+FIXTURES = [
+    Box(
+        "silicone_heat_mat",
+        pos=(MAT_XY[0], MAT_XY[1], TOP + MAT_SIZE[2] / 2),
+        size=MAT_SIZE,
+        color=MAT_CHARCOAL,
+    ),
+]
+
+OBJECTS = [*kit.objects(), *FIXTURES]
+
+
+# -- episode physics & scoring ----------------------------------------------------------------------------------
+
+_TEST_TCPS: list | None = None
+_TEST_ROBOT_BOXES: list | None = None
+
+
+def _all_finite(objects) -> bool:
+    for name in ("stockpot", "ice_paddle"):
+        st = objects.get(name)
+        if st is None:
+            return False
+        if not (
+            np.all(np.isfinite(st.pos))
+            and np.all(np.isfinite(st.quat_xyzw))
+            and np.all(np.isfinite(st.lin_vel))
+            and np.all(np.isfinite(st.ang_vel))
+        ):
+            return False
+    return True
+
+
+def _tilt_deg(st) -> float:
+    x, y, _, _ = (float(v) for v in st.quat_xyzw)
+    return math.degrees(math.acos(max(-1.0, min(1.0, 1.0 - 2.0 * (x * x + y * y)))))
+
+
+def paddle_hook_pos(objects) -> np.ndarray:
+    """World position of the paddle collar hook seat."""
+    return kit.point(objects, "ice_paddle", HOOK_LOCAL)
+
+
+def paddle_bottom_pos(objects) -> np.ndarray:
+    """World position of the paddle blade bottom tip."""
+    return kit.point(objects, "ice_paddle", (0.0, 0.0, -PADDLE_BLADE_L))
+
+
+def paddle_hook_on_bracket(objects) -> bool:
+    """Check if paddle collar hook is seated securely on the stockpot rim bracket."""
+    hook_pt = paddle_hook_pos(objects)
+    bracket_pt = kit.point(objects, "stockpot", (BRACKET_XY[0] - POT_XY[0], BRACKET_XY[1] - POT_XY[1], POT_TOTAL_H))
+    xy_err = math.hypot(float(hook_pt[0]) - float(bracket_pt[0]), float(hook_pt[1]) - float(bracket_pt[1]))
+    dz = abs(float(hook_pt[2]) - float(bracket_pt[2]))
+    tilt = _tilt_deg(objects["ice_paddle"])
+    return xy_err <= HOOK_SEAT_TOL_XY and dz <= HOOK_SEAT_TOL_Z and tilt <= HOOK_TILT_MAX_DEG
+
+
+def hands_clear(objects) -> bool:
+    """Both TCPs >= 30 mm and all URDF collision hulls >= 5 mm clear of stockpot and paddle."""
+    targets = [objects["stockpot"], objects["ice_paddle"]]
+    tcps = mk.tcps() if _TEST_TCPS is None else _TEST_TCPS
+    for st in targets:
+        lo, hi = np.asarray(st.low) - RELEASE_TCP_CLEAR, np.asarray(st.high) + RELEASE_TCP_CLEAR
+        if any(bool(np.all(np.asarray(t) >= lo) and np.all(np.asarray(t) <= hi)) for t in tcps):
+            return False
+    boxes = mk.robot_collision_boxes() if _TEST_ROBOT_BOXES is None else _TEST_ROBOT_BOXES
+    for lo_r, hi_r in boxes:
+        for st in targets:
+            gap = np.maximum(np.maximum(np.asarray(st.low) - hi_r, lo_r - np.asarray(st.high)), 0.0)
+            if float(np.linalg.norm(gap)) < RELEASE_HULL_CLEAR:
+                return False
+    return True
+
+
+def _step_rules(objects) -> None:
+    """Update fluid immersion, circular agitation phase accounting, splash speed limits, and rim hanging latch."""
+    step_id = mk._EP["step"]
+    if mk.MEMORY.get("_last_step") == step_id and step_id != 0:
+        return
+    mk.MEMORY["_last_step"] = step_id
+
+    if not _all_finite(objects):
+        mk.MEMORY["invalid_state"] = True
+        return
+
+    pot_st = objects["stockpot"]
+    pad_st = objects["ice_paddle"]
+
+    # 1. Pot stability check: stockpot must not slide > 30 mm or tilt > 10 deg
+    pot_xy = (float(pot_st.pos[0]), float(pot_st.pos[1]))
+    pot_slip = math.hypot(pot_xy[0] - POT_XY[0], pot_xy[1] - POT_XY[1])
+    if pot_slip > POT_MAX_SLIP or _tilt_deg(pot_st) > POT_MAX_TILT_DEG:
+        mk.MEMORY["pot_fault"] = True
+
+    # 2. Dropped paddle fault: paddle falls onto counter top outside stand and pot
+    pad_tip = paddle_bottom_pos(objects)
+    if float(pad_tip[2]) < TOP - 0.010:
+        mk.MEMORY["drop_fault"] = True
+
+    # 3. Fluid immersion tracking:
+    immersion = BROTH_SURFACE_Z - float(pad_tip[2])
+    dx_pot = float(pad_st.pos[0]) - pot_xy[0]
+    dy_pot = float(pad_st.pos[1]) - pot_xy[1]
+    r_pot = math.hypot(dx_pot, dy_pot)
+    inside_pot = r_pot <= (POT_INNER_ACROSS / 2 - 0.010)
+
+    if immersion >= MIN_SUBMERGE_DEPTH and inside_pot:
+        mk.MEMORY["submerged_once"] = True
+        
+        # Check splash speed / acceleration while submerged
+        v_lin = float(np.linalg.norm(pad_st.lin_vel))
+        a_lin = float(np.linalg.norm(pad_st.lin_vel - mk.MEMORY.get("prev_v", pad_st.lin_vel))) / STEP_S
+        mk.MEMORY["prev_v"] = np.copy(pad_st.lin_vel)
+
+        if v_lin > MAX_SPLASH_SPEED or a_lin > MAX_SPLASH_ACCEL:
+            mk.MEMORY["splash_fault"] = True
+
+        # Circular agitation phase tracking
+        if MIN_STIR_R <= r_pot <= MAX_STIR_R:
+            theta = math.atan2(dy_pot, dx_pot)
+            if "prev_theta" in mk.MEMORY:
+                prev_th = mk.MEMORY["prev_theta"]
+                d_th = (theta - prev_th + math.pi) % (2 * math.pi) - math.pi
+                mk.MEMORY["cum_phase"] = mk.MEMORY.get("cum_phase", 0.0) + abs(d_th)
+            mk.MEMORY["prev_theta"] = theta
+    else:
+        mk.MEMORY.pop("prev_theta", None)
+        mk.MEMORY.pop("prev_v", None)
+
+    # 4. Drainage tracking: paddle lifted above liquid level while inside pot after stirring
+    revs = mk.MEMORY.get("cum_phase", 0.0) / (2 * math.pi)
+    if revs >= AGITATION_FULL_REVS - 1e-4 and inside_pot and float(pad_tip[2]) >= BROTH_SURFACE_Z - 0.010:
+        mk.MEMORY["drain_steps"] = mk.MEMORY.get("drain_steps", 0) + 1
+
+    # 5. Rim bracket hang catch:
+    latched = bool(mk.MEMORY.get("rim_latched"))
+    on_bracket = paddle_hook_on_bracket(objects)
+    if on_bracket and not latched:
+        if revs < AGITATION_MIN_REVS - 1e-4:
+            mk.MEMORY["cheat_bypass"] = True
+        else:
+            kit.engage("paddle_rim_hang")
+            mk.MEMORY["rim_latched"] = True
+    elif latched and not on_bracket:
+        kit.disengage("paddle_rim_hang")
+        mk.MEMORY["rim_latched"] = False
+
+
+kit.on_step(_step_rules)
+
+
+def failed(objects) -> bool:
+    return bool(
+        mk.MEMORY.get("invalid_state")
+        or mk.MEMORY.get("pot_fault")
+        or mk.MEMORY.get("drop_fault")
+        or mk.MEMORY.get("splash_fault")
+        or mk.MEMORY.get("cheat_bypass")
+    )
+
+
+def score(objects) -> float:
+    """Hardened staged score in [0, 1]:
+    - 0.0 (latched) if non-finite state, scalding broth splash (> 0.45 m/s or jerky motion while submerged),
+      stockpot displaced or tilted, paddle dropped below tabletop, or premature hook hang without agitation.
+    - 0.15: paddle grasped and lifted vertically clear of the stand cradle (> 35 mm).
+    - 0.35: paddle blade submerged into the hot broth (depth >= 45 mm).
+    - 0.60: fluid agitation achieved (>= 3 circular revolutions around the pot centerline without splashing).
+    - 0.80: fluid agitation completed (>= 5 revolutions) and paddle raised to drainage height above the liquid
+      inside the pot for >= 16 steps (0.8 s) to drip off broth.
+    - 1.00: paddle hanging hook securely seated on the rim bracket, both robot hands clear (TCPs >= 30 mm,
+      link hulls >= 5 mm), and paddle resting still for >= 1.0 s.
+    """
+    if mk._EP["env"] is None:
+        pass
+    if not _all_finite(objects) or failed(objects):
+        return 0.0
+
+    pad_tip = paddle_bottom_pos(objects)
+    lifted = float(pad_tip[2]) >= STAND_FLOOR_Z + MIN_LIFT_CLEAR_Z
+    if not lifted and not mk.MEMORY.get("submerged_once"):
+        return 0.0
+
+    if not mk.MEMORY.get("submerged_once"):
+        return 0.15
+
+    revs = mk.MEMORY.get("cum_phase", 0.0) / (2 * math.pi)
+    if revs < AGITATION_MIN_REVS - 1e-4:
+        return 0.35
+    if revs < AGITATION_FULL_REVS - 1e-4:
+        return 0.60
+
+    drained = mk.MEMORY.get("drain_steps", 0) >= DRAIN_HOLD_STEPS
+    if not drained and not paddle_hook_on_bracket(objects):
+        return 0.60
+
+    if not paddle_hook_on_bracket(objects):
+        return 0.80
+
+    still = objects["ice_paddle"].resting() and objects["stockpot"].resting()
+    if still and hands_clear(objects):
+        return 1.0
+    return 0.80
+
+
+def success(objects) -> bool:
+    return score(objects) >= 1.0 - 1e-9
+
+
+# -- scripted open-loop demonstration ---------------------------------------------------------------------------
+
+PAD_TIP = 0.013
+HANDLE_PINCH_OPEN = FINGER_CLOSED
+POT_HANDLE_PINCH = FINGER_CLOSED
+
+LEFT_PARK = (0.180, 0.260, TOP + 0.200)
+RIGHT_PARK = (0.180, -0.260, TOP + 0.200)
+
+
+def demo():
+    """Bimanual open-loop demo (~27 s, 540 steps at 20 Hz):
+    1. Left arm descends to paddle stand at (0.220, 0.220), grasps paddle handle at Z = 0.915 m, lifts vertically
+       out of the cradle, and carries it above the stockpot at (0.260, 0.080).
+    2. Concurrently, right arm moves to the right stockpot loop handle at (0.260, -0.060, 0.820) and grasps it firmly
+       to steady the pot against hydrodynamic agitation forces.
+    3. Left arm lowers paddle blade deep into the hot broth simulant (immersion depth ~68 mm).
+    4. Left arm performs 5 smooth circular stirring revolutions (R = 35 mm, ~0.4 rev/s, v ~ 0.09 m/s), smoothly
+       circulating broth past the cold fins without splashing.
+    5. Left arm raises paddle to drain height (blade tip Z = 0.830 m, inside pot walls) for a 1.2 s drainage dwell.
+    6. Left arm moves paddle collar hook onto the front-left rim bracket at (0.240, 0.180, 0.885 m), seats the hook,
+       opens gripper, and retreats clear to park.
+    7. Right arm releases the pot handle and retreats clear to park.
+    8. Both arms stay parked clear for the 1.0 s stillness hold.
+    """
+    variant = os.environ.get("DEMO_VARIANT", "")
+    plans: dict[str, list[Waypoint]] = {"left": [], "right": []}
+    clock = {"left": 0.0, "right": 0.0}
+
+    def add(arm: str, dt: float, pos, finger: float, label: str = "", yaw: float = 0.0) -> None:
+        plans[arm].append(Waypoint(float(dt), tuple(float(v) for v in pos), float(finger), label, float(yaw)))
+        clock[arm] += float(dt)
+
+    def wait_until(arm: str, t: float, label: str = "wait") -> None:
+        dt = t - clock[arm]
+        if dt > 1e-6:
+            last = plans[arm][-1]
+            add(arm, dt, last.pos, last.finger, label, last.yaw)
+
+    sx, sy = STAND_XY
+    px, py = POT_XY
+    hx, hy = POT_HANDLE_XY
+    bx, by = BRACKET_XY
+
+    pad_grasp_z = STAND_FLOOR_Z + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL  # Z = 0.9175 m
+    pad_carry_z = pad_grasp_z + 0.035                                  # Z = 0.9525 m
+    pad_submerge_z = MAT_TOP + POT_FLOOR_H + PADDLE_BLADE_L + 0.002   # Z = 0.8705 m (blade bottom at 0.7605 m)
+    pad_drain_z = MAT_TOP + POT_FLOOR_H + PADDLE_BLADE_L + 0.072      # Z = 0.9405 m (blade bottom at 0.8305 m)
+
+    # Right arm: grasp stockpot loop handle to steady the pot
+    add("right", 1.5, (hx, hy, POT_HANDLE_Z + 0.070), FINGER_OPEN, "above pot handle")
+    add("right", 1.0, (hx, hy, POT_HANDLE_Z), FINGER_OPEN, "descend to pot handle")
+    add("right", 0.6, (hx, hy, POT_HANDLE_Z), POT_HANDLE_PINCH, "pinch pot handle")
+
+    # Left arm: approach paddle stand, grasp handle, lift clear
+    add("left", 1.5, (sx, sy, pad_grasp_z + 0.025), FINGER_OPEN, "above paddle handle")
+    add("left", 1.0, (sx, sy, pad_grasp_z), FINGER_OPEN, "descend to handle")
+    add("left", 0.6, (sx, sy, pad_grasp_z), HANDLE_PINCH_OPEN, "grasp handle")
+    add("left", 1.0, (sx, sy, pad_carry_z), HANDLE_PINCH_OPEN, "lift paddle vertically")
+    add("left", 1.5, (px, py, pad_carry_z), HANDLE_PINCH_OPEN, "carry above stockpot")
+
+    if variant == "no_submerge":
+        add("left", 1.5, LEFT_PARK, FINGER_OPEN, "park left")
+        end_t = max(clock.values()) + 1.0
+        for arm in ("left", "right"):
+            wait_until(arm, end_t, "finish")
+        return plans
+
+    # Lower into hot broth
+    add("left", 1.0, (px, py, pad_submerge_z), HANDLE_PINCH_OPEN, "submerge paddle into broth")
+
+    # Circular agitation revolutions
+    n_revs = 0 if variant == "no_agitation" else 5
+    R = 0.035
+    t_step = 0.12 if variant == "fast_splash" else 0.55
+    for rev in range(n_revs):
+        for angle_deg in [0, 90, 180, 270]:
+            th = math.radians(angle_deg)
+            add("left", t_step, (px + R * math.cos(th), py + R * math.sin(th), pad_submerge_z), HANDLE_PINCH_OPEN, f"stir rev {rev}")
+    add("left", t_step, (px + R, py, pad_submerge_z), HANDLE_PINCH_OPEN, "stir finish")
+
+    if variant == "no_drain":
+        pass
+    else:
+        # Lift to drain height above liquid surface
+        add("left", 1.0, (px, py, pad_drain_z), HANDLE_PINCH_OPEN, "lift to drain height")
+        add("left", 1.2, (px, py, pad_drain_z), HANDLE_PINCH_OPEN, "drain broth dwell")
+
+    # Move paddle towards rim hanging bracket
+    bracket_approach_z = BRACKET_SEAT_Z + 0.045
+    bracket_seat_z = BRACKET_SEAT_Z + 0.004
+
+    add("left", 1.2, (bx, by - 0.020, bracket_approach_z), HANDLE_PINCH_OPEN, "approach rim bracket")
+    add("left", 0.8, (bx, by - 0.020, bracket_seat_z), HANDLE_PINCH_OPEN, "lower hook onto bracket")
+    add("left", 0.6, (bx, by - 0.020, bracket_seat_z), FINGER_OPEN, "release hook")
+    add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
+
+    t_left_hung = clock["left"]
+    wait_until("right", t_left_hung - 1.8, "steady pot through hang")
+
+    # Right arm: release pot handle and park
+    add("right", 0.6, (hx, hy, POT_HANDLE_Z), FINGER_OPEN, "release pot handle")
+    add("right", 1.5, RIGHT_PARK, FINGER_OPEN, "park right arm")
+
+    end_t = max(clock.values()) + 2.2
+    for arm in ("left", "right"):
+        wait_until(arm, end_t, "stillness hold")
+    return plans
+
+
+# -- self-test --------------------------------------------------------------------------------------------------
+
+def _build_state(
+    paddle_pos=PADDLE_START_POS,
+    paddle_tilt_deg=0.0,
+    paddle_vel=(0.0, 0.0, 0.0),
+    pot_pos=(POT_XY[0], POT_XY[1], MAT_TOP),
+    pot_tilt_deg=0.0,
+    pot_vel=(0.0, 0.0, 0.0),
+):
+    pad_r = mk.axis_angle((1.0, 0.0, 0.0), math.radians(paddle_tilt_deg))
+    pot_r = mk.axis_angle((1.0, 0.0, 0.0), math.radians(pot_tilt_deg))
+    moved = {
+        "stockpot": (np.array(pot_pos, dtype=float), mk.mat_to_quat(pot_r)),
+        "ice_paddle": (np.array(paddle_pos, dtype=float), mk.mat_to_quat(pad_r)),
+    }
+    st = kit.fake_states(moved=moved)
+    st["stockpot"] = dataclasses.replace(st["stockpot"], lin_vel=np.array(pot_vel, dtype=float))
+    st["ice_paddle"] = dataclasses.replace(st["ice_paddle"], lin_vel=np.array(paddle_vel, dtype=float))
+    return st
+
+
+def self_test() -> int:
+    """Comprehensive offline unit test covering all stages and negative controls."""
+    global _TEST_TCPS, _TEST_ROBOT_BOXES
+
+    s_init = _build_state()
+    s_lifted = _build_state(paddle_pos=(STAND_XY[0], STAND_XY[1], PADDLE_START_POS[2] + 0.050))
+    s_submerged = _build_state(paddle_pos=(POT_XY[0], POT_XY[1], 0.8705))
+    s_drained = _build_state(paddle_pos=(POT_XY[0], POT_XY[1], 0.9405))
+    s_hung = _build_state(paddle_pos=(BRACKET_XY[0], BRACKET_XY[1] - 0.030, BRACKET_SEAT_Z + 0.006))
+
+    stir_steps = []
+    R = 0.035
+    for rev in range(5):
+        for angle_deg in [0, 90, 180, 270]:
+            th = math.radians(angle_deg)
+            stir_steps.append(_build_state(paddle_pos=(POT_XY[0] + R * math.cos(th), POT_XY[1] + R * math.sin(th), 0.8705)))
+    stir_steps.append(_build_state(paddle_pos=(POT_XY[0] + R, POT_XY[1], 0.8705)))
+
+    drain_steps = [_build_state(paddle_pos=(POT_XY[0], POT_XY[1], 0.9405)) for _ in range(18)]
+
+    tcps_clear = [(0.180, 0.260, 0.9475), (0.180, -0.260, 0.9475)]
+    rboxes_clear = [
+        ((0.14, 0.22, 0.90), (0.22, 0.30, 1.00)),
+        ((0.14, -0.30, 0.90), (0.22, -0.22, 1.00)),
+    ]
+
+    cases = {
+        "initial state scores 0": ([s_init], tcps_clear, rboxes_clear, 0.0),
+        "lifted paddle scores 0.15": ([s_init, s_lifted], tcps_clear, rboxes_clear, 0.15),
+        "submerged in broth scores 0.35": ([s_init, s_lifted, s_submerged], tcps_clear, rboxes_clear, 0.35),
+        "3 agitation revolutions scores 0.60": ([s_init, s_lifted, *stir_steps[:13]], tcps_clear, rboxes_clear, 0.60),
+        "5 agitation revolutions + drained scores 0.80": ([s_init, s_lifted, *stir_steps, *drain_steps], tcps_clear, rboxes_clear, 0.80),
+        "full agitation + rim hang + clear hands scores 1.0": ([s_init, s_lifted, *stir_steps, *drain_steps, s_hung], tcps_clear, rboxes_clear, 1.0),
+        "hands touching paddle at end caps at 0.80": ([s_init, s_lifted, *stir_steps, *drain_steps, s_hung], [(BRACKET_XY[0], BRACKET_XY[1], 0.88)], rboxes_clear, 0.80),
+        "splash speed violation latches 0.0": ([s_init, s_lifted, _build_state(paddle_pos=(POT_XY[0], POT_XY[1], 0.8705), paddle_vel=(0.60, 0.0, 0.0)), s_hung], tcps_clear, rboxes_clear, 0.0),
+        "stockpot tipped > 10 deg latches 0.0": ([s_init, s_lifted, *stir_steps, _build_state(paddle_pos=s_hung["ice_paddle"].pos, pot_tilt_deg=15.0)], tcps_clear, rboxes_clear, 0.0),
+        "premature hang bypass without stirring scores 0.0": ([s_init, s_lifted, s_hung], tcps_clear, rboxes_clear, 0.0),
+    }
+
+    try:
+        for name, (seq, tcps, rboxes, want) in cases.items():
+            mk.new_episode()
+            _TEST_TCPS = tcps
+            _TEST_ROBOT_BOXES = rboxes
+            for idx, st in enumerate(seq, start=1):
+                mk._EP["step"] = idx
+                _step_rules(st)
+            got = score(seq[-1])
+            got_ok = success(seq[-1])
+            assert abs(got - want) < 1e-6 and got_ok == (want >= 1.0 - 1e-9), (name, got, want)
+    finally:
+        mk.new_episode()
+        mk._EP["step"] = 0
+        _TEST_TCPS = None
+        _TEST_ROBOT_BOXES = None
+    return len(cases)
+
+
+if __name__ == "__main__":
+    from yam_arena import ik, station
+    from yam_arena.demo import ArmPlan
+
+    n_pass = self_test()
+    print(f"scoring self_test: {n_pass}/{n_pass} cases pass")
+    hz = 20.0
+    demo_dict = demo()
+    for arm, waypoints in demo_dict.items():
+        plan = ArmPlan(list(waypoints), station.BASES[arm])
+        q = np.array([plan.action7((k + 1) / hz)[0] for k in range(round(plan.duration * hz))])
+        print(f"{arm}: {plan.duration:.1f} s plan, worst IK {plan.worst_ik_mm:.4f} mm / {plan.worst_ik_deg:.4f} deg")
+        assert plan.worst_ik_mm < 0.5 and plan.worst_ik_deg < 0.1, (arm, plan.worst_ik_mm, plan.worst_ik_deg)
+        assert np.all(q[:, :6] >= ik.LOWER) and np.all(q[:, :6] <= ik.UPPER), arm
+    print("ALL TESTS AND IK PASSED SUCCESSFULLY!")
