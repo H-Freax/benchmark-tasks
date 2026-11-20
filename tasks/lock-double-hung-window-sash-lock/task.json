@@ -17,6 +17,6 @@
   "run_limit": "600 steps (30 seconds at 20 Hz)",
   "reset_notes": "Turn the sash-lock lever back to its unlocked stop (120 degrees from +x) and raise the lower sash until its bottom stands 12 mm above the sill stops (set on a 12 mm gauge block and remove the block; jamb friction holds it). Park both arms clear with grippers open. Nothing is consumed.",
   "fidelity": "Full-size 600 x 489 mm double-hung window built from rigid boxes with solid 4 mm glazing colliders. Sash and sill weatherstrip ride prismatic joints with springs and Coulomb friction (balances 100 N/m, seal 600 N/m, jamb drag 3.0 N); upper sash is fixed. Lock is one hinged body (0.04 N m drag); cam and keeper interact purely by contact, never switched by code. Not modelled: sideways cam draw, sash racking, wear. Simulation applies the 30 N lift test and checks full URDF arm collision hulls.",
-  "scores": "Dream-1 run: pending; demo: pending",
-  "media": ""
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-2DM7P6"
 }

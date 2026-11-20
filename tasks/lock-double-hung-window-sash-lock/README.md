@@ -56,4 +56,15 @@ For Dream-1 use `--policy dream -E cam_width=320 -E cam_height=176` with the sam
 
 ## Results (seed 0, `object_jitter=0`, 20 Hz, max 600 steps)
 
-RESULTS_PENDING
+| Evaluation / Variant | Policy / Trajectory | Resolution | Steps | `task_score` | Notes |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `demo_1` (high-res demo) | `yam_scripted` (`demo`) | 640 x 352 | 305 | `1.0` | Lower sash shut, cam locked under keeper, arms clear, 30 N lift test passed |
+| `demo_2` (eval demo) | `yam_scripted` (`demo`) | 320 x 176 | 305 | `1.0` | Benchmark resolution replication |
+| `dream_1` (baseline model) | `dream` | 320 x 176 | 600 | `0.0` | Step limit reached; lower sash remains unmanaged |
+| `w_false_lock` (wrong-way control) | `yam_scripted` (`false_lock`) | 320 x 176 | 296 | `0.0` | Threw lever at 12 mm ajar; cam swung over keeper bridge |
+| `w_early_release` (wrong-way control) | `yam_scripted` (`early_release`) | 320 x 176 | 402 | `0.0` | Released before locking; rebounded ~4.3 mm on weatherstrip, cam jammed on keeper |
+| `w_hold_only` (wrong-way control) | `yam_scripted` (`hold_only`) | 320 x 176 | 402 | `0.3` | Lower sash shut against seal, lever never thrown |
+| `w_partial_throw` (wrong-way control) | `yam_scripted` (`partial_throw`) | 320 x 176 | 348 | `0.3` | Lower sash shut, lever stopped at 119.6 deg (< 120 deg cut-off for 0.5) |
+| `w_hand_on` (wrong-way control) | `yam_scripted` (`hand_on`) | 320 x 176 | 462 | `0.7` | Cam locked under keeper, but hand remained on rail (lift test and clearance held) |
+
+Media bundle uploaded to Robocurve task board: `M-2DM7P6` (model run, 640x352 demo, setup screenshot).
