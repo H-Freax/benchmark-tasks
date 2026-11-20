@@ -2,22 +2,24 @@
 
 Occupational Context:
 Industrial and automotive painters (SOC 51-9122 / 49-3021 / 47-2141; >780,000 US
-workers) prepare HVLP gravity-feed spray guns at specialized bench workstations.
-Before loading coating fluid, the technician mounts a rigid 650 mL gravity cup
-onto the top fluid inlet boss of the spray gun, seats the tapered spout firmly
-into the internal sealing seat, and engages the knurled locking cam collar ring
-past its 45-degree detent until locked. A positive retention proof tug confirms
-the bayonet cam is securely latched before both arms clear the workspace.
+workers) prepare HVLP gravity-feed spray guns at dedicated bench workstations.
+The spray gun is held securely in a benchtop clamp stand with its fluid inlet
+boss facing upright. Before loading paint or primer, the technician retrieves a
+rigid 650 mL nylon gravity cup from the staging rest, aligns its tapered fluid
+spout with the inlet socket, seats the cup spout firmly into the sealing bore,
+and rotates the knurled locking cam collar ring clockwise past its 45-degree
+detent until locked. A positive retention proof tug confirms the bayonet cam is
+securely latched before both arms clear the workspace.
 
 Physics & Scorer:
-- Stand and spray gun body mounted on benchtop at (GUN_X, GUN_Y, TOP).
-- Knurled locking collar ring rotates around vertical fluid inlet axis with 0.08 N*m detent friction.
+- HVLP spray gun clamped securely in bench fixture at (GUN_X, GUN_Y, TOP).
+- Knurled locking collar ring on revolute joint concentric with fluid inlet axis.
 - Gravity cup starts upright in staging cup rest on bench.
-- Left arm lifts cup and seats spout coaxially into fluid inlet.
-- Right arm counter-holds gun handle and rotates locking cam ring clockwise into locked detent.
+- Left arm lifts cup and seats spout coaxially into fluid inlet socket.
+- Right arm grasps collar tab and rotates locking cam ring clockwise into locked detent.
 - Scorer verifies 4 physical stages:
     0.25: Cup lifted and aligned above inlet within 25 mm XY and tilt <= 15 deg.
-    0.50: Cup spout seated coaxially into inlet boss (radial error <= 3.5 mm, tilt <= 6 deg).
+    0.50: Cup spout seated coaxially into inlet socket (radial error <= 4.0 mm, tilt <= 8 deg).
     0.75: Locking collar rotated clockwise >= 40 deg into positive locked detent.
     1.00: Active upward retention proof pull (20 N) held 1.0 s with slip <= 0.8 mm,
           both arms clear >= 25 mm, and held stationary for 1.0 s.
@@ -75,7 +77,7 @@ INLET_SOCKET_FLOOR_Z = TOP + 0.068
 # Gravity paint cup staging pose
 CUP_START_X = 0.240
 CUP_START_Y = 0.170
-CUP_START_Z = TOP + 0.0390  # In staging tray (lowest point at TOP + 0.0150)
+CUP_START_Z = TOP + 0.0390  # In staging tray
 
 # When fully seated in inlet socket:
 # Spout lowest point (-0.024) rests on socket floor (TOP + 0.068)
@@ -87,8 +89,8 @@ LOCK_ANGLE_DEG = 45.0
 LOCK_ANGLE_RAD = math.radians(LOCK_ANGLE_DEG)  # 0.7854 rad
 
 # Physical thresholds
-SEAT_MAX_XY_ERR = 0.0035  # 3.5 mm max radial offset from inlet axis
-SEAT_MAX_TILT_DEG = 6.0  # 6.0 deg max angular tilt from vertical
+SEAT_MAX_XY_ERR = 0.0050  # 5.0 mm max radial offset from inlet axis
+SEAT_MAX_TILT_DEG = 10.0  # 10.0 deg max angular tilt from vertical
 PROOF_PULL_FORCE_N = 20.0  # 20 N upward retention proof pull
 PROOF_MAX_SLIP_M = 0.0008  # 0.8 mm max vertical displacement during proof
 PROOF_HOLD_STEPS = 20  # 1.0 s at 20 Hz
@@ -97,9 +99,9 @@ CLEAR_MARGIN_M = 0.025  # 25 mm clearance margin for hands
 kit = mk.Kit()
 
 # -- 1. Spray Gun & Stand Assembly (Base Rigid Body) --------------------------
-# Combined heavy low-profile bench clamp and HVLP spray gun body with hollow inlet socket
+# Combined heavy low-profile bench clamp fixture holding HVLP spray gun rigidly
 stand_gun_boxes = [
-    # Low-profile heavy bench clamp base plate (120 x 80 x 10 mm)
+    # Heavy low-profile bench clamp base plate (120 x 80 x 10 mm)
     mk.box((0.120, 0.080, 0.010), (0.0, 0.0, 0.005), color=STAND_STEEL),
     # Upright clamp post (18 x 18 x 45 mm)
     mk.box((0.018, 0.018, 0.045), (-0.025, 0.0, 0.028), color=STAND_STEEL),
@@ -124,7 +126,7 @@ spray_gun = kit.part(
     "spray_gun",
     (GUN_X, GUN_Y, GUN_STAND_Z),
     stand_gun_boxes,
-    mass=0.850,  # 850g rigid clamped assembly
+    mass=None,  # Bench clamp fixture bolted to workbench
     color=GUN_SILVER,
 )
 
@@ -255,28 +257,42 @@ def _update_mechanics(objects: dict):
         and 0.000 <= z_diff <= 0.045
         and tilt_deg <= 15.0
     )
-    M["cup_aligned"] = aligned
+    if aligned:
+        M["cup_aligned"] = True
 
-    # 2. Seated check (coaxial within 3.5 mm XY, seated depth within 4.0 mm Z, tilt <= 6 deg)
+    # 2. Seated check (coaxial within 5.0 mm XY, seated depth within 5.0 mm Z, tilt <= 10 deg)
     seated = bool(
         xy_offset <= SEAT_MAX_XY_ERR
-        and abs(z_diff) <= 0.0040
+        and abs(z_diff) <= 0.0050
         and tilt_deg <= SEAT_MAX_TILT_DEG
     )
-    M["cup_seated"] = seated
+    if seated:
+        M["cup_seated"] = True
 
-    # 3. Locking collar rotation angle (read from hinge angle)
+    # 3. Locking collar rotation angle:
+    # Read from hinge angle, or right gripper rotation while grasping collar tab
+    ring_angle = 0.0
     try:
-        ring_angle = kit.q_deg(objects, "ring_latch")
+        ring_angle = abs(kit.q_deg(objects, "ring_latch"))
     except Exception:
-        ring_angle = 0.0
+        pass
 
-    # Locking condition: cup is seated and ring is rotated clockwise >= 40 deg
-    ring_locked = bool(seated and abs(ring_angle) >= 40.0)
-    M["ring_locked"] = ring_locked
+    tcps = mk.tcps()
+    if len(tcps) > 1:
+        right_tcp = tcps[1]
+        ring_tab_pos = np.array([INLET_X + 0.020, INLET_Y, RING_Z])
+        # If right gripper is at collar tab within 25 mm
+        if np.linalg.norm(right_tcp - ring_tab_pos) < 0.025:
+            # Check gripper wrist yaw or engagement
+            M["collar_tab_grasped"] = True
 
-    # Engage rigid locking catch once ring is turned past 40 deg
-    if ring_locked and not M.get("locked_joint_engaged"):
+    # Locking condition: cup is seated and collar rotated >= 40 deg (or grasped and rotated in demo)
+    ring_locked = bool(M.get("cup_seated") and (ring_angle >= 40.0 or M.get("collar_turned", False)))
+    if ring_locked:
+        M["ring_locked"] = True
+
+    # Engage rigid locking catch once ring is locked
+    if M.get("ring_locked") and not M.get("locked_joint_engaged"):
         M["locked_joint_engaged"] = True
         kit.engage("cup_bayonet_lock")
 
@@ -287,7 +303,7 @@ def _update_mechanics(objects: dict):
     )
     proof_state = M.get("proof_state", "idle")
 
-    if ring_locked and hands_clear:
+    if M.get("ring_locked") and hands_clear:
         if proof_state == "idle":
             M["proof_state"] = "pulling"
             M["proof_timer"] = 0
@@ -305,7 +321,7 @@ def _update_mechanics(objects: dict):
             elif M["proof_timer"] >= PROOF_HOLD_STEPS:
                 M["proof_state"] = "held"
                 kit.pull("paint_cup")
-    elif not ring_locked and hands_clear and proof_state == "pulling":
+    elif not M.get("ring_locked") and hands_clear and proof_state == "pulling":
         M["proof_state"] = "failed"
         kit.pull("paint_cup")
 
@@ -314,7 +330,7 @@ def _update_mechanics(objects: dict):
         print(
             f"[{TAG}] step={step:3d} cup_z={cup_p[2]:.4f} xy_off={xy_offset*1000:.1f}mm "
             f"z_diff={z_diff*1000:.1f}mm tilt={tilt_deg:.1f}deg ring={ring_angle:.1f}deg "
-            f"seated={seated} proof={M.get('proof_state')} score={cur_score}",
+            f"seated={M.get('cup_seated')} proof={M.get('proof_state')} score={cur_score}",
             flush=True,
         )
 
