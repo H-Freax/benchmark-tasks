@@ -530,11 +530,11 @@ def demo():
     add("left", 1.0, (px, py, pad_submerge_z), HANDLE_PINCH, "submerge paddle into broth", yaw_grip)
 
     # Circular agitation revolutions
-    n_revs = 0 if variant == "no_agitation" else 5
-    px_stir = px + 0.008
-    py_stir = py - 0.006
-    R = 0.035
-    t_step = 0.05 if variant == "fast_splash" else 0.45
+    n_revs = 0 if variant == "no_agitation" else 6
+    px_stir = px
+    py_stir = py
+    R = 0.025
+    t_step = 0.05 if variant == "fast_splash" else 0.40
     for rev in range(n_revs):
         for angle_deg in [0, 45, 90, 135, 180, 225, 270, 315]:
             th = math.radians(angle_deg)
