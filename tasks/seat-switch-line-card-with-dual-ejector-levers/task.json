@@ -10,5 +10,5 @@
   "fidelity": "1U switch chassis with IEEE 1101.10 guide tracks and flange pins; 4.0 kg card blade with dual pivoting cam ejector levers and detent catches; dual connector blocks with 80 N mating resistance over final 8 mm; 1.5 mm skew threshold; 20 N retention proof pull.",
   "scores": "Dream-1 (1200 steps): 0.0; Negative control (uneven skew): 0.0; Negative control (unlatched): 0.50; Scripted demo 1: 1.0; Scripted demo 2: 1.0.",
   "run_limit": "1200 steps (60 s at 20 Hz). Scripted demo completes in ~450 steps.",
-  "media": "M-GFAR2F"
+  "media": "M-7XJJ9Y"
 }
