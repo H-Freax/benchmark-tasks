@@ -1,0 +1,24 @@
+{
+  "title": "Reassemble a commercial manual citrus juicer: seat strainer cone and latch collector bowl",
+  "category": "Impact on jobs",
+  "keywords": [
+    "bimanual",
+    "food prep",
+    "kitchen equipment",
+    "citrus juicer",
+    "bayonet lock",
+    "strainer cone",
+    "rack and pinion",
+    "sanitation",
+    "tool-less assembly"
+  ],
+  "instruction": "Reassemble the commercial citrus juicer: seat the juice collector bowl into the base collar and rotate it to lock, drop the strainer cone flush inside, swing the press lever through a test stroke, and clear both arms.",
+  "context": "Food Preparation Workers (SOC 35-2021; 1,024,400 US jobs, BLS OEWS May 2023) and Fast Food and Counter Workers (SOC 35-3023; 3,546,800 US jobs) operate and maintain heavy-duty commercial juice extraction equipment in restaurants, juice bars, hotel pantries, and cocktail lounges. Under FDA Food Code §4-602.11 sanitation standards, commercial citrus presses (such as the industry-standard Hamilton Beach Commercial 932) must be fully disassembled, washed, and reassembled between shifts. The operator seats the juice collector funnel into the cast base collar, rotates it 30 degrees clockwise to engage its bayonet detents, nests the perforated stainless strainer cone flush onto the internal shelf, and strokes the rack-and-pinion press lever to verify clearance between the upper compressor plunger and the strainer before service.",
+  "setup": "Station table with a heavy cast-iron commercial citrus press (Hamilton Beach 932 style) centered at x 28 cm, y 0 cm, featuring an upright spine, sprung press lever at 0 deg, and a 110 mm receiver collar ring. A food-grade 304 stainless juice collector funnel sits to the right at x 22 cm, y -16 cm. A matching perforated stainless strainer cone insert sits to the left at x 22 cm, y +16 cm.",
+  "scoring": "Score 1.0 when the collector bowl is seated in the collar (dr <= 20 mm, dz <= 15 mm) and bayonet-locked (yaw <= -15 deg), strainer cone coaxially nested flush inside (gap <= 10 mm), press lever stroked >= 12 deg to test plunger clearance and returned to rest, both hands cleared >= 25 mm, and held stationary for 1.0 s. Partial credit: 0.75 for bowl locked and cone seated before lever stroke; 0.50 for bowl bayonet locked; 0.25 for bowl placed in collar. Score 0.0 if base tips, parts drop off table, or unseated parts jam.",
+  "run_limit": "1,800 steps (90 seconds at 20 Hz)",
+  "reset_notes": "Place juicer base at x 0.28 m, y 0 m with lever at 0 deg rest. Place collector bowl at x 0.22 m, y -0.16 m. Place strainer cone at x 0.22 m, y +0.16 m.",
+  "fidelity": "Heavy cast-iron base with rubber suction feet and 110 mm receiver collar with 3 internal bayonet lug recesses. Stamped 304 stainless collector bowl (0.34 kg) with matching bayonet tabs and internal support ledge. Perforated 304 stainless reamer strainer cone (0.19 kg) with precision seating lip. Spring-returned rack-and-pinion press lever with upper compressor cone. Strict 25 mm gripper clearance and 1.0 s stability hold.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": ""
+}
