@@ -17,5 +17,6 @@
   "run_limit": "1,200 steps (60 seconds at 20 Hz)",
   "reset_notes": "Disengage collar lock tab, lift condiment pump assembly from fountain jar, and return upright into wire wash rack at (0.240, 0.250) m. Re-center stainless fountain jar at (0.260, 0.080) m.",
   "fidelity": "Rigid bodies and composite collision boxes for rectangular fountain jar cavity, flared rim flange, welded side loop handle, and stainless pump collar. Coaxial cylinder hull models the pick-up tube. Spring-loaded collar retention tab is simulated with a mechanical detent catch. Upward proof pull tests physical reaction force before release clearance.",
-  "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete runs, 350 steps each)."
+  "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete runs, 350 steps each).",
+  "media": "M-YTZMUB"
 }
