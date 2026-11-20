@@ -321,10 +321,11 @@ def distance(objects) -> float:
 
 
 # Demo
-TIP = 0.013
+TIP = 0.0
 TRAVEL = 0.865
 FINGER_OPEN = 0.045
 FINGER_CLOSED = 0.008
+FINGER_REGRIP = 0.025
 
 
 def demo():
@@ -332,31 +333,30 @@ def demo():
 
     # Right Arm: handles socket tool and spark plug
     (tx, ty, tz) = TOOL_START_POS
-    th_z = tz + SOCKET_CUP_H + 0.004 + TOOL_TUBE_H + HANDLE_BAR[2] / 2
-    grip_to_bottom = (th_z - tz) + TIP
+    handle_z = tz + SOCKET_CUP_H + TOOL_TUBE_H + HANDLE_BAR[2] / 2
+    grip_to_bottom = handle_z - tz
 
     r_plan = [
-        Waypoint(2.0, (tx, ty, TRAVEL), FINGER_OPEN, "over socket tool"),
-        Waypoint(1.5, (tx, ty, th_z + TIP), FINGER_OPEN, "lower to tool handle"),
-        Waypoint(0.8, (tx, ty, th_z + TIP), FINGER_CLOSED, "grip handle"),
-        Waypoint(1.2, (tx, ty, TRAVEL), FINGER_CLOSED, "lift socket tool"),
+        Waypoint(2.0, (tx, ty, TRAVEL), FINGER_OPEN, "over socket tool", yaw=math.pi / 2),
+        Waypoint(1.5, (tx, ty, handle_z), FINGER_OPEN, "lower to tool handle", yaw=math.pi / 2),
+        Waypoint(0.8, (tx, ty, handle_z), FINGER_CLOSED, "grip handle", yaw=math.pi / 2),
+        Waypoint(1.2, (tx, ty, TRAVEL), FINGER_CLOSED, "lift socket tool", yaw=math.pi / 2),
     ]
 
     # 2. Carry over spark plug in tray, press down to capture
     (px, py, pz) = PLUG_START_POS
     if variant != "no_plug":
         r_plan += [
-            Waypoint(1.8, (px, py, TRAVEL), FINGER_CLOSED, "carry over spark plug"),
-            Waypoint(1.5, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "descend over plug"),
-            Waypoint(0.8, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "press to capture plug"),
-            Waypoint(1.5, (px, py, TRAVEL), FINGER_CLOSED, "lift plug out of tray"),
+            Waypoint(1.8, (px, py, TRAVEL), FINGER_CLOSED, "carry over spark plug", yaw=math.pi / 2),
+            Waypoint(1.5, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "descend over plug", yaw=math.pi / 2),
+            Waypoint(0.8, (px, py, pz + 0.012 + grip_to_bottom), FINGER_CLOSED, "press to capture plug", yaw=math.pi / 2),
+            Waypoint(1.5, (px, py, TRAVEL), FINGER_CLOSED, "lift plug out of tray", yaw=math.pi / 2),
         ]
 
     # 3. Carry over well, lower to thread entry, and execute two-turn threading down to seat
     (wx, wy) = WELL_XY
-    FINGER_REGRIP = 0.025
     r_plan += [
-        Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry over well mouth"),
+        Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry over well mouth", yaw=1.0),
         Waypoint(1.8, (wx, wy, WELL_ENTRY_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "lower to thread entry", yaw=1.0),
         # Turn 1: rotate CW from +1.0 to -1.0 while descending 3 mm (coupled to pitch)
         Waypoint(1.2, (wx, wy, WELL_ENTRY_Z - 0.003 + 0.012 + grip_to_bottom), FINGER_CLOSED, "thread turn 1", yaw=-1.0),
@@ -367,18 +367,18 @@ def demo():
         # Turn 2: rotate CW from +1.0 to -1.0 while descending final 3 mm to seat
         Waypoint(1.2, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "thread turn 2 to seat", yaw=-1.0),
         Waypoint(0.6, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "torque stop", yaw=-1.0),
-        Waypoint(0.8, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "recenter yaw", yaw=0.0),
-        Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "withdraw tool from well"),
-        Waypoint(1.8, (tx, ty, TRAVEL), FINGER_CLOSED, "carry tool to cradle"),
-        Waypoint(1.2, (tx, ty, th_z + TIP), FINGER_CLOSED, "lower tool to cradle"),
-        Waypoint(0.8, (tx, ty, th_z + TIP), FINGER_OPEN, "release tool"),
-        Waypoint(1.2, (tx, ty, TRAVEL), FINGER_OPEN, "right arm retreat"),
+        Waypoint(0.8, (wx, wy, WELL_SEAT_Z + 0.012 + grip_to_bottom), FINGER_CLOSED, "recenter yaw", yaw=math.pi / 2),
+        Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "withdraw tool from well", yaw=math.pi / 2),
+        Waypoint(1.8, (tx, ty, TRAVEL), FINGER_CLOSED, "carry tool to cradle", yaw=math.pi / 2),
+        Waypoint(1.2, (tx, ty, handle_z), FINGER_CLOSED, "lower tool to cradle", yaw=math.pi / 2),
+        Waypoint(0.8, (tx, ty, handle_z), FINGER_OPEN, "release tool", yaw=math.pi / 2),
+        Waypoint(1.2, (tx, ty, TRAVEL), FINGER_OPEN, "right arm retreat", yaw=math.pi / 2),
     ]
 
     # Left Arm: waits for plug installation, then installs ignition coil
     (cx, cy, cz) = COIL_START_POS
     ch_z = cz + BOOT_H + COIL_HEAD_SIZE[2] / 2
-    coil_grip_to_bottom = (ch_z - cz) + TIP
+    coil_grip_to_bottom = ch_z - cz
 
     l_finger_end = FINGER_CLOSED if variant == "touching_coil" else FINGER_OPEN
     coil_end_pos = (wx, wy, TARGET_COIL_BOTTOM_Z + coil_grip_to_bottom) if variant == "touching_coil" else (cx, cy, TRAVEL)
@@ -391,8 +391,8 @@ def demo():
         l_plan = [
             Waypoint(21.0, (cx, cy, TRAVEL), FINGER_OPEN, "wait for plug seating"),
             Waypoint(2.0, (cx, cy, TRAVEL), FINGER_OPEN, "move over ignition coil"),
-            Waypoint(1.5, (cx, cy, ch_z + TIP), FINGER_OPEN, "lower to coil head"),
-            Waypoint(0.8, (cx, cy, ch_z + TIP), FINGER_CLOSED, "grip coil head"),
+            Waypoint(1.5, (cx, cy, ch_z), FINGER_OPEN, "lower to coil head"),
+            Waypoint(0.8, (cx, cy, ch_z), FINGER_CLOSED, "grip coil head"),
             Waypoint(1.2, (cx, cy, TRAVEL), FINGER_CLOSED, "lift coil from stand"),
             Waypoint(1.8, (wx, wy, TRAVEL), FINGER_CLOSED, "carry coil over well mouth"),
             Waypoint(1.5, (wx, wy, TARGET_COIL_BOTTOM_Z + 0.010 + coil_grip_to_bottom), FINGER_CLOSED, "lower boot into well mouth"),
