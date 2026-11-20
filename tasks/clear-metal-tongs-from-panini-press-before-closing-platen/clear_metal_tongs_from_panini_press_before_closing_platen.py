@@ -228,7 +228,7 @@ def score(objects) -> float:
         return 0.50
     if not mk.MEMORY.get("platen_closed"):
         return 0.75
-    if mk.MEMORY.get("hold_steps", 0) < 15:
+    if mk.MEMORY.get("hold_steps", 0) < 20:
         return 0.90
     return 1.0
 
