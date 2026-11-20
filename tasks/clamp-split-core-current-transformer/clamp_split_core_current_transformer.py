@@ -125,12 +125,12 @@ kit.part("ct_keeper", (CABLE_X, 0.000, CABLE_Z + 0.014), [
     mk.box((0.046, CT_THICK, 0.012), at=(0.017, 0.0, 0.006), color=KEEPER_DARK),
     # Snap catch engagement tab on front end
     mk.box((0.010, 0.020, 0.016), at=(0.038, 0.0, 0.004), color=LATCH_YELLOW),
-], mass=0.070, color=KEEPER_DARK)
+], mass=0.035, color=KEEPER_DARK)
 
 kit.hinge("core_hinge", "ct_base", "ct_keeper",
           anchor=KEEPER_HINGE_AT, axis=(0, 1, 0),
           lower_deg=-45.0, upper_deg=0.0, start_deg=-45.0,
-          stiffness=0.0, rest_deg=-45.0, damping=0.1, friction=0.060)
+          stiffness=0.0, rest_deg=-45.0, damping=0.1, friction=0.020)
 
 # Positive retention catch holding keeper locked closed once engaged
 # _REF = kit._fk(q={"core_hinge": 0.0})
@@ -348,11 +348,11 @@ def demo():
     ]
 
     left_plan = [
-        Waypoint(2.0, (0.335, 0.000, 0.900), FINGER_CLOSED, "approach_above_keeper", -np.pi / 2),
-        Waypoint(1.0, (0.335, 0.000, 0.880), FINGER_CLOSED, "contact_keeper_top", -np.pi / 2),
-        Waypoint(2.5, (0.335, 0.000, 0.835), FINGER_CLOSED, "press_keeper_shut", -np.pi / 2),
-        Waypoint(1.5, (0.335, 0.000, 0.835), FINGER_CLOSED, "hold_keeper_shut", -np.pi / 2),
-        Waypoint(1.0, (0.335, 0.000, 0.900), FINGER_OPEN, "retract_up", -np.pi / 2),
+        Waypoint(2.0, (0.345, 0.000, 0.900), FINGER_CLOSED, "approach_above_keeper", -np.pi / 2),
+        Waypoint(1.0, (0.345, 0.000, 0.880), FINGER_CLOSED, "contact_keeper_top", -np.pi / 2),
+        Waypoint(2.5, (0.345, 0.000, 0.770), FINGER_CLOSED, "press_keeper_shut", -np.pi / 2),
+        Waypoint(1.5, (0.345, 0.000, 0.770), FINGER_CLOSED, "hold_keeper_shut", -np.pi / 2),
+        Waypoint(1.0, (0.345, 0.000, 0.900), FINGER_OPEN, "retract_up", -np.pi / 2),
         Waypoint(1.5, PARK_L, FINGER_OPEN, "clear_left"),
         Waypoint(5.5, PARK_L, FINGER_OPEN, "proof_hold_left")
     ]
