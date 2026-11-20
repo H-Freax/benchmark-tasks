@@ -376,9 +376,9 @@ def _released(obj_state: ObjectState, margin: float = 0.020) -> bool:
     tcps = mk.tcps()
     if not tcps:
         return True
-    p, _ = kit.pose({"_": obj_state}, "_")
+    p = np.asarray(obj_state.pos, dtype=float)
     for tcp in tcps:
-        if np.linalg.norm(tcp - p) < margin:
+        if np.linalg.norm(np.asarray(tcp, dtype=float) - p) < margin:
             return False
     return True
 
