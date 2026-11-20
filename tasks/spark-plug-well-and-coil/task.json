@@ -18,5 +18,5 @@
   "reset_notes": "Extract ignition coil from well, extract spark plug with socket tool, return plug to tray, socket tool to cradle, and coil to stand.",
   "fidelity": "Rigid bodies in PhysX (240 Hz). Octagonal box approximations reproduce round cylindrical well, plug insulator, and hollow silicone coil boot. Compliant retention socket modeled with 4 N retention joint. Threading requires thread-mouth entry, pitch-coupled clockwise rotation (>=0.30 rad), and >=3.5 mm axial advance into seat before thread catch engages. Coil seating requires boot insertion and ear alignment within 1.5 mm of boss. Defect gate zeros trial on table drop outside tray/well.",
   "scores": "Dream-1 run: 0.0; demo: 1.0",
-  "media": "M-PENDING"
+  "media": "M-27CWWQ"
 }
