@@ -327,7 +327,7 @@ def self_test():
     )
     assert score(s_init) == 0.0, f"Expected 0.0 at start, got {score(s_init)}"
 
-    # Test 2: Door swung open past 50 deg -> Score 0.20
+    # Test 2: Door swung open past 55 deg -> Score 0.20
     s_door = kit.fake_states(
         q={"door_hinge": 65.0},
         moved={"old_ink_roller": (old_init, unit_q), "fresh_ink_roller": (fresh_init, unit_q)},
