@@ -79,7 +79,7 @@ CONE_INIT_POS = np.array([0.220, 0.140, TOP + 0.020])
 CONE_SEAT_Z = TOP + 0.065
 
 # Lever Hinge Anchor & Parameters
-LEVER_ANCHOR = np.array([BASE_X - 0.030, 0.000, TOP + 0.150])
+LEVER_ANCHOR = np.array([BASE_X - 0.080, 0.000, TOP + 0.150])
 LEVER_STROKE_THRESHOLD_DEG = -10.0
 
 
@@ -89,19 +89,19 @@ kit.part(
     pos=(BASE_X, BASE_Y, BASE_Z),
     boxes=[
         # Heavy horseshoe footplate
-        mk.box((0.180, 0.160, 0.025), at=(-0.010, 0.000, 0.000), color=CAST_BLACK),
+        mk.box((0.200, 0.160, 0.025), at=(-0.020, 0.000, 0.000), color=CAST_BLACK),
         # Rubber non-skid suction pads
-        mk.box((0.040, 0.040, 0.008), at=(-0.070, 0.060, -0.015), color=RUBBER_BLACK),
-        mk.box((0.040, 0.040, 0.008), at=(-0.070, -0.060, -0.015), color=RUBBER_BLACK),
+        mk.box((0.040, 0.040, 0.008), at=(-0.090, 0.060, -0.015), color=RUBBER_BLACK),
+        mk.box((0.040, 0.040, 0.008), at=(-0.090, -0.060, -0.015), color=RUBBER_BLACK),
         mk.box((0.040, 0.040, 0.008), at=(0.060, 0.060, -0.015), color=RUBBER_BLACK),
         mk.box((0.040, 0.040, 0.008), at=(0.060, -0.060, -0.015), color=RUBBER_BLACK),
-        # Upright column spine
-        mk.box((0.050, 0.050, 0.140), at=(-0.030, 0.000, 0.070), color=CAST_IRON),
+        # Upright column spine at rear
+        mk.box((0.050, 0.050, 0.140), at=(-0.080, 0.000, 0.070), color=CAST_IRON),
         # Top hinge mount bracket
-        mk.box((0.070, 0.060, 0.040), at=(-0.030, 0.000, 0.145), color=CAST_IRON),
-        # Receiver collar ring support arm extending forward from column
-        mk.box((0.080, 0.035, 0.020), at=(-0.030, 0.000, 0.040), color=CAST_IRON),
-        # Receiver collar perimeter walls with front clearance notch for handle/spout
+        mk.box((0.070, 0.060, 0.040), at=(-0.080, 0.000, 0.145), color=CAST_IRON),
+        # Receiver collar support bracket connecting rear column to collar rim
+        mk.box((0.030, 0.035, 0.020), at=(-0.060, 0.000, 0.040), color=CAST_IRON),
+        # Receiver collar perimeter walls (centered at 0, 0 with 115 mm clear opening)
         mk.box((0.015, 0.140, 0.025), at=(0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.015, 0.140, 0.025), at=(-0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.140, 0.015, 0.025), at=(0.000, 0.065, 0.040), color=CAST_IRON),
@@ -121,13 +121,13 @@ kit.part(
     pos=(LEVER_ANCHOR[0], LEVER_ANCHOR[1], LEVER_ANCHOR[2]),
     boxes=[
         # Main chrome lever arm bar
-        mk.box((0.090, 0.025, 0.020), at=(0.040, 0.000, 0.000), color=CHROME_ACCENT),
+        mk.box((0.140, 0.025, 0.020), at=(0.070, 0.000, 0.000), color=CHROME_ACCENT),
         # Ergonomic top grip knob
-        mk.box((0.025, 0.025, 0.025), at=(0.075, 0.000, 0.010), color=CAST_BLACK),
+        mk.box((0.025, 0.025, 0.025), at=(0.130, 0.000, 0.010), color=CAST_BLACK),
         # Vertical plunger rack link
-        mk.box((0.020, 0.020, 0.050), at=(0.030, 0.000, -0.030), color=STAINLESS_MATTE),
-        # Upper stainless compressor cone cup
-        mk.box((0.060, 0.060, 0.025), at=(0.030, 0.000, -0.060), color=STAINLESS_BRIGHT),
+        mk.box((0.020, 0.020, 0.050), at=(0.080, 0.000, -0.030), color=STAINLESS_MATTE),
+        # Upper stainless compressor cone cup (centered directly over collar at X = +0.080 relative to anchor)
+        mk.box((0.060, 0.060, 0.025), at=(0.080, 0.000, -0.060), color=STAINLESS_BRIGHT),
     ],
     mass=0.450,
 )
@@ -408,12 +408,12 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (h_x, h_y, h_z), FINGER_CLOSED, "bowl_grasp"),
         Waypoint(1.0, (h_x, h_y, TOP + 0.140), FINGER_CLOSED, "bowl_lift"),
         Waypoint(1.5, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.140), FINGER_CLOSED, "bowl_align"),
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.070), FINGER_CLOSED, "bowl_insert"),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.080), FINGER_CLOSED, "bowl_insert"),
     ]
 
     if cheat == "bowl_only":
         right += [
-            Waypoint(0.8, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.070), FINGER_OPEN, "bowl_release"),
+            Waypoint(0.8, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.080), FINGER_OPEN, "bowl_release"),
             Waypoint(1.2, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_retract"),
             Waypoint(8.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_park"),
         ]
@@ -427,8 +427,8 @@ def demo() -> dict[str, list[Waypoint]]:
     lock_hx = COLLAR_X + 0.045 * math.sin(math.radians(30.0))
     lock_hy = COLLAR_Y - 0.045 * math.cos(math.radians(30.0))
     right += [
-        Waypoint(1.2, (lock_hx, lock_hy, TOP + 0.070), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
-        Waypoint(0.8, (lock_hx, lock_hy, TOP + 0.070), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
+        Waypoint(1.2, (lock_hx, lock_hy, TOP + 0.080), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
+        Waypoint(0.8, (lock_hx, lock_hy, TOP + 0.080), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
         Waypoint(1.0, (lock_hx, lock_hy, TOP + 0.140), FINGER_OPEN, "bowl_clear"),
         Waypoint(1.2, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_retract"),
         Waypoint(18.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_park"),
@@ -449,18 +449,18 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, TOP + 0.140), FINGER_CLOSED, "cone_lift"),
         Waypoint(1.5, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "cone_align"),
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_CLOSED, "cone_seat"),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
         # Keep left hand holding cone without releasing
         left += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_CLOSED, "cone_hold"),
         ]
         return {"left": left, "right": right}
 
     left += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_OPEN, "cone_release"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.095), FINGER_OPEN, "cone_release"),
         Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_OPEN, "cone_clear"),
     ]
 
@@ -472,11 +472,12 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Mechanical test stroke: Left arm depresses press lever and releases
+    lever_grip_x = LEVER_ANCHOR[0] + 0.130
     left += [
-        Waypoint(1.2, (BASE_X + 0.040, 0.000, TOP + 0.160), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (BASE_X + 0.040, 0.000, TOP + 0.140), FINGER_CLOSED, "lever_grasp"),
-        Waypoint(1.2, (BASE_X + 0.040, 0.000, TOP + 0.100), FINGER_CLOSED, "lever_stroke"),
-        Waypoint(0.8, (BASE_X + 0.040, 0.000, TOP + 0.140), FINGER_OPEN, "lever_release"),
+        Waypoint(1.2, (lever_grip_x, 0.000, TOP + 0.170), FINGER_OPEN, "lever_approach"),
+        Waypoint(0.8, (lever_grip_x, 0.000, TOP + 0.150), FINGER_CLOSED, "lever_grasp"),
+        Waypoint(1.2, (lever_grip_x, 0.000, TOP + 0.100), FINGER_CLOSED, "lever_stroke"),
+        Waypoint(0.8, (lever_grip_x, 0.000, TOP + 0.150), FINGER_OPEN, "lever_release"),
         Waypoint(1.2, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_park"),
     ]
