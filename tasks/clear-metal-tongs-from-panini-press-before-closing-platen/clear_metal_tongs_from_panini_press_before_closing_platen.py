@@ -1,4 +1,4 @@
-"""Clear metal tongs from commercial panini press before closing heated grooved platen.
+"""Lower the commercial panini press upper platen onto the grill plate.
 
 BLS SOC 35-3023: Fast Food and Counter Workers
 BLS SOC 35-2021: Food Preparation Workers
@@ -10,7 +10,7 @@ Safety Prerequisite + Real Physical Action (Family A):
   spring-counterbalanced upper platen downward 75 degrees until flush on the lower
   mechanical stop.
 - Hard safety interlocks:
-  1. Permanent 0.0 defect if platen closes while tongs remain on the grill plate.
+  1. Permanent 0.0 defect if platen closes while tongs remain on the grill plate (grease expulsion / fire hazard).
   2. Permanent 0.0 burn hazard if gripper fingers contact heated grill surfaces.
 - Retract both hands clear (>= 45 mm) for a 20-step (1.0 s at 20 Hz) stillness hold.
 """
@@ -42,7 +42,8 @@ INSULATED_BLACK = (0.12, 0.12, 0.14)
 BRIGHT_STEEL = (0.85, 0.87, 0.90)
 
 # 1. Commercial Panini Grill Chassis
-GRILL_XY = (0.280, 0.040)
+# Positioned naturally within robot arm sweet spot
+GRILL_XY = (0.280, 0.000)
 BASE_W_X = 0.200  # 200 mm front-to-back
 BASE_D_Y = 0.220  # 220 mm side-to-side
 BASE_H = 0.060    # 60 mm lower chassis
@@ -50,7 +51,7 @@ GRILL_PLATE_Z = TOP + BASE_H  # 0.7475 + 0.060 = 0.8075 m
 
 # Hinge location on rear of base
 HINGE_X = GRILL_XY[0] - BASE_W_X / 2 + 0.020  # 0.280 - 0.100 + 0.020 = 0.200 m
-HINGE_Y = GRILL_XY[1]                         # 0.040 m
+HINGE_Y = GRILL_XY[1]                         # 0.000 m
 HINGE_Z = GRILL_PLATE_Z + 0.035               # 0.8425 m
 
 # Upper Platen dimensions
@@ -62,12 +63,12 @@ PLATEN_H = 0.030
 OPEN_ANGLE_RAD = math.radians(75.0)
 
 # 2. Stainless Utility Tongs
-TONGS_INIT_XY = (GRILL_XY[0], GRILL_XY[1])  # (0.280, 0.040)
+TONGS_INIT_XY = (GRILL_XY[0], GRILL_XY[1])  # (0.280, 0.000)
 TONGS_INIT_Z = GRILL_PLATE_Z + 0.012        # Resting across grill plate
 TONGS_KG = 0.180                            # 180 g
 
 # 3. Side Staging Rest Tray (on right side, +Y)
-TRAY_XY = (0.280, 0.250)
+TRAY_XY = (0.280, 0.220)
 TRAY_W_X = 0.160
 TRAY_D_Y = 0.120
 TRAY_H = 0.015
@@ -246,14 +247,14 @@ def demo() -> dict[str, list[Waypoint]]:
             add(arm, dt, last.pos, last.finger, label, last.yaw)
 
     # Initial grasp coordinates
-    t_grip_xy = (0.240, 0.040)
+    t_grip_xy = (0.240, 0.000)
     t_grip_z = GRILL_PLATE_Z + 0.020
 
     tray_dest_xy = (TRAY_XY[0], TRAY_XY[1])
     tray_dest_z = TOP + 0.022
 
-    LEFT_PARK = (0.160, -0.250, 0.920)
-    RIGHT_PARK = (0.160, 0.350, 0.920)
+    LEFT_PARK = (0.160, -0.220, 0.920)
+    RIGHT_PARK = (0.160, 0.300, 0.920)
 
     # Left arm starts parked clear
     add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park")
@@ -290,8 +291,8 @@ def demo() -> dict[str, list[Waypoint]]:
     wait_until("left", clock["right"] - 1.0, "wait for tongs clear")
 
     # Left arm: approach insulated platen front handle in open position
-    handle_open_xy = (0.250, 0.040)
-    handle_open_z = 0.950
+    handle_open_xy = (0.245, 0.000)
+    handle_open_z = 0.940
 
     add("left", 1.2, (handle_open_xy[0], handle_open_xy[1], handle_open_z + 0.040), FINGER_OPEN, "approach insulated handle")
     add("left", 0.6, (handle_open_xy[0], handle_open_xy[1], handle_open_z), FINGER_OPEN, "align with handle")
@@ -299,9 +300,9 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Lower platen smoothly along arc
     # Mid-point (40 degrees)
-    add("left", 1.0, (0.325, 0.040, 0.885), FINGER_CLOSED, "pivot platen down mid")
+    add("left", 1.0, (0.320, 0.000, 0.880), FINGER_CLOSED, "pivot platen down mid")
     # Bottom stop (0 degrees, closed)
-    handle_closed_xy = (0.395, 0.040)
+    handle_closed_xy = (0.395, 0.000)
     handle_closed_z = GRILL_PLATE_Z + 0.025
     add("left", 1.0, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_CLOSED, "seat platen flush on stop")
 
