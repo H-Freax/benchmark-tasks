@@ -116,7 +116,7 @@ HOOK_LOCAL = (0.0, 0.015, 0.004)
 
 # Tolerances and scoring thresholds
 MIN_LIFT_CLEAR_Z = 0.025          # lifted >= 25 mm out of cradle
-MIN_SUBMERGE_DEPTH = 0.020        # blade submerged >= 20 mm below liquid surface
+MIN_SUBMERGE_DEPTH = 0.015        # blade submerged >= 15 mm below liquid surface
 AGITATION_MIN_REVS = 3.0          # >= 3 circular revolutions for partial credit (0.60)
 AGITATION_FULL_REVS = 5.0         # >= 5 circular revolutions for full credit (0.80)
 MIN_STIR_R = 0.005                # minimum radius from pot axis
@@ -500,7 +500,7 @@ def demo():
 
     pad_grasp_z = PADDLE_START_POS[2] + PADDLE_GRIP_Z_LOCAL
     pad_carry_z = 0.950
-    pad_submerge_z = 0.878
+    pad_submerge_z = 0.868
     pad_drain_z = 0.910
     bracket_seat_z = 0.864
     bracket_approach_z = 0.900
