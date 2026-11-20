@@ -183,8 +183,8 @@ kit.part(
         mk.box((0.034, 0.034, 0.020), at=(0.000, 0.000, -0.014), color=STAINLESS_MATTE),
         # Outer seating flange lip (48 mm wide, rests flush on 54 mm internal shelf)
         mk.box((0.048, 0.048, 0.008), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
-        # Central grasp handle knob post (28 mm wide x 18 mm thick x 42 mm high) in 100% open clear air
-        mk.box((0.028, 0.018, 0.042), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
+        # Central grasp handle knob post (28 mm wide x 18 mm thick x 52 mm high) in 100% open clear air
+        mk.box((0.028, 0.018, 0.052), at=(0.000, 0.000, 0.030), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
     contact_offset=0.0005,
@@ -407,7 +407,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Cone knob coordinates (elevated apex knob stem for 100% collision-free finger clamp)
     c_x = CONE_INIT_POS[0]
     c_y = CONE_INIT_POS[1]
-    c_z = CONE_INIT_POS[2] + 0.025
+    c_z = CONE_INIT_POS[2] + 0.045
     CONE_CARRY_Z = TOP + 0.150
 
     # Right arm: installs collector bowl, locks bayonet detents, then seats strainer cone
@@ -456,19 +456,24 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # 2. Grasp and seat strainer cone
+    # When seated flush at cp = BOWL_SEAT_Z + 0.002 = 0.805, the knob top section is at 0.805 + 0.045 = 0.850 m.
+    # Seating and releasing at 0.850 m keeps fingertips 13 mm above the bowl rim (0.8255 m),
+    # completely avoiding any contact between fingers and the inner cup walls.
+    # Aligning yaw to -25.0 deg matches the locked bowl orientation (-21.5 deg) for maximum concentric clearance.
+    cone_seat_z = TOP + 0.102  # 0.850 m
     right += [
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
         # Carry cone into collar along -Y approach corridor
-        Waypoint(0.8, (0.270, -0.090, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
-        Waypoint(0.8, (0.220, -0.040, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.072), FINGER_CLOSED, "cone_seat"),
+        Waypoint(0.8, (0.270, -0.090, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1", yaw=math.radians(-25.0)),
+        Waypoint(0.8, (0.220, -0.040, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2", yaw=math.radians(-25.0)),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align", yaw=math.radians(-25.0)),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y, cone_seat_z), FINGER_CLOSED, "cone_seat", yaw=math.radians(-25.0)),
     ]
 
     if cheat == "no_release":
         right += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.072), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, cone_seat_z), FINGER_CLOSED, "cone_hold", yaw=math.radians(-25.0)),
         ]
         left = [
             Waypoint(12.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
@@ -476,8 +481,8 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     right += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.072), FINGER_OPEN, "cone_release"),
-        Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, cone_seat_z), FINGER_OPEN, "cone_release", yaw=math.radians(-25.0)),
+        Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear", yaw=math.radians(-25.0)),
         Waypoint(1.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
         Waypoint(12.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_park"),
     ]
