@@ -124,7 +124,7 @@ MAX_STIR_R = 0.085                # maximum radius from pot axis (clears 102 mm 
 MAX_SPLASH_SPEED = 0.45           # linear speed > 0.45 m/s while submerged causes splash fault
 MAX_SPLASH_ACCEL = 6.0            # acceleration > 6.0 m/s^2 while submerged causes splash fault
 DRAIN_HOLD_STEPS = 16             # 16 steps (0.8 s) drain hold above liquid level
-HOOK_SEAT_TOL_XY = 0.035          # hook within 35 mm of bracket saddle
+HOOK_SEAT_TOL_XY = 0.020          # hook within 20 mm of bracket saddle
 HOOK_SEAT_TOL_Z = 0.030           # hook within 30 mm of bracket saddle
 HOOK_TILT_MAX_DEG = 25.0          # paddle hanging upright within 25 deg
 POT_MAX_SLIP = 0.030              # pot slid > 30 mm faults
@@ -520,7 +520,7 @@ def demo():
     add("left", 1.5, (px, py, pad_carry_z), HANDLE_PINCH, "carry above stockpot", yaw_grip)
 
     if variant == "no_submerge":
-        add("left", 1.5, LEFT_PARK, FINGER_OPEN, "park left", 0.0)
+        add("left", 2.0, (px, py, pad_carry_z), HANDLE_PINCH, "hold above pot", yaw_grip)
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
