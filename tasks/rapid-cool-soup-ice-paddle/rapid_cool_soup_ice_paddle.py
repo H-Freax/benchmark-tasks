@@ -359,7 +359,7 @@ def _step_rules(objects) -> None:
             if "prev_theta" in mk.MEMORY:
                 prev_th = mk.MEMORY["prev_theta"]
                 d_th = (theta - prev_th) % (2 * math.pi)
-                if 0.002 < d_th < 1.0:
+                if 0.002 < d_th < math.pi:
                     mk.MEMORY["cum_phase"] = mk.MEMORY.get("cum_phase", 0.0) + d_th
             mk.MEMORY["prev_theta"] = theta
         else:
@@ -500,7 +500,7 @@ def demo():
 
     pad_grasp_z = PADDLE_START_POS[2] + PADDLE_GRIP_Z_LOCAL
     pad_carry_z = 0.950
-    pad_submerge_z = 0.868
+    pad_submerge_z = 0.878
     pad_drain_z = 0.910
     bracket_seat_z = 0.864
     bracket_approach_z = 0.900
