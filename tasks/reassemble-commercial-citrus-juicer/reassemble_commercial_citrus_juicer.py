@@ -79,7 +79,7 @@ CONE_INIT_POS = np.array([0.220, 0.140, TOP + 0.020])
 CONE_SEAT_Z = TOP + 0.065
 
 # Lever Hinge Anchor & Parameters
-LEVER_ANCHOR = np.array([BASE_X - 0.080, 0.000, TOP + 0.140])
+LEVER_ANCHOR = np.array([BASE_X - 0.080, 0.000, TOP + 0.165])
 LEVER_STROKE_THRESHOLD_DEG = -5.0
 
 
@@ -96,9 +96,9 @@ kit.part(
         mk.box((0.040, 0.040, 0.008), at=(0.060, 0.060, -0.015), color=RUBBER_BLACK),
         mk.box((0.040, 0.040, 0.008), at=(0.060, -0.060, -0.015), color=RUBBER_BLACK),
         # Upright column spine at rear
-        mk.box((0.050, 0.050, 0.120), at=(-0.080, 0.000, 0.060), color=CAST_IRON),
+        mk.box((0.050, 0.050, 0.145), at=(-0.080, 0.000, 0.0725), color=CAST_IRON),
         # Top hinge mount bracket
-        mk.box((0.070, 0.060, 0.025), at=(-0.080, 0.000, 0.120), color=CAST_IRON),
+        mk.box((0.070, 0.060, 0.025), at=(-0.080, 0.000, 0.1425), color=CAST_IRON),
         # Receiver collar support bracket connecting rear column to collar rim
         mk.box((0.030, 0.035, 0.020), at=(-0.060, 0.000, 0.040), color=CAST_IRON),
         # Receiver collar perimeter walls (centered at 0, 0 with 115 mm clear opening)
@@ -122,8 +122,8 @@ kit.part(
     boxes=[
         # Main chrome lever arm bar
         mk.box((0.140, 0.025, 0.020), at=(0.070, 0.000, 0.000), color=CHROME_ACCENT),
-        # Ergonomic top grip knob
-        mk.box((0.025, 0.025, 0.025), at=(0.125, 0.000, 0.010), color=CAST_BLACK),
+        # Ergonomic grip knob
+        mk.box((0.025, 0.025, 0.025), at=(0.105, 0.000, -0.010), color=CAST_BLACK),
         # Vertical plunger rack link
         mk.box((0.020, 0.020, 0.035), at=(0.080, 0.000, -0.015), color=STAINLESS_MATTE),
         # Upper stainless compressor cone cup (centered directly over collar at X = +0.080 relative to anchor)
@@ -405,13 +405,13 @@ def demo() -> dict[str, list[Waypoint]]:
     h_x = BOWL_INIT_POS[0]
     h_y = BOWL_INIT_POS[1] - 0.045
     h_z = BOWL_INIT_POS[2] + 0.030
-    BOWL_CARRY_Z = TOP + 0.120
+    BOWL_CARRY_Z = TOP + 0.150
 
     # Cone knob coordinates (at center apex of strainer cone)
     c_x = CONE_INIT_POS[0]
     c_y = CONE_INIT_POS[1]
     c_z = CONE_INIT_POS[2] + 0.025
-    CONE_CARRY_Z = TOP + 0.115
+    CONE_CARRY_Z = TOP + 0.140
 
     # Right arm: installs collector bowl into base collar and locks bayonet detents
     right = [
@@ -489,12 +489,12 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Mechanical test stroke: Left arm depresses press lever and releases
-    # Knob starts at (0.258, 0.000, 0.925) at +15 deg rest; strokes down to (0.265, 0.000, 0.868)
+    # Knob starts at (0.244, 0.000, 0.932) at +15 deg rest; strokes down to (0.245, 0.000, 0.875)
     left += [
-        Waypoint(1.2, (0.258, 0.000, 0.930), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (0.258, 0.000, 0.915), FINGER_CLOSED, "lever_grasp"),
-        Waypoint(1.2, (0.265, 0.000, 0.868), FINGER_CLOSED, "lever_stroke"),
-        Waypoint(0.8, (0.258, 0.000, 0.915), FINGER_OPEN, "lever_release"),
+        Waypoint(1.2, (0.244, 0.000, 0.930), FINGER_OPEN, "lever_approach"),
+        Waypoint(0.8, (0.244, 0.000, 0.925), FINGER_CLOSED, "lever_grasp"),
+        Waypoint(1.2, (0.245, 0.000, 0.875), FINGER_CLOSED, "lever_stroke"),
+        Waypoint(0.8, (0.244, 0.000, 0.925), FINGER_OPEN, "lever_release"),
         Waypoint(1.2, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
