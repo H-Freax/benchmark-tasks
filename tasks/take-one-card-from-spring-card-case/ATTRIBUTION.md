@@ -1,0 +1,5 @@
+Original card-case geometry, spring design, USD builder, acceptance logic, task and reference phases were written for this local package.
+
+ordinary_arm.py reuses the MIT ordinary Arm/wait/width controller utility from RoboCurve PR2036, immutable source SHA9c7c8af6a43b230d789754a4642fd712a60116e6. The exact task license is retained as LICENSE; upstream snapshot, file hashes and license verification are in ../hermes-scope-map/sources/PR-2036 and SIMULATION-REUSE-MAP.json. cardkit.py uses the same published lazy-spawner/import-hook integration pattern, adapted here for a spring follower and independent cards. No upstream task geometry was copied.
+
+Evolis C4001 product facts and US5730319 mechanism are referenced in sources/SOURCES.json. The PDF/HTML evidence is local research material and excluded from the task-source freeze. No manufacturer image, CAD or texture is bundled into the task scene. Patent text is cited for mechanism, not asserted as fabrication geometry, calibration, ownership clearance or an identical PVC card product.
