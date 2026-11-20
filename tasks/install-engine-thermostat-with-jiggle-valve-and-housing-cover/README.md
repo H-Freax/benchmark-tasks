@@ -4,7 +4,7 @@ Install an automotive engine thermostat into a coolant housing counterbore reces
 
 ## Task Details
 
-- **Title:** Install an engine thermostat with its jiggle valve clocked to 12 o'clock, seat the perimeter gasket, and fit the housing cover
+- **Title:** Install an engine thermostat clocked to 12 o'clock, seat the perimeter gasket, and fit housing cover
 - **Category:** Impact on jobs
 - **Keywords:** `thermostat`, `engine cooling`, `jiggle valve`, `gasket`, `water neck`, `automotive service`, `bimanual`
 - **Instruction:** Take the engine thermostat from its staging tray, seat it in the coolant housing counterbore with its brass jiggle valve clocked to the 12 o'clock position, press the perimeter rubber gasket into the sealing groove, and lower the water neck housing cover flush onto the guide studs.
@@ -31,7 +31,7 @@ All items are standard, low-cost, off-the-shelf automotive components with total
 4. **0.75 (Perimeter Gasket Seated):** Molded rubber perimeter gasket is seated flush over the thermostat flange in the counterbore groove.
 5. **1.0 (Full Assembly Complete):** Water outlet housing cover is lowered over dual guide studs flush onto the gasket (<1.0 mm gap from housing deck), both grippers are released and retracted clear (>20 mm), held motionless for 1.0 s.
 
-Scoring is observable with simple real-world inspection: top-down camera photo verifies the flush seating of the housing cover over both guide studs; wrist cameras verify jiggle valve orientation and gasket seating.
+Scoring is observable with standard visual inspection: top-down camera view verifies flush seating of the water neck housing cover over both guide studs (zero daylight gap under flange); overhead and wrist cameras confirm jiggle valve angular orientation (+-15 degrees of 12 o'clock) and perimeter gasket groove seating prior to cover placement.
 
 ## Environment & Reproduction
 
