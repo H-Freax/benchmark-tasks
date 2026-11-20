@@ -157,8 +157,11 @@ kit.part(
         mk.box((0.080, 0.006, 0.045), at=(0.000, -0.037, 0.000), color=STAINLESS_BRIGHT),
         mk.box((0.006, 0.080, 0.045), at=(0.037, 0.000, 0.000), color=STAINLESS_BRIGHT),
         mk.box((0.006, 0.080, 0.045), at=(-0.037, 0.000, 0.000), color=STAINLESS_BRIGHT),
-        # Bottom drainage spout
-        mk.box((0.036, 0.036, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
+        # Bottom drainage spout nozzle walls (40 mm outer width, 32 mm inner opening, 16 mm high)
+        mk.box((0.040, 0.004, 0.016), at=(0.000, 0.018, -0.020), color=STAINLESS_BRIGHT),
+        mk.box((0.040, 0.004, 0.016), at=(0.000, -0.018, -0.020), color=STAINLESS_BRIGHT),
+        mk.box((0.004, 0.040, 0.016), at=(0.018, 0.000, -0.020), color=STAINLESS_BRIGHT),
+        mk.box((0.004, 0.040, 0.016), at=(-0.018, 0.000, -0.020), color=STAINLESS_BRIGHT),
         # Low-profile connector strut through collar notch
         mk.box((0.012, 0.045, 0.008), at=(0.000, -0.065, 0.012), color=STAINLESS_BRIGHT),
         # Elongated rectangular grip post (28 mm wide x 18 mm thick) for high-torque twist lock
@@ -166,8 +169,11 @@ kit.part(
         # Bayonet locking tabs on rim (positioned to pass detents on drop, latch on 30 deg CW twist)
         mk.box((0.012, 0.010, 0.008), at=(0.046, 0.012, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.046, -0.012, 0.018), color=STAINLESS_BRIGHT),
-        # Internal support shelf for strainer cone (54 mm shelf for 48 mm cone flange)
-        mk.box((0.054, 0.054, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
+        # Annular support shelf ring for strainer cone (54 mm outer lip, 36 mm hollow center opening)
+        mk.box((0.054, 0.009, 0.008), at=(0.000, 0.0225, -0.008), color=STAINLESS_BRIGHT),
+        mk.box((0.054, 0.009, 0.008), at=(0.000, -0.0225, -0.008), color=STAINLESS_BRIGHT),
+        mk.box((0.009, 0.036, 0.008), at=(0.0225, 0.000, -0.008), color=STAINLESS_BRIGHT),
+        mk.box((0.009, 0.036, 0.008), at=(-0.0225, 0.000, -0.008), color=STAINLESS_BRIGHT),
     ],
     mass=0.045,
     contact_offset=0.0005,
