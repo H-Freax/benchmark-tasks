@@ -21,5 +21,5 @@
   "reset_notes": "Stand the driver back in its rack, back the set screw out until its point is flush with the keyway roof, pull the pulley back to the shaft end with its keyway 45 deg off the top, tap the key out and lay it on the mat.",
   "fidelity": "Rigid boxes. The pulley rides a joint (slide plus turn); its bore fit is not contact. Key in keyway: 0.05 mm, by contact. Keyseat: 0.10 mm, a 6 N press pad welded only when the key bears on the pad and drives it home. Screw: a joint whose travel is driven at 1 mm/turn; clamp force 4 N per micron run past live bearing contact of the screw point on the seated key's top face; torque 1.2 mm x force; hold 0.3 x force. 0.4 N*m is a tenth of an M6 seating torque, sized to the gripper. The hex engages a pre-authored socket joint within 0.5 mm, 4 deg, 10 deg (driver-screw collision is filtered so the tip enters the socket). The pull is a 20 N spring joint. Key 20 g, not 7 g.",
   "scores": "Dream-1 run: 0.0; demo: 1.0",
-  "media": "M-XBFDAE"
+  "media": "M-FNUQU7"
 }
