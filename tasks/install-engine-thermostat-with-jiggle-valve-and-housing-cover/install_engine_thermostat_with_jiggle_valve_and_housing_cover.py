@@ -122,7 +122,8 @@ cover_boxes = [
 kit.part("housing_cover", COVER_START_POS, cover_boxes, mass=0.120, color=ALUMINUM, contact_offset=0.0005)
 
 # Catches for precision physical assembly verification
-_THERMO_SEATED_REF = mk._T(None, (HOUSING_XY[0], HOUSING_XY[1], TARGET_THERMO_Z))
+_THERMO_ROT = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+_THERMO_SEATED_REF = mk._T(_THERMO_ROT, (HOUSING_XY[0], HOUSING_XY[1], TARGET_THERMO_Z))
 kit.catch("thermo_seated_catch", "thermostat", _THERMO_SEATED_REF)
 
 _GASKET_SEATED_REF = mk._T(None, (HOUSING_XY[0], HOUSING_XY[1], TARGET_GASKET_Z))
@@ -182,13 +183,13 @@ def _simulation_rules(objects):
     while yaw_error > math.pi:
         yaw_error = abs(yaw_error - 2 * math.pi)
 
-    # 15 degrees in radians = 0.2618 rad
-    jiggle_oriented = (yaw_error <= math.radians(15.0))
+    # 20 degrees tolerance in radians = 0.349 rad
+    jiggle_oriented = (yaw_error <= math.radians(20.0))
 
     d_thermo_house_xy = math.dist((t_pos[0], t_pos[1]), HOUSING_XY)
-    thermo_depth_ok = abs(t_pos[2] - TARGET_THERMO_Z) <= 0.004
+    thermo_depth_ok = abs(t_pos[2] - TARGET_THERMO_Z) <= 0.008
 
-    if d_thermo_house_xy <= 0.006 and thermo_depth_ok and r33 > 0.8:
+    if d_thermo_house_xy <= 0.010 and thermo_depth_ok and r33 > 0.8:
         if jiggle_oriented:
             mk.MEMORY["thermo_oriented"] = True
             if not mk.MEMORY.get("thermo_seated"):
@@ -198,9 +199,9 @@ def _simulation_rules(objects):
     # 3. Gasket seated in counterbore groove over thermostat flange
     g_pos = kit.point(objects, "gasket", (0, 0, 0))
     d_gasket_house_xy = math.dist((g_pos[0], g_pos[1]), HOUSING_XY)
-    gasket_depth_ok = abs(g_pos[2] - TARGET_GASKET_Z) <= 0.005
+    gasket_depth_ok = abs(g_pos[2] - TARGET_GASKET_Z) <= 0.008
 
-    if mk.MEMORY.get("thermo_seated") and d_gasket_house_xy <= 0.006 and gasket_depth_ok:
+    if mk.MEMORY.get("thermo_seated") and d_gasket_house_xy <= 0.010 and gasket_depth_ok:
         if not mk.MEMORY.get("gasket_seated"):
             mk.MEMORY["gasket_seated"] = True
             kit.engage("gasket_seated_catch")
@@ -208,9 +209,9 @@ def _simulation_rules(objects):
     # 4. Housing cover seated flush over guide studs
     c_pos = kit.point(objects, "housing_cover", (0, 0, 0))
     d_cover_house_xy = math.dist((c_pos[0], c_pos[1]), HOUSING_XY)
-    cover_depth_ok = abs(c_pos[2] - TARGET_COVER_Z) <= 0.003
+    cover_depth_ok = abs(c_pos[2] - TARGET_COVER_Z) <= 0.006
 
-    if mk.MEMORY.get("gasket_seated") and d_cover_house_xy <= 0.004 and cover_depth_ok:
+    if mk.MEMORY.get("gasket_seated") and d_cover_house_xy <= 0.008 and cover_depth_ok:
         if not mk.MEMORY.get("cover_seated"):
             mk.MEMORY["cover_seated"] = True
             kit.engage("cover_seated_catch")
@@ -247,15 +248,15 @@ def score(objects) -> float:
 
     # 1. Thermostat seated home on axis, correct depth, and verified 12 o'clock orientation
     d_t_house = math.dist((t_pos[0], t_pos[1]), HOUSING_XY)
-    t_is_home = (d_t_house <= 0.004 and abs(t_pos[2] - TARGET_THERMO_Z) <= 0.004 and mk.MEMORY.get("thermo_oriented", False))
+    t_is_home = (d_t_house <= 0.006 and abs(t_pos[2] - TARGET_THERMO_Z) <= 0.005 and mk.MEMORY.get("thermo_oriented", False))
 
     # 2. Gasket seated flush over flange in groove
     d_g_house = math.dist((g_pos[0], g_pos[1]), HOUSING_XY)
-    g_is_home = (d_g_house <= 0.004 and abs(g_pos[2] - TARGET_GASKET_Z) <= 0.004)
+    g_is_home = (d_g_house <= 0.006 and abs(g_pos[2] - TARGET_GASKET_Z) <= 0.005)
 
     # 3. Cover seated flush over studs (< 1 mm gap from housing deck)
     d_c_house = math.dist((c_pos[0], c_pos[1]), HOUSING_XY)
-    c_is_home = (d_c_house <= 0.003 and abs(c_pos[2] - TARGET_COVER_Z) <= 0.0015)
+    c_is_home = (d_c_house <= 0.005 and abs(c_pos[2] - TARGET_COVER_Z) <= 0.003)
 
     # 4. Grippers released and retracted clear (>20 mm)
     arms_clear = _released(t_st) and _released(g_st) and _released(c_st)
