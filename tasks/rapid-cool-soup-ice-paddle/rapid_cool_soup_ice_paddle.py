@@ -1,10 +1,10 @@
 """Submerge an ice cooling paddle into a commercial stockpot of hot soup, agitate to chill, and hang the paddle on the rim bracket.
 
 On the commercial kitchen prep counter stands an 8 qt heavy-gauge stainless steel stockpot (Vollrath / Winco style:
-220 mm outer diameter, 204 mm inner diameter, 90 mm tall, 2.4 kg) sitting on the counter at (0.260, 0.080).
-The stockpot contains hot broth simulant (liquid depth 45 mm, surface at Z = 0.7985 m, 39 mm headspace to the rim).
+220 mm outer diameter, 204 mm inner diameter, 80 mm tall, 2.4 kg) sitting on the counter at (0.260, 0.080).
+The stockpot contains hot broth simulant (liquid depth 40 mm, surface at Z = 0.7935 m, 34 mm headspace to the rim).
 The front-left rim of the pot features a welded stainless paddle hanging bracket with a horizontal resting saddle
-at (0.240, 0.170, Z = 0.8375 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.045, Z = 0.7975 m).
+at (0.240, 0.170, Z = 0.8275 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.045, Z = 0.7925 m).
 To the robot's left stands a sanitary stainless paddle stand (100 x 100 x 30 mm, 500 g) at (0.220, 0.220) holding an upright
 commercial rapid cooling paddle (San Jamar Rapi-Kool style: 120 g hollow HDPE shell, 65 mm finned cooling blade, 18 mm collar with
 radial hanging hook extending 25 mm, and 45 mm cylindrical grip handle).
@@ -64,25 +64,25 @@ POT_XY = (0.260, 0.080)
 POT_OUTER_ACROSS = 0.220          # 220 mm flat-to-flat outer diameter
 POT_INNER_ACROSS = 0.204          # 204 mm inner diameter (8 mm wall thickness)
 POT_WALL_THICK = 0.008
-POT_TOTAL_H = 0.090               # 90 mm exterior pot height
+POT_TOTAL_H = 0.080               # 80 mm exterior pot height
 POT_FLOOR_H = 0.006               # 6 mm thick bottom slab
 POT_FLOOR_Z = TOP + POT_FLOOR_H   # Z = 0.7535 m
-POT_RIM_Z = TOP + POT_TOTAL_H     # Z = 0.8375 m
+POT_RIM_Z = TOP + POT_TOTAL_H     # Z = 0.8275 m
 POT_KG = 2.40                     # 2.4 kg pot + soup mass
 
 # Hot broth simulant inside pot
-BROTH_DEPTH = 0.045               # 45 mm broth depth
-BROTH_SURFACE_Z = POT_FLOOR_Z + BROTH_DEPTH  # Z = 0.7985 m
-BROTH_HEADSPACE = POT_RIM_Z - BROTH_SURFACE_Z  # 39.0 mm clear headspace to rim
+BROTH_DEPTH = 0.040               # 40 mm broth depth
+BROTH_SURFACE_Z = POT_FLOOR_Z + BROTH_DEPTH  # Z = 0.7935 m
+BROTH_HEADSPACE = POT_RIM_Z - BROTH_SURFACE_Z  # 34.0 mm clear headspace to rim
 
 # Stockpot rim hanging bracket (welded at front-left rim: X=0.240, Y=0.170)
 BRACKET_XY = (0.240, 0.170)
-BRACKET_SEAT_Z = POT_RIM_Z        # Z = 0.8375 m
+BRACKET_SEAT_Z = POT_RIM_Z        # Z = 0.8275 m
 BRACKET_SIZE = (0.024, 0.016, 0.012)
 
 # Stockpot right loop handle (welded at right side: X=0.260, Y=-0.045)
 POT_HANDLE_XY = (0.260, -0.045)
-POT_HANDLE_Z = TOP + 0.050        # Z = 0.7975 m
+POT_HANDLE_Z = TOP + 0.045        # Z = 0.7925 m
 
 # Paddle sanitary stand (weighted stainless cradle with vertical socket)
 STAND_XY = (0.220, 0.220)
@@ -185,7 +185,7 @@ def _pot_boxes() -> list[mk.BoxSpec]:
         mk.box(BRACKET_SIZE, at=(b_dx, b_dy, POT_TOTAL_H - BRACKET_SIZE[2] / 2), color=STAINLESS),
         mk.box((0.008, 0.018, 0.005), at=(b_dx - 0.006, b_dy, POT_TOTAL_H + 0.0025), color=DARK_STAINLESS),
         # Welded right tubular loop handle
-        mk.box((0.020, 0.012, 0.040), at=(h_dx, h_dy, 0.048), color=DARK_STAINLESS),
+        mk.box((0.020, 0.012, 0.040), at=(h_dx, h_dy, 0.045), color=DARK_STAINLESS),
         # Broth liquid visual simulant interior block
         *_oct_solid(POT_INNER_ACROSS - 0.006, POT_FLOOR_H, BROTH_DEPTH, color=BROTH_GOLD),
     ]
@@ -500,9 +500,9 @@ def demo():
     bx, by = BRACKET_XY
 
     pad_grasp_z = PADDLE_START_POS[2] + PADDLE_GRIP_Z_LOCAL
-    pad_carry_z = pad_grasp_z + 0.035
-    pad_submerge_z = (BROTH_SURFACE_Z - 0.028) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
-    pad_drain_z = (BROTH_SURFACE_Z + 0.006) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
+    pad_carry_z = 0.950
+    pad_submerge_z = (BROTH_SURFACE_Z - 0.025) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
+    pad_drain_z = (BROTH_SURFACE_Z + 0.008) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
     bracket_seat_z = (BRACKET_SEAT_Z + 0.004) + PADDLE_GRIP_Z_LOCAL
 
     yaw_grip = 0.0
@@ -547,7 +547,7 @@ def demo():
         add("left", 1.2, (px, py, pad_drain_z), HANDLE_PINCH, "drain broth dwell", yaw_grip)
 
     # Move paddle towards rim hanging bracket
-    bracket_approach_z = bracket_seat_z + 0.030
+    bracket_approach_z = bracket_seat_z + 0.035
 
     add("left", 1.2, (bx, by - 0.015, bracket_approach_z), HANDLE_PINCH, "approach rim bracket", yaw_grip)
     add("left", 0.8, (bx, by - 0.015, bracket_seat_z), HANDLE_PINCH, "lower hook onto bracket", yaw_grip)
@@ -598,20 +598,20 @@ def self_test() -> int:
 
     s_init = _build_state()
     s_lifted = _build_state(paddle_pos=(STAND_XY[0], STAND_XY[1], PADDLE_START_POS[2] + 0.035))
-    s_submerged = _build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z - 0.028) + PADDLE_BLADE_L))
-    s_drained = _build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z + 0.006) + PADDLE_BLADE_L))
+    s_submerged = _build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z - 0.025) + PADDLE_BLADE_L))
+    s_drained = _build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z + 0.008) + PADDLE_BLADE_L))
     s_hung = _build_state(paddle_pos=(BRACKET_XY[0], BRACKET_XY[1] - 0.015, BRACKET_SEAT_Z + 0.004))
 
     stir_steps = []
     R = 0.030
-    sub_z = (BROTH_SURFACE_Z - 0.028) + PADDLE_BLADE_L
+    sub_z = (BROTH_SURFACE_Z - 0.025) + PADDLE_BLADE_L
     for rev in range(5):
         for angle_deg in [0, 90, 180, 270]:
             th = math.radians(angle_deg)
             stir_steps.append(_build_state(paddle_pos=(POT_XY[0] + R * math.cos(th), POT_XY[1] + R * math.sin(th), sub_z)))
     stir_steps.append(_build_state(paddle_pos=(POT_XY[0] + R, POT_XY[1], sub_z)))
 
-    drain_steps = [_build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z + 0.006) + PADDLE_BLADE_L)) for _ in range(18)]
+    drain_steps = [_build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z + 0.008) + PADDLE_BLADE_L)) for _ in range(18)]
 
     tcps_clear = [(0.180, 0.260, 0.920), (0.180, -0.260, 0.920)]
     rboxes_clear = [
