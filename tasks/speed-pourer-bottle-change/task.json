@@ -16,6 +16,6 @@
   "run_limit": "1,200 steps (60 seconds at 20 Hz)",
   "reset_notes": "Draw the pourer out of the new bottle and seat it in the empty one, spout tip pointing away from the robot. Stand both bottles on their marks on the mat. Top the new bottle back up if any was spilt. In simulation the reset also turns each octagonal section back to its starting angle.",
   "fidelity": "Rigid boxes; round sections are octagons. The stopper's rubber fins are not deformable: their grip is a prismatic joint along the bore with 6 N Coulomb friction (0.5 mm elastic give), built with the scene; the new neck's closes once the lead is 5 mm in and in line, and centres the stopper as fins do. The fit's 6 N is a set value, not a maker's figure. The spirit is rigid mass, no slosh or spill. Glass does not break; a bottle knocked over latches 0 instead.",
-  "scores": "Dream-1 run: pending; demo: pending",
-  "media": ""
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-SXL2XG"
 }

@@ -99,9 +99,9 @@ pourer is pulled), `rest_only` (the pourer is set in the new neck and let go wit
 
 | Run | task_score |
 | --- | --- |
-| Scripted demo | pending |
-| Scripted demo, second run | pending |
-| `one_handed` | pending |
-| `rest_only` | pending |
-| `none` | pending |
-| Dream-1 | pending |
+| Scripted demo (run 1, 942 steps) | 1.0 |
+| Scripted demo (run 2, 942 steps) | 1.0 |
+| `one_handed` (unheld empty bottle, 1,001 steps) | 0.0 |
+| `rest_only` (shallow resting, 1,001 steps) | 0.5 |
+| `none` (zero policy actions, 61 steps) | 0.0 |
+| Dream-1 (1,200 steps) | 0.0 |
