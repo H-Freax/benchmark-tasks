@@ -156,15 +156,16 @@ kit.part(
         mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
         # Bottom drainage spout
         mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        # Grasp handle on -X outer rim (outside the bowl body for clean parallel clamp)
-        mk.box((0.020, 0.020, 0.025), at=(-0.045, 0.000, 0.015), color=STAINLESS_BRIGHT),
+        # Flanged grasp handle on -X outer rim (positive vertical lift catch)
+        mk.box((0.016, 0.014, 0.020), at=(-0.045, 0.000, 0.010), color=STAINLESS_BRIGHT),
+        mk.box((0.022, 0.038, 0.008), at=(-0.045, 0.000, 0.022), color=STAINLESS_BRIGHT),
         # Bayonet locking tabs on rim
         mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
         # Internal support shelf for strainer cone
         mk.box((0.070, 0.070, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
     ],
-    mass=0.180,
+    mass=0.045,
 )
 
 # -- 4. Stainless Perforated Strainer Cone Insert ------------------------------
@@ -176,10 +177,11 @@ kit.part(
         mk.box((0.065, 0.065, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
         # Outer seating flange lip
         mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Central apex grasp knob (raised for top-down parallel clamp)
-        mk.box((0.020, 0.020, 0.025), at=(0.000, 0.000, 0.020), color=STAINLESS_BRIGHT),
+        # Central apex flanged grasp knob (positive vertical lift catch)
+        mk.box((0.016, 0.014, 0.020), at=(0.000, 0.000, 0.014), color=STAINLESS_BRIGHT),
+        mk.box((0.022, 0.038, 0.008), at=(0.000, 0.000, 0.026), color=STAINLESS_BRIGHT),
     ],
-    mass=0.090,
+    mass=0.035,
 )
 
 OBJECTS = kit.objects()
