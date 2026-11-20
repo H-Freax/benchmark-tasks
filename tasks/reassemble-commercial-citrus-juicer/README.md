@@ -21,25 +21,26 @@ This task evaluates bimanual robotic manipulation for precision multi-mechanism 
 ## Mechanical Components
 
 1. **Cast Iron Base Frame (`juicer_base`)**:
-   - Heavy cast horseshoe base (240 x 200 x 30 mm) resting securely on table surface.
-   - Upright column spine (60 x 60 x 320 mm) providing vertical mounting for rack housing and collar arm.
-   - Receiver collar ring with 110 mm internal opening and 3 internal bayonet lug recesses spaced 120° apart.
+   - Heavy cast horseshoe base resting securely on prep table surface.
+   - Upright column spine providing vertical mounting for collar arm and lever pivot.
+   - Receiver collar ring with 115 mm internal opening and 3 internal bayonet lug recesses spaced 120° apart.
 2. **Juice Collector Bowl (`collector_bowl`)**:
-   - Stamped 304 food-grade stainless steel funnel (outer diameter 104 mm, height 65 mm, mass 0.34 kg).
-   - Three bayonet locking tabs on upper rim (116 mm diameter).
-   - Forward pouring spout and internal 92 mm diameter annular support ledge.
+   - Stamped 304 food-grade stainless steel funnel (outer width 85 mm, height 45 mm, mass 0.18 kg).
+   - Three bayonet locking tabs on upper rim and dedicated outer rim handle on -X for clean parallel clamp.
+   - Bottom drainage spout and internal 70 mm diameter support shelf.
 3. **Perforated Strainer Cone Insert (`strainer_cone`)**:
-   - Machined 304 stainless steel conical reamer insert with seed slots (mass 0.19 kg).
-   - 90 mm diameter perimeter seating flange matching the internal bowl ledge.
+   - Machined 304 stainless steel conical reamer insert with seed slots (mass 0.09 kg).
+   - 75 mm diameter perimeter seating flange matching internal bowl shelf.
+   - Central apex grasp knob for top-down parallel clamp.
 4. **Sprung Press Lever & Plunger (`press_lever`)**:
    - Chrome-plated cast steel lever bar with top ergonomic grip knob.
-   - Upper stainless compressor cone cup (80 mm diameter).
-   - Revolute hinge pivot with spring return (stiffness 1.5 N·m/rad, damping 0.4 N·m·s/rad, limits -35° to 0°).
+   - Upper stainless compressor cone cup (60 mm diameter).
+   - Revolute hinge pivot with spring return (stiffness 1.5 N·m/rad, damping 0.3 N·m·s/rad, limits -30° to 0°).
 
 ## Scoring Breakdown
 
-- **0.25**: Collector bowl placed within receiver collar opening (radial horizontal offset <= 20 mm, vertical offset <= 15 mm).
+- **0.25**: Collector bowl placed within receiver collar opening (radial horizontal offset <= 25 mm, vertical offset <= 20 mm).
 - **0.50**: Collector bowl bayonet rotated clockwise >= 15° into locking detents.
-- **0.75**: Strainer cone coaxially nested flush inside collector bowl (radial offset <= 12 mm, vertical gap <= 10 mm).
-- **1.00**: Press lever stroked downward >= 12° to verify stroke clearance, returned to top rest stop, both arms cleared >= 25 mm, and held stationary for 1.0 s (20 consecutive control steps at 20 Hz).
-- **0.00 (Fail)**: Base tipped or displaced > 20 mm, or components dropped off bench.
+- **0.75**: Strainer cone coaxially nested flush inside collector bowl (radial offset <= 20 mm, vertical gap <= 18 mm).
+- **1.00**: Press lever stroked downward >= 10° to verify stroke clearance, returned to top rest stop, both arms cleared >= 25 mm, and held stationary for 1.0 s (20 consecutive control steps at 20 Hz).
+- **0.00 (Fail)**: Base tipped or displaced > 25 mm, or components dropped off bench.

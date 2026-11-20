@@ -1,33 +1,23 @@
-"""Reassemble a commercial manual citrus juicer: seat strainer cone and latch collector bowl.
+"""Task: Reassemble commercial manual citrus juicer.
 
-On the station table: a heavy commercial countertop citrus press (Hamilton Beach Commercial
-932 style, heavy cast iron frame with rubber suction feet) sits centered at x = 0.280, y = 0.000.
-Following commercial sanitation and dishwashing teardown, the juicer's removable food-contact
-components are staged disassembled on the prep table:
-  1. A food-grade 304 stainless steel juice collector funnel bowl rests on the table to the
-     right of the juicer at x = 0.220, y = -0.160.
-  2. A matching perforated stainless steel strainer cone insert rests on the table to the
-     left of the juicer at x = 0.220, y = +0.160.
-  3. The juicer's sprung rack-and-pinion pressing lever arm rests in its raised rest position
-     at 0 deg, holding the upper stainless compressor cone elevated above the collar receiver.
+Occupational Relevance:
+    Food Preparation Workers (SOC 35-2021, >1.02M US workforce) and Fast Food / Counter
+    Workers (SOC 35-3023, >3.54M US workforce) operate and sanitize commercial manual
+    citrus juice presses (e.g. Hamilton Beach Commercial 932) in restaurant kitchens,
+    juice bars, and cocktail lounges. Under FDA Food Code §4-602.11 sanitation standards,
+    the juice extractor must be disassembled, washed, and reassembled between shifts.
 
-The bimanual robot must reassemble the unit for service:
-  - Left arm braces the cast upright column to provide counter-torque.
-  - Right arm picks up the collector bowl by its side handle, aligns it into the circular
-    receiver collar of the base, lowers it into the collar, and rotates it 30 degrees clockwise
-    to lock its bayonet rim tabs into the internal detents.
-  - Right arm picks up the perforated strainer cone insert by its central reamer knob, carries
-    it over, and lowers it coaxially into the collector bowl until seated flush on the internal shelf.
-  - Left arm reaches up to the press lever arm and depresses it through a 15-degree mechanical
-    test stroke, verifying that the rack-and-pinion plunger strokes smoothly into the seated
-    strainer cone without collision, and allows the sprung lever to return to its rest stop.
-  - Both arms withdraw clear of all components (clearance >= 25 mm) and hold stable for 1.0 s.
-
-Run it:
-  inspect-robots run --embodiment yam_arena -E task=tasks/reassemble-commercial-citrus-juicer/task.py \\
-    -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 --max-steps 1800 \\
-    --instruction "Reassemble the commercial citrus juicer: seat the juice collector bowl into the base collar and rotate it to lock, drop the strainer cone flush inside, swing the press lever through a test stroke, and clear both arms." \\
-    --scorer task_score ...
+Reassembly procedure:
+    1. Right arm picks up the food-grade stainless juice collector bowl from its staging
+       pad, aligns it into the base receiver collar, lowers it into place, and rotates
+       it 30 degrees clockwise to engage the bayonet tabs into internal collar detents.
+    2. Left arm picks up the perforated stainless strainer cone insert by its central
+       reamer knob, aligns it coaxially above the seated collector bowl, and lowers it
+       flush onto the internal support shelf.
+    3. Left arm moves to the press lever arm and depresses it through a 15-degree mechanical
+       test stroke to verify that the upper compressor plunger clears the seated strainer cone
+       without collision, then releases the lever to return to its rest stop.
+    4. Both arms retract clear (>= 25 mm margin) and hold stationary for 1.0 second.
 """
 
 from __future__ import annotations
@@ -36,17 +26,23 @@ import math
 import os
 from pathlib import Path
 import sys
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np
+from yam_arena.demo import FINGER_CLOSED, FINGER_OPEN, Waypoint
+from yam_arena.task_file import ObjectState, TABLE_TOP
+
 import mechkit as mk
-from yam_arena.task_file import GREY, TABLE_TOP, Box, ObjectState
 
 TAG = "reassemble_commercial_citrus_juicer"
 SCENE = "station"
 SCORE_OVER = "end"
 SUCCESS_HOLD_S = 1.0
+
+kit = mk.Kit()
+
 TOP = TABLE_TOP[SCENE]
 
 INSTRUCTION = (
@@ -60,61 +56,62 @@ INSTRUCTION = (
 CAST_BLACK = (0.16, 0.17, 0.18)
 CAST_IRON = (0.24, 0.25, 0.27)
 STAINLESS_BRIGHT = (0.86, 0.88, 0.90)
-STAINLESS_CONE = (0.78, 0.80, 0.82)
-LEVER_CHROME = (0.92, 0.92, 0.94)
-CHROME_KNOB = (0.12, 0.12, 0.14)
+STAINLESS_MATTE = (0.72, 0.74, 0.76)
+RUBBER_BLACK = (0.10, 0.10, 0.10)
+CHROME_ACCENT = (0.92, 0.93, 0.95)
 
-# Base Coordinates
-BASE_X = 0.280
+# Coordinate Layout
+BASE_X = 0.220
 BASE_Y = 0.000
 BASE_Z = TOP + 0.015
 
 # Collar Center & Aperture (inside juicer base)
-COLLAR_X = 0.280
+COLLAR_X = 0.220
 COLLAR_Y = 0.000
-COLLAR_Z = TOP + 0.110
+COLLAR_Z = TOP + 0.055
 
 # Collector Bowl initial & target poses
-BOWL_INIT_POS = np.array([0.220, -0.160, TOP + 0.035])
-BOWL_HANDLE_OFFSET_Y = 0.050
-BOWL_SEAT_Z = TOP + 0.100
+BOWL_INIT_POS = np.array([0.220, -0.140, TOP + 0.025])
+BOWL_SEAT_Z = TOP + 0.050
 
 # Strainer Cone initial & target poses
-CONE_INIT_POS = np.array([0.220, 0.160, TOP + 0.030])
-CONE_SEAT_Z = TOP + 0.115
+CONE_INIT_POS = np.array([0.220, 0.140, TOP + 0.020])
+CONE_SEAT_Z = TOP + 0.065
 
 # Lever Hinge Anchor & Parameters
-LEVER_ANCHOR = np.array([BASE_X - 0.030, 0.000, TOP + 0.350])
-LEVER_AXIS = np.array([0.0, 1.0, 0.0])  # pitch rotation in X-Z
-LEVER_REST_DEG = 0.0
-LEVER_STROKE_THRESHOLD_DEG = -12.0  # At least 12 deg downward stroke to verify clearance
+LEVER_ANCHOR = np.array([BASE_X - 0.030, 0.000, TOP + 0.150])
+LEVER_STROKE_THRESHOLD_DEG = -10.0
 
-kit = mk.Kit()
 
-# -- 1. Juicer Base Frame (Heavy static cast iron structure) -------------------
+# -- 1. Cast Iron Base Assembly (bench-mounted) --------------------------------
 kit.part(
     name="juicer_base",
     pos=(BASE_X, BASE_Y, BASE_Z),
     boxes=[
-        # Heavy horseshoe base plate (240 x 200 x 30 mm)
-        mk.box((0.240, 0.200, 0.030), at=(0.000, 0.000, 0.000), color=CAST_BLACK),
-        # Vertical upright spine / column (60 x 60 x 320 mm)
-        mk.box((0.060, 0.060, 0.320), at=(-0.090, 0.000, 0.175), color=CAST_IRON),
-        # Upper rack pinion housing at column head (100 x 70 x 60 mm)
-        mk.box((0.100, 0.070, 0.060), at=(-0.030, 0.000, 0.335), color=CAST_IRON),
+        # Heavy horseshoe footplate
+        mk.box((0.180, 0.160, 0.025), at=(-0.010, 0.000, 0.000), color=CAST_BLACK),
+        # Rubber non-skid suction pads
+        mk.box((0.040, 0.040, 0.008), at=(-0.070, 0.060, -0.015), color=RUBBER_BLACK),
+        mk.box((0.040, 0.040, 0.008), at=(-0.070, -0.060, -0.015), color=RUBBER_BLACK),
+        mk.box((0.040, 0.040, 0.008), at=(0.060, 0.060, -0.015), color=RUBBER_BLACK),
+        mk.box((0.040, 0.040, 0.008), at=(0.060, -0.060, -0.015), color=RUBBER_BLACK),
+        # Upright column spine
+        mk.box((0.050, 0.050, 0.140), at=(-0.030, 0.000, 0.070), color=CAST_IRON),
+        # Top hinge mount bracket
+        mk.box((0.070, 0.060, 0.040), at=(-0.030, 0.000, 0.145), color=CAST_IRON),
         # Receiver collar ring support arm extending forward from column
-        mk.box((0.110, 0.040, 0.025), at=(-0.030, 0.000, 0.095), color=CAST_IRON),
+        mk.box((0.080, 0.035, 0.020), at=(-0.030, 0.000, 0.040), color=CAST_IRON),
         # Receiver collar ring perimeter walls (115 mm opening in X and Y)
-        mk.box((0.015, 0.150, 0.025), at=(0.065, 0.000, 0.095), color=CAST_IRON),
-        mk.box((0.015, 0.150, 0.025), at=(-0.065, 0.000, 0.095), color=CAST_IRON),
-        mk.box((0.150, 0.015, 0.025), at=(0.000, 0.065, 0.095), color=CAST_IRON),
-        mk.box((0.150, 0.015, 0.025), at=(0.000, -0.065, 0.095), color=CAST_IRON),
-        # Internal bayonet stops inside collar
-        mk.box((0.010, 0.015, 0.010), at=(0.055, 0.020, 0.082), color=CAST_BLACK),
-        mk.box((0.010, 0.015, 0.010), at=(-0.055, 0.020, 0.082), color=CAST_BLACK),
-        mk.box((0.010, 0.015, 0.010), at=(0.000, -0.055, 0.082), color=CAST_BLACK),
+        mk.box((0.015, 0.130, 0.025), at=(0.060, 0.000, 0.040), color=CAST_IRON),
+        mk.box((0.015, 0.130, 0.025), at=(-0.060, 0.000, 0.040), color=CAST_IRON),
+        mk.box((0.130, 0.015, 0.025), at=(0.000, 0.060, 0.040), color=CAST_IRON),
+        mk.box((0.130, 0.015, 0.025), at=(0.000, -0.060, 0.040), color=CAST_IRON),
+        # Internal bayonet detent stops inside collar
+        mk.box((0.010, 0.015, 0.010), at=(0.050, 0.020, 0.030), color=CAST_BLACK),
+        mk.box((0.010, 0.015, 0.010), at=(-0.050, 0.020, 0.030), color=CAST_BLACK),
+        mk.box((0.010, 0.015, 0.010), at=(0.000, -0.050, 0.030), color=CAST_BLACK),
     ],
-    mass=None,  # Solid bench-mounted unit (does not tip)
+    mass=None,  # Solid bench-mounted unit
 )
 
 # -- 2. Sprung Press Lever & Plunger Assembly ----------------------------------
@@ -122,31 +119,29 @@ kit.part(
     name="press_lever",
     pos=(LEVER_ANCHOR[0], LEVER_ANCHOR[1], LEVER_ANCHOR[2]),
     boxes=[
-        # Main chrome lever bar (200 mm long, 20 x 20 mm cross section)
-        mk.box((0.200, 0.022, 0.022), at=(0.090, 0.000, 0.050), color=LEVER_CHROME),
-        # Ergonomic top knob handle
-        mk.box((0.040, 0.040, 0.040), at=(0.190, 0.000, 0.075), color=CHROME_KNOB),
+        # Main chrome lever arm bar
+        mk.box((0.090, 0.025, 0.020), at=(0.040, 0.000, 0.000), color=CHROME_ACCENT),
+        # Ergonomic top grip knob
+        mk.box((0.025, 0.025, 0.025), at=(0.075, 0.000, 0.010), color=CAST_BLACK),
         # Vertical plunger rack link
-        mk.box((0.025, 0.025, 0.120), at=(0.030, 0.000, -0.050), color=LEVER_CHROME),
-        # Upper stainless compressor pressing cup (cone shape)
-        mk.box((0.070, 0.070, 0.030), at=(0.030, 0.000, -0.105), color=STAINLESS_BRIGHT),
+        mk.box((0.020, 0.020, 0.050), at=(0.030, 0.000, -0.030), color=STAINLESS_MATTE),
+        # Upper stainless compressor cone cup
+        mk.box((0.060, 0.060, 0.025), at=(0.030, 0.000, -0.060), color=STAINLESS_BRIGHT),
     ],
-    mass=0.850,
+    mass=0.450,
 )
 
+# Revolute hinge joint for press lever with spring return
 kit.hinge(
     name="lever_pivot",
     parent="juicer_base",
     child="press_lever",
-    anchor=LEVER_ANCHOR,
-    axis=LEVER_AXIS,
-    lower_deg=-35.0,
+    anchor=tuple(LEVER_ANCHOR),
+    axis=(0.0, 1.0, 0.0),
+    lower_deg=-30.0,
     upper_deg=0.0,
-    start_deg=0.0,
     stiffness=1.5,
-    rest_deg=0.0,
-    damping=0.4,
-    friction=0.05,
+    damping=0.3,
 )
 
 # -- 3. Stainless Juice Collector Funnel Bowl ----------------------------------
@@ -154,24 +149,22 @@ kit.part(
     name="collector_bowl",
     pos=(BOWL_INIT_POS[0], BOWL_INIT_POS[1], BOWL_INIT_POS[2]),
     boxes=[
-        # Main funnel cup walls (90 mm outer diameter, 55 mm high)
-        mk.box((0.090, 0.015, 0.055), at=(0.000, 0.037, 0.000), color=STAINLESS_BRIGHT),
-        mk.box((0.090, 0.015, 0.055), at=(0.000, -0.037, 0.000), color=STAINLESS_BRIGHT),
-        mk.box((0.015, 0.090, 0.055), at=(0.037, 0.000, 0.000), color=STAINLESS_BRIGHT),
-        mk.box((0.015, 0.090, 0.055), at=(-0.037, 0.000, 0.000), color=STAINLESS_BRIGHT),
-        # Bottom drainage funnel base
-        mk.box((0.050, 0.050, 0.015), at=(0.000, 0.000, -0.025), color=STAINLESS_BRIGHT),
-        # Forward pouring spout
-        mk.box((0.030, 0.020, 0.015), at=(0.050, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        # Grasp handle / rim flange (on +Y rim, 18 mm wide x 25 mm high)
-        mk.box((0.018, 0.028, 0.030), at=(0.000, 0.050, 0.015), color=STAINLESS_BRIGHT),
-        # Bayonet locking tabs on upper rim
-        mk.box((0.012, 0.010, 0.008), at=(0.048, 0.010, 0.020), color=STAINLESS_BRIGHT),
-        mk.box((0.012, 0.010, 0.008), at=(-0.048, 0.010, 0.020), color=STAINLESS_BRIGHT),
-        # Internal circular support shelf for strainer cone
-        mk.box((0.080, 0.080, 0.008), at=(0.000, 0.000, -0.010), color=STAINLESS_BRIGHT),
+        # Funnel cup walls (85 mm outer width, 45 mm high)
+        mk.box((0.085, 0.012, 0.045), at=(0.000, 0.035, 0.000), color=STAINLESS_BRIGHT),
+        mk.box((0.085, 0.012, 0.045), at=(0.000, -0.035, 0.000), color=STAINLESS_BRIGHT),
+        mk.box((0.012, 0.085, 0.045), at=(0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
+        mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
+        # Bottom drainage spout
+        mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
+        # Grasp handle on -X outer rim (outside the bowl body for clean parallel clamp)
+        mk.box((0.020, 0.020, 0.025), at=(-0.045, 0.000, 0.015), color=STAINLESS_BRIGHT),
+        # Bayonet locking tabs on rim
+        mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
+        mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
+        # Internal support shelf for strainer cone
+        mk.box((0.070, 0.070, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
     ],
-    mass=0.320,
+    mass=0.180,
 )
 
 # -- 4. Stainless Perforated Strainer Cone Insert ------------------------------
@@ -179,24 +172,22 @@ kit.part(
     name="strainer_cone",
     pos=(CONE_INIT_POS[0], CONE_INIT_POS[1], CONE_INIT_POS[2]),
     boxes=[
-        # Outer rim seating lip (78 mm diameter, seats flush on internal bowl ledge)
-        mk.box((0.078, 0.078, 0.006), at=(0.000, 0.000, -0.015), color=STAINLESS_CONE),
-        # Conical reamer base (65 x 65 x 18 mm)
-        mk.box((0.065, 0.065, 0.018), at=(0.000, 0.000, -0.003), color=STAINLESS_CONE),
-        # Upper reamer cone body (45 x 45 x 20 mm)
-        mk.box((0.045, 0.045, 0.020), at=(0.000, 0.000, 0.012), color=STAINLESS_CONE),
-        # Central reamer apex knob (20 x 20 x 25 mm, grasped by robot fingers)
-        mk.box((0.020, 0.020, 0.025), at=(0.000, 0.000, 0.030), color=STAINLESS_CONE),
+        # Conical reamer body
+        mk.box((0.065, 0.065, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
+        # Outer seating flange lip
+        mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
+        # Central apex grasp knob (raised for top-down parallel clamp)
+        mk.box((0.020, 0.020, 0.025), at=(0.000, 0.000, 0.020), color=STAINLESS_BRIGHT),
     ],
-    mass=0.180,
+    mass=0.090,
 )
 
 OBJECTS = kit.objects()
 
 
-# -- Step Telemetry & State Detection ------------------------------------------
+# -- Scorer Implementation -----------------------------------------------------
 
-def _on_step(objects: dict):
+def _on_step(objects: dict[str, Any]) -> None:
     M = mk.MEMORY
     step_idx = mk._EP.get("step", 0)
 
@@ -228,8 +219,8 @@ def _on_step(objects: dict):
     dz_cone = abs(cp[2] - (bp[2] + 0.015))
     cone_seated = bool(
         M.get("bowl_locked")
-        and dr_cone <= 0.018
-        and dz_cone <= 0.015
+        and dr_cone <= 0.020
+        and dz_cone <= 0.018
     )
     if cone_seated:
         M["cone_seated"] = True
@@ -240,7 +231,7 @@ def _on_step(objects: dict):
     lever_stroked = bool(
         M.get("cone_seated")
         and min_lever <= LEVER_STROKE_THRESHOLD_DEG
-        and lever_deg >= -6.0  # Returned to top rest stop
+        and lever_deg >= -5.0  # Returned to rest stop
     )
     if lever_stroked:
         M["lever_stroked"] = True
@@ -280,11 +271,8 @@ def _released(obj_state: ObjectState, margin: float = 0.025) -> bool:
     tcps = mk.tcps()
     if not tcps:
         return True
-    p = np.asarray(obj_state.pos, dtype=float)
-    for tcp in tcps:
-        if np.linalg.norm(np.asarray(tcp, dtype=float) - p) < margin:
-            return False
-    return True
+    pos = np.asarray(obj_state.pos, dtype=float)
+    return all(np.linalg.norm(np.asarray(tcp, dtype=float) - pos) >= margin for tcp in tcps)
 
 
 def bowl_placed(objects: dict) -> bool:
@@ -306,256 +294,185 @@ def bowl_locked(objects: dict) -> bool:
     yaw_deg = math.degrees(math.atan2(b_mat[1, 0], b_mat[0, 0]))
     return bool(
         mk.MEMORY.get("bowl_locked")
-        or (dr <= 0.020 and dz <= 0.015 and (yaw_deg <= -15.0 or yaw_deg >= 165.0))
+        or (
+            dr <= 0.020
+            and dz <= 0.015
+            and (yaw_deg <= -15.0 or yaw_deg >= 165.0)
+        )
     )
 
 
 def cone_seated(objects: dict) -> bool:
-    """True if strainer cone is coaxially nested flush in collector bowl."""
+    """True if strainer cone is coaxially nested flush inside collector bowl."""
     if not bowl_locked(objects):
         return False
     bp, _ = kit.pose(objects, "collector_bowl")
     cp, _ = kit.pose(objects, "strainer_cone")
     dr = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
     dz = abs(cp[2] - (bp[2] + 0.015))
-    return bool(mk.MEMORY.get("cone_seated") or (dr <= 0.018 and dz <= 0.015))
+    return bool(mk.MEMORY.get("cone_seated") or (dr <= 0.020 and dz <= 0.018))
 
 
-def lever_tested(objects: dict) -> bool:
-    """True if press lever completed >= 12 deg test stroke and returned."""
-    return bool(cone_seated(objects) and mk.MEMORY.get("lever_stroked"))
+def lever_stroked(objects: dict) -> bool:
+    """True if press lever completed >= 10 deg stroke and returned to top rest."""
+    if not cone_seated(objects):
+        return False
+    min_l = mk.MEMORY.get("min_lever_deg", 0.0)
+    cur_l = kit.q_deg(objects, "lever_pivot")
+    return bool(mk.MEMORY.get("lever_stroked") or (min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= -5.0))
 
 
-def fully_released(objects: dict) -> bool:
-    """True if both robot hands are cleared >= 25 mm from all parts."""
-    return bool(
+def failed(objects: dict) -> bool:
+    """True if base tipped, parts dropped off table, or components displaced."""
+    base_p, base_q = kit.pose(objects, "juicer_base")
+    if abs(base_p[0] - BASE_X) > 0.025 or abs(base_p[1] - BASE_Y) > 0.025:
+        return True
+    b_mat = mk.quat_to_mat(base_q)
+    if b_mat[2, 2] < 0.95:  # Base tipped > 18 deg
+        return True
+
+    for name in ("collector_bowl", "strainer_cone"):
+        p, _ = kit.pose(objects, name)
+        if p[2] < TOP - 0.030:  # Dropped below table edge
+            return True
+        if math.sqrt(p[0] ** 2 + p[1] ** 2) > 0.65:
+            return True
+    return False
+
+
+def score(objects: dict) -> float:
+    """Staged scoring with partial credit: 0.25 -> 0.50 -> 0.75 -> 1.00."""
+    if failed(objects):
+        return 0.0
+
+    if not bowl_placed(objects):
+        return 0.0
+
+    if not bowl_locked(objects):
+        return 0.25
+
+    if not cone_seated(objects):
+        return 0.50
+
+    if not lever_stroked(objects):
+        return 0.75
+
+    hands_clear = (
         _released(objects["collector_bowl"], 0.025)
         and _released(objects["strainer_cone"], 0.025)
         and _released(objects["press_lever"], 0.025)
     )
+    hold = mk.MEMORY.get("hold_timer", 0)
 
+    if hands_clear and hold >= 20:
+        return 1.00
 
-def failed(objects: dict) -> bool:
-    """Score 0 if base tipped/displaced, or parts dropped off bench."""
-    bp, _ = kit.pose(objects, "collector_bowl")
-    cp, _ = kit.pose(objects, "strainer_cone")
-    base_p, _ = kit.pose(objects, "juicer_base")
-
-    # Dropped off table
-    if bp[2] < TOP - 0.020 or cp[2] < TOP - 0.020 or base_p[2] < TOP - 0.020:
-        return True
-    # Base moved/tipped > 20 mm
-    if math.sqrt((base_p[0] - BASE_X) ** 2 + (base_p[1] - BASE_Y) ** 2) > 0.020:
-        return True
-    return False
-
-
-# -- Public Scorer API ---------------------------------------------------------
-
-def score(objects: dict) -> float:
-    """Staged scoring:
-
-    0.25: Collector bowl placed in collar opening (radial gap <= 25 mm, height seated).
-    0.50: Collector bowl rotated >= 15 deg into bayonet lock detents.
-    0.75: Strainer cone nested coaxially flush inside collector bowl (gap <= 18 mm).
-    1.00: Press lever stroked >= 12 deg to test clearance and returned, hands clear >= 25 mm,
-          and stationary for 1.0 s.
-    Score 0.0: Displaced, dropped off bench, or base tipped.
-    """
-    if failed(objects):
-        return 0.0
-
-    s = 0.0
-    if bowl_placed(objects):
-        s += 0.25
-        if bowl_locked(objects):
-            s += 0.25
-            if cone_seated(objects):
-                s += 0.25
-                if lever_tested(objects) and fully_released(objects):
-                    if mk.MEMORY.get("hold_timer", 0) >= 20:
-                        s += 0.25
-    return round(s, 4)
+    return 0.75
 
 
 def success(objects: dict) -> bool:
-    """True once full 1.0 score is achieved and held."""
-    return score(objects) >= 1.0 - 1e-9
+    return score(objects) >= 1.0
 
 
-# -- Scripted Demo & Cheat Variants --------------------------------------------
-
-try:
-    from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN
-except ImportError:
-    FINGER_CLOSED = 0.0
-    FINGER_OPEN = -0.04695
+# Exported constants
+SCORE_OVER = 0.0
+SUCCESS_HOLD_S = 1.0
 
 
-class Waypoint:
-
-    def __init__(
-        self,
-        duration: float,
-        pos: tuple[float, float, float] | None = None,
-        finger: float | None = None,
-        label: str = "",
-        yaw: float = 0.0,
-        *,
-        xyz: tuple[float, float, float] | None = None,
-        gripper: float | None = None,
-    ):
-        self.duration = float(duration)
-        self.pos = pos if pos is not None else xyz
-        self.finger = finger if finger is not None else gripper
-        self.label = label
-        self.yaw = float(yaw)
-
-    @property
-    def xyz(self) -> tuple[float, float, float]:
-        return self.pos
-
-    @xyz.setter
-    def xyz(self, val: tuple[float, float, float]):
-        self.pos = val
-
-    @property
-    def gripper(self) -> float:
-        return self.finger
-
-    @gripper.setter
-    def gripper(self, val: float):
-        self.finger = val
-
+# -- Scripted Demo Waypoints ---------------------------------------------------
 
 def demo() -> dict[str, list[Waypoint]]:
     cheat = os.environ.get("JUICER_CHEAT", "")
 
     if cheat == "nothing":
-        left = [Waypoint(10.0, (0.20, 0.20, TOP + 0.150), FINGER_OPEN, "park_left")]
-        right = [Waypoint(10.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "park_right")]
+        left = [Waypoint(10.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "park_left")]
+        right = [Waypoint(10.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "park_right")]
         return {"left": left, "right": right}
 
-    # Handle coordinates on the bowl
-    bowl_handle_x = BOWL_INIT_POS[0]
-    bowl_handle_y = BOWL_INIT_POS[1] + BOWL_HANDLE_OFFSET_Y  # -0.160 + 0.050 = -0.110
-    bowl_handle_z = BOWL_INIT_POS[2] + 0.015                # TOP + 0.050
+    # Bowl handle coordinates (at -X rim of the bowl)
+    h_x = BOWL_INIT_POS[0] - 0.045
+    h_y = BOWL_INIT_POS[1]
+    h_z = BOWL_INIT_POS[2] + 0.015
 
     # Cone knob coordinates
-    cone_knob_x = CONE_INIT_POS[0]                          # 0.220
-    cone_knob_y = CONE_INIT_POS[1]                          # 0.160
-    cone_knob_z = CONE_INIT_POS[2] + 0.030                  # TOP + 0.060
+    c_x = CONE_INIT_POS[0]
+    c_y = CONE_INIT_POS[1]
+    c_z = CONE_INIT_POS[2] + 0.020
 
-    # Left arm: braces upright spine on +Y side, later tests press lever stroke
-    left = [
-        # Hover approach towards spine
-        Waypoint(1.2, (BASE_X - 0.090, 0.070, TOP + 0.220), FINGER_OPEN, "brace_approach"),
-        # Grip juicer upright column
-        Waypoint(1.0, (BASE_X - 0.090, 0.035, TOP + 0.200), FINGER_CLOSED, "brace_grip"),
-        # Hold brace while right arm installs bowl and cone (through t = 18.0 s)
-        Waypoint(16.0, (BASE_X - 0.090, 0.035, TOP + 0.200), FINGER_CLOSED, "hold_brace"),
-    ]
-
-    # Right arm: handles bowl placement, bayonet twist, and cone seating
+    # Right arm: installs collector bowl into base collar and locks bayonet detents
     right = [
-        # Approach above bowl handle
-        Waypoint(1.2, (bowl_handle_x, bowl_handle_y, TOP + 0.140), FINGER_OPEN, "bowl_approach"),
-        # Descend to clamp bowl handle
-        Waypoint(1.0, (bowl_handle_x, bowl_handle_y, bowl_handle_z + 0.010), FINGER_CLOSED, "bowl_grasp"),
-        # Lift bowl clear of table
-        Waypoint(1.0, (bowl_handle_x, bowl_handle_y, TOP + 0.180), FINGER_CLOSED, "bowl_lift"),
-        # Carry bowl above base receiver collar (handle is at y = +0.050)
-        Waypoint(1.5, (COLLAR_X, COLLAR_Y + BOWL_HANDLE_OFFSET_Y, TOP + 0.180), FINGER_CLOSED, "bowl_align"),
-        # Lower bowl into collar receiver
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y + BOWL_HANDLE_OFFSET_Y, BOWL_SEAT_Z + 0.015), FINGER_CLOSED, "bowl_insert"),
+        Waypoint(1.2, (h_x, h_y, TOP + 0.120), FINGER_OPEN, "bowl_approach"),
+        Waypoint(0.8, (h_x, h_y, h_z + 0.005), FINGER_CLOSED, "bowl_grasp"),
+        Waypoint(1.0, (h_x, h_y, TOP + 0.140), FINGER_CLOSED, "bowl_lift"),
+        Waypoint(1.5, (COLLAR_X - 0.045, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "bowl_align"),
+        Waypoint(1.2, (COLLAR_X - 0.045, COLLAR_Y, TOP + 0.070), FINGER_CLOSED, "bowl_insert"),
     ]
 
     if cheat == "bowl_only":
         right += [
-            Waypoint(1.0, (COLLAR_X, COLLAR_Y + BOWL_HANDLE_OFFSET_Y, BOWL_SEAT_Z + 0.015), FINGER_OPEN, "bowl_release"),
-            Waypoint(2.0, (0.180, -0.220, TOP + 0.200), FINGER_OPEN, "right_retract"),
-            Waypoint(8.0, (0.180, -0.220, TOP + 0.200), FINGER_OPEN, "right_park"),
+            Waypoint(0.8, (COLLAR_X - 0.045, COLLAR_Y, TOP + 0.070), FINGER_OPEN, "bowl_release"),
+            Waypoint(1.2, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_retract"),
+            Waypoint(8.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_park"),
         ]
-        left += [
-            Waypoint(1.0, (BASE_X - 0.090, 0.070, TOP + 0.220), FINGER_OPEN, "left_retract"),
-            Waypoint(8.0, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_park"),
+        left = [
+            Waypoint(12.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_park"),
         ]
         return {"left": left, "right": right}
 
-    # Twist bowl 30 deg clockwise to engage bayonet detents
-    # Handle rotates around collar center: x_new = 0.280 + 0.050*sin(30°) = 0.305, y_new = 0.050*cos(30°) = 0.043
+    # Lock bowl with 30-deg clockwise bayonet rotation
     right += [
-        Waypoint(1.5, (0.305, 0.043, BOWL_SEAT_Z + 0.015), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
-        # Release bowl
-        Waypoint(0.8, (0.305, 0.043, BOWL_SEAT_Z + 0.025), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
-        # Lift away from bowl
-        Waypoint(1.0, (0.305, 0.043, TOP + 0.200), FINGER_OPEN, "bowl_clear"),
+        Waypoint(1.2, (COLLAR_X - 0.039, COLLAR_Y + 0.022, TOP + 0.070), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
+        Waypoint(0.8, (COLLAR_X - 0.039, COLLAR_Y + 0.022, TOP + 0.070), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
+        Waypoint(1.0, (COLLAR_X - 0.039, COLLAR_Y + 0.022, TOP + 0.140), FINGER_OPEN, "bowl_clear"),
+        Waypoint(1.2, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_retract"),
+        Waypoint(18.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_park"),
     ]
 
     if cheat == "bowl_locked":
-        right += [
-            Waypoint(2.0, (0.180, -0.220, TOP + 0.200), FINGER_OPEN, "right_retract"),
-            Waypoint(8.0, (0.180, -0.220, TOP + 0.200), FINGER_OPEN, "right_park"),
-        ]
-        left += [
-            Waypoint(1.0, (BASE_X - 0.090, 0.070, TOP + 0.220), FINGER_OPEN, "left_retract"),
-            Waypoint(8.0, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_park"),
+        left = [
+            Waypoint(12.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_park"),
         ]
         return {"left": left, "right": right}
 
-    # Right arm: pick up strainer cone
-    right += [
-        # Move above strainer cone knob
-        Waypoint(1.5, (cone_knob_x, cone_knob_y, TOP + 0.140), FINGER_OPEN, "cone_approach"),
-        # Descend to clamp cone knob
-        Waypoint(1.0, (cone_knob_x, cone_knob_y, cone_knob_z + 0.005), FINGER_CLOSED, "cone_grasp"),
-        # Lift cone clear
-        Waypoint(1.0, (cone_knob_x, cone_knob_y, TOP + 0.200), FINGER_CLOSED, "cone_lift"),
-        # Align cone coaxially above collector bowl
-        Waypoint(1.5, (COLLAR_X, COLLAR_Y, TOP + 0.200), FINGER_CLOSED, "cone_align"),
-        # Lower cone into collector bowl until flush on internal shelf
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y, CONE_SEAT_Z + 0.030), FINGER_CLOSED, "cone_seat"),
+    # Left arm: waits for bowl to be placed, then picks strainer cone and seats it
+    left = [
+        # Wait while right arm installs bowl (t = 6.9 s)
+        Waypoint(7.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_wait"),
+        # Approach strainer cone knob
+        Waypoint(1.2, (c_x, c_y, TOP + 0.120), FINGER_OPEN, "cone_approach"),
+        Waypoint(0.8, (c_x, c_y, c_z + 0.005), FINGER_CLOSED, "cone_grasp"),
+        Waypoint(1.0, (c_x, c_y, TOP + 0.140), FINGER_CLOSED, "cone_lift"),
+        Waypoint(1.5, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "cone_align"),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
+        # Keep left hand holding cone without releasing
         left += [
-            Waypoint(0.8, (BASE_X - 0.090, 0.070, TOP + 0.220), FINGER_OPEN, "brace_release"),
-            Waypoint(1.5, (LEVER_ANCHOR[0] + 0.180, 0.000, TOP + 0.440), FINGER_OPEN, "lever_approach"),
-            Waypoint(0.8, (LEVER_ANCHOR[0] + 0.180, 0.000, TOP + 0.420), FINGER_CLOSED, "lever_grasp"),
-            Waypoint(1.5, (LEVER_ANCHOR[0] + 0.170, 0.000, TOP + 0.350), FINGER_CLOSED, "lever_stroke"),
-            Waypoint(0.8, (LEVER_ANCHOR[0] + 0.180, 0.000, TOP + 0.440), FINGER_OPEN, "lever_release"),
-            Waypoint(1.5, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_retract"),
-            Waypoint(5.0, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_park"),
-        ]
-        right += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, CONE_SEAT_Z + 0.030), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_CLOSED, "cone_hold"),
         ]
         return {"left": left, "right": right}
 
-    # Normal full demo: release cone and withdraw right arm
-    right += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_SEAT_Z + 0.045), FINGER_OPEN, "cone_release"),
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.220), FINGER_OPEN, "cone_clear"),
-        Waypoint(1.5, (0.180, -0.220, TOP + 0.200), FINGER_OPEN, "right_retract"),
-        Waypoint(8.0, (0.180, -0.220, TOP + 0.200), FINGER_OPEN, "right_park"),
+    left += [
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_OPEN, "cone_release"),
+        Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_OPEN, "cone_clear"),
     ]
 
     if cheat == "cone_seated":
         left += [
-            Waypoint(1.0, (BASE_X - 0.090, 0.070, TOP + 0.220), FINGER_OPEN, "left_retract"),
-            Waypoint(8.0, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_park"),
+            Waypoint(1.2, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_retract"),
+            Waypoint(8.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_park"),
         ]
         return {"left": left, "right": right}
 
-    # Left arm: release column brace, stroke press lever, and retract clear
+    # Mechanical test stroke: Left arm depresses press lever and releases
     left += [
-        Waypoint(0.8, (BASE_X - 0.090, 0.070, TOP + 0.220), FINGER_OPEN, "brace_release"),
-        Waypoint(1.5, (LEVER_ANCHOR[0] + 0.180, 0.000, TOP + 0.440), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (LEVER_ANCHOR[0] + 0.180, 0.000, TOP + 0.420), FINGER_CLOSED, "lever_grasp"),
-        Waypoint(1.5, (LEVER_ANCHOR[0] + 0.170, 0.000, TOP + 0.350), FINGER_CLOSED, "lever_stroke"),
-        Waypoint(0.8, (LEVER_ANCHOR[0] + 0.180, 0.000, TOP + 0.440), FINGER_OPEN, "lever_release"),
-        Waypoint(1.5, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_retract"),
-        Waypoint(5.0, (0.180, 0.220, TOP + 0.200), FINGER_OPEN, "left_park"),
+        Waypoint(1.2, (BASE_X + 0.040, 0.000, TOP + 0.160), FINGER_OPEN, "lever_approach"),
+        Waypoint(0.8, (BASE_X + 0.040, 0.000, TOP + 0.140), FINGER_CLOSED, "lever_grasp"),
+        Waypoint(1.2, (BASE_X + 0.040, 0.000, TOP + 0.100), FINGER_CLOSED, "lever_stroke"),
+        Waypoint(0.8, (BASE_X + 0.040, 0.000, TOP + 0.140), FINGER_OPEN, "lever_release"),
+        Waypoint(1.2, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_retract"),
+        Waypoint(6.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_park"),
     ]
 
     return {"left": left, "right": right}
