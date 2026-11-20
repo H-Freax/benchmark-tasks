@@ -68,12 +68,13 @@ PLATEN_H = 0.030
 OPEN_ANGLE_DEG = 75.0
 
 # 2. Stainless Utility Tongs
-TONGS_INIT_XY = (GRILL_XY[0], GRILL_XY[1])  # (0.280, 0.000)
+# Centered at (0.300, 0.000) with handle extending forward to X=0.355 for clean grasp
+TONGS_INIT_XY = (0.300, 0.000)
 TONGS_INIT_Z = GRILL_PLATE_Z + 0.012        # Resting across grill plate
 TONGS_KG = 0.180                            # 180 g
 
 # 3. Side Staging Rest Tray (on right arm side, -Y)
-TRAY_XY = (0.280, -0.210)
+TRAY_XY = (0.300, -0.220)
 TRAY_W_X = 0.160
 TRAY_D_Y = 0.120
 TRAY_H = 0.015
@@ -108,11 +109,11 @@ def _tray_boxes() -> list[mk.BoxSpec]:
 
 def _tongs_boxes() -> list[mk.BoxSpec]:
     boxes = []
-    # Grip handle body (where right arm grasps)
-    boxes.append(mk.box((0.110, 0.022, 0.016), at=(-0.040, 0.0, 0.008), color=BRIGHT_STEEL))
-    # Scalloped grasping jaws
-    boxes.append(mk.box((0.075, 0.008, 0.016), at=(0.045, -0.008, 0.008), color=BRIGHT_STEEL))
-    boxes.append(mk.box((0.075, 0.008, 0.016), at=(0.045, 0.008, 0.008), color=BRIGHT_STEEL))
+    # Grip handle body (projecting forward to +X, centered at +0.055)
+    boxes.append(mk.box((0.110, 0.022, 0.016), at=(0.055, 0.0, 0.008), color=BRIGHT_STEEL))
+    # Scalloped grasping jaws (projecting backward into grill at -0.055)
+    boxes.append(mk.box((0.075, 0.008, 0.016), at=(-0.055, -0.008, 0.008), color=BRIGHT_STEEL))
+    boxes.append(mk.box((0.075, 0.008, 0.016), at=(-0.055, 0.008, 0.008), color=BRIGHT_STEEL))
     return boxes
 
 
@@ -184,7 +185,7 @@ def _step_rules(objects) -> None:
     hinge_deg = kit.q_deg(objects, "platen_pivot")
 
     # Defect: platen lowered while tongs still on lower grill
-    if hinge_deg < 45.0 and d_grill < 0.080 and not mk.MEMORY.get("tongs_cleared"):
+    if hinge_deg < 45.0 and d_grill < 0.090 and not mk.MEMORY.get("tongs_cleared"):
         mk.MEMORY["defect"] = True
 
     if mk.MEMORY.get("defect"):
@@ -256,8 +257,8 @@ def demo() -> dict[str, list[Waypoint]]:
             last = plans[arm][-1]
             add(arm, dt, last.pos, last.finger, label, last.yaw)
 
-    # Initial grasp coordinates for tongs (Right arm on -Y side)
-    t_grip_xy = (0.240, 0.000)
+    # Initial grasp coordinates for tongs handle at front (+X)
+    t_grip_xy = (0.355, 0.000)
     t_grip_z = GRILL_PLATE_Z + 0.020
 
     tray_dest_xy = (TRAY_XY[0], TRAY_XY[1])
@@ -269,8 +270,8 @@ def demo() -> dict[str, list[Waypoint]]:
     # Left arm starts parked clear on +Y side
     add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park")
 
-    # Right arm: approach and grasp tongs on grill plate
-    add("right", 1.2, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.080), FINGER_OPEN, "approach tongs above grill")
+    # Right arm: approach and grasp tongs on forward grill zone
+    add("right", 1.2, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.090), FINGER_OPEN, "approach tongs above grill")
     add("right", 0.6, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_OPEN, "descend to tongs grip")
     add("right", 0.4, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_CLOSED, "pinch tongs grip")
     # Lift tongs clear (> 60 mm)
