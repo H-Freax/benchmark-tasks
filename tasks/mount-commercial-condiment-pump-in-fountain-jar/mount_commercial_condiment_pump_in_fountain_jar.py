@@ -75,7 +75,7 @@ RELEASE_HULL_CLEAR = 0.005
 
 
 def _jar_boxes() -> list[mk.BoxSpec]:
-    """Hollow rectangular chamber: floor plate + 4 walls + rim detent lip."""
+    """Hollow rectangular chamber: floor plate + 4 walls + hollow rim flange."""
     boxes = []
     # Floor plate
     boxes.append(mk.box((JAR_W_X, JAR_D_Y, JAR_THICK), at=(0.0, 0.0, JAR_THICK / 2), color=STAINLESS))
@@ -85,8 +85,14 @@ def _jar_boxes() -> list[mk.BoxSpec]:
     # Front / Back walls
     boxes.append(mk.box((JAR_W_X - 2 * JAR_THICK, JAR_THICK, JAR_H), at=(0.0, -JAR_D_Y / 2 + JAR_THICK / 2, JAR_H / 2), color=STAINLESS))
     boxes.append(mk.box((JAR_W_X - 2 * JAR_THICK, JAR_THICK, JAR_H), at=(0.0, JAR_D_Y / 2 - JAR_THICK / 2, JAR_H / 2), color=STAINLESS))
-    # Rim detent lip
-    boxes.append(mk.box((JAR_W_X + 0.016, JAR_D_Y + 0.016, 0.008), at=(0.0, 0.0, JAR_H - 0.004), color=DARK_STAINLESS))
+    # Hollow flared rim flange (4 outer perimeter strips around open mouth)
+    flange_t = 0.008
+    flange_w = JAR_W_X + 2 * flange_t
+    flange_d = JAR_D_Y + 2 * flange_t
+    boxes.append(mk.box((flange_t, flange_d, 0.006), at=(-JAR_W_X / 2 - flange_t / 2, 0.0, JAR_H - 0.003), color=DARK_STAINLESS))
+    boxes.append(mk.box((flange_t, flange_d, 0.006), at=(JAR_W_X / 2 + flange_t / 2, 0.0, JAR_H - 0.003), color=DARK_STAINLESS))
+    boxes.append(mk.box((JAR_W_X, flange_t, 0.006), at=(0.0, -JAR_D_Y / 2 - flange_t / 2, JAR_H - 0.003), color=DARK_STAINLESS))
+    boxes.append(mk.box((JAR_W_X, flange_t, 0.006), at=(0.0, JAR_D_Y / 2 + flange_t / 2, JAR_H - 0.003), color=DARK_STAINLESS))
     return boxes
 
 
