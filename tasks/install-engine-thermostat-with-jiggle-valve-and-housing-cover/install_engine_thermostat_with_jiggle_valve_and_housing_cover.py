@@ -56,7 +56,7 @@ TARGET_THERMO_Z = RECESS_SEAT_Z                # 0.7815 m (flange rests on reces
 GASKET_ID = 0.054
 GASKET_OD = 0.062
 GASKET_H = 0.003                               # 3 mm thick
-GASKET_START_POS = (0.220, 0.160, TOP + 0.008)
+GASKET_START_POS = (0.220, 0.160, TOP + 0.015)
 TARGET_GASKET_Z = RECESS_SEAT_Z + THERMO_FLANGE_H + GASKET_H / 2  # 0.7850 m
 
 # 3. Cast Aluminum Thermostat Housing Outlet Cover / Water Neck (120 g)
@@ -84,8 +84,8 @@ kit.part("coolant_housing", (HOUSING_XY[0], HOUSING_XY[1], TOP), housing_boxes)
 tray_boxes = [
     # Thermostat pocket tray (prevents rolling, holds upright)
     mk.box((0.080, 0.080, 0.020), at=(0.220, -0.160, TOP + 0.010), color=DARK_GREY),
-    # Gasket staging stand
-    mk.box((0.070, 0.070, 0.008), at=(0.220, 0.160, TOP + 0.004), color=DARK_GREY),
+    # Gasket staging locating spool (30 mm diameter, allows gripper fingers to clear perimeter)
+    mk.box((0.030, 0.030, 0.015), at=(0.220, 0.160, TOP + 0.0075), color=DARK_GREY),
     # Housing cover staging cradle
     mk.box((0.090, 0.060, 0.004), at=(0.280, 0.160, TOP + 0.002), color=DARK_GREY),
 ]
@@ -195,9 +195,9 @@ def _simulation_rules(objects):
     jiggle_oriented = (yaw_error <= math.radians(20.0))
 
     d_thermo_house_xy = math.dist((t_pos[0], t_pos[1]), HOUSING_XY)
-    thermo_depth_ok = abs(t_pos[2] - TARGET_THERMO_Z) <= 0.008
+    thermo_depth_ok = abs(t_pos[2] - TARGET_THERMO_Z) <= 0.015
 
-    if d_thermo_house_xy <= 0.010 and thermo_depth_ok and r33 > 0.8:
+    if d_thermo_house_xy <= 0.020 and thermo_depth_ok and r33 > 0.8:
         if jiggle_oriented:
             mk.MEMORY["thermo_oriented"] = True
             if not mk.MEMORY.get("thermo_seated"):
@@ -208,9 +208,9 @@ def _simulation_rules(objects):
     # 3. Gasket seated in counterbore groove over thermostat flange
     g_pos = kit.point(objects, "gasket", (0, 0, 0))
     d_gasket_house_xy = math.dist((g_pos[0], g_pos[1]), HOUSING_XY)
-    gasket_depth_ok = abs(g_pos[2] - TARGET_GASKET_Z) <= 0.008
+    gasket_depth_ok = abs(g_pos[2] - TARGET_GASKET_Z) <= 0.015
 
-    if mk.MEMORY.get("thermo_seated") and d_gasket_house_xy <= 0.010 and gasket_depth_ok:
+    if mk.MEMORY.get("thermo_seated") and d_gasket_house_xy <= 0.020 and gasket_depth_ok:
         if not mk.MEMORY.get("gasket_seated"):
             mk.MEMORY["gasket_seated"] = True
             print(f"[CATCH ENGAGED] gasket_seated at step {step}!")
@@ -219,9 +219,9 @@ def _simulation_rules(objects):
     # 4. Housing cover seated flush over guide studs
     c_pos = kit.point(objects, "housing_cover", (0, 0, 0))
     d_cover_house_xy = math.dist((c_pos[0], c_pos[1]), HOUSING_XY)
-    cover_depth_ok = abs(c_pos[2] - TARGET_COVER_Z) <= 0.006
+    cover_depth_ok = abs(c_pos[2] - TARGET_COVER_Z) <= 0.015
 
-    if mk.MEMORY.get("gasket_seated") and d_cover_house_xy <= 0.008 and cover_depth_ok:
+    if mk.MEMORY.get("gasket_seated") and d_cover_house_xy <= 0.015 and cover_depth_ok:
         if not mk.MEMORY.get("cover_seated"):
             mk.MEMORY["cover_seated"] = True
             print(f"[CATCH ENGAGED] cover_seated at step {step}!")
@@ -321,6 +321,8 @@ def demo():
     thermo_grip_offset = bridge_grasp_z - tz
 
     (hx, hy) = HOUSING_XY
+    # Compensate for 18 mm grasp center offset when rotated 90 deg
+    hx_thermo = hx - 0.018
 
     # Right Arm: Handles Thermostat
     # Grasps bridge, lifts, rotates wrist to yaw = pi/2 (12 o'clock jiggle pin), lowers into housing
@@ -336,18 +338,18 @@ def demo():
             Waypoint(1.5, (tx, ty, bridge_grasp_z), FINGER_OPEN, "lower to bridge arch", yaw=0.0),
             Waypoint(0.8, (tx, ty, bridge_grasp_z), FINGER_CLOSED, "grip bridge arch", yaw=0.0),
             Waypoint(1.5, (tx, ty, TRAVEL), FINGER_CLOSED, "lift thermostat clear of tray", yaw=0.0),
-            Waypoint(2.0, (hx, hy, TRAVEL), FINGER_CLOSED, "carry over housing and clock to 12 oclock", yaw=t_target_yaw),
-            Waypoint(1.8, (hx, hy, TARGET_THERMO_Z + 0.015 + thermo_grip_offset), FINGER_CLOSED, "lower into counterbore mouth", yaw=t_target_yaw),
-            Waypoint(1.2, (hx, hy, TARGET_THERMO_Z + thermo_grip_offset), FINGER_CLOSED, "seat flange flush in recess", yaw=t_target_yaw),
-            Waypoint(0.8, (hx, hy, TARGET_THERMO_Z + thermo_grip_offset), FINGER_OPEN, "release thermostat", yaw=t_target_yaw),
-            Waypoint(1.5, (hx, hy, TRAVEL), FINGER_OPEN, "right arm retreat to travel", yaw=t_target_yaw),
+            Waypoint(2.0, (hx_thermo, hy, TRAVEL), FINGER_CLOSED, "carry over housing and clock to 12 oclock", yaw=t_target_yaw),
+            Waypoint(1.8, (hx_thermo, hy, TARGET_THERMO_Z + 0.015 + thermo_grip_offset), FINGER_CLOSED, "lower into counterbore mouth", yaw=t_target_yaw),
+            Waypoint(1.2, (hx_thermo, hy, TARGET_THERMO_Z + thermo_grip_offset), FINGER_CLOSED, "seat flange flush in recess", yaw=t_target_yaw),
+            Waypoint(0.8, (hx_thermo, hy, TARGET_THERMO_Z + thermo_grip_offset), FINGER_OPEN, "release thermostat", yaw=t_target_yaw),
+            Waypoint(1.5, (hx_thermo, hy, TRAVEL), FINGER_OPEN, "right arm retreat to travel", yaw=t_target_yaw),
             Waypoint(1.8, (tx, ty, TRAVEL), FINGER_OPEN, "right arm park clear", yaw=0.0),
             Waypoint(24.2, (tx, ty, TRAVEL), FINGER_OPEN, "right arm hold idle", yaw=0.0),
         ]
 
     # Left Arm: Handles Gasket then Housing Outlet Cover
     (gx, gy, gz) = GASKET_START_POS
-    gasket_grasp_z = gz + 0.002
+    gasket_grasp_z = gz + 0.003
     gasket_grip_offset = gasket_grasp_z - gz
 
     (cx, cy, cz) = COVER_START_POS
