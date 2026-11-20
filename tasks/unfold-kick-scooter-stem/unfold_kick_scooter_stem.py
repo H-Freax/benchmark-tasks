@@ -396,7 +396,15 @@ def score(objects) -> float:
             base = 0.50
             if is_qr_closed(objects):
                 base = 0.75
-                if m["phase"] == "done" and m["contacted"] and m["fold_max"] <= 1.0:
+                # Full credit (1.00) strictly requires ALL 5 conditions simultaneously:
+                # 1. Stem upright within 2.0 deg
+                # 2. Latch pin fully seated (>= 5 mm)
+                # 3. Quick-release clamp lever closed flat within 12 deg
+                # 4. Both hands clear (>= 5 cm)
+                # 5. Successfully passed the 12 N horizontal push test with <= 1.0 deg deflection
+                if (is_upright(objects) and pin_seated(objects) and is_qr_closed(objects)
+                        and clear_of(objects) and m["phase"] == "done" and m["contacted"]
+                        and m["fold_max"] <= 1.0 and not m["failed"]):
                     base = 1.00
 
     ok = clear_of(objects) and all(m["still"].get(p, True) for p in PARTS)
