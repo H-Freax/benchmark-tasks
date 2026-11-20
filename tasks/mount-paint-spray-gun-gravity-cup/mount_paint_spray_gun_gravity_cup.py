@@ -536,34 +536,23 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (INLET_X, ALIGN_Y, TOP + 0.160), FINGER_OPEN, "clear_above_cup"),
     ])
 
-    if cheat == "no_release":
-        left.extend([
-            Waypoint(1.2, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "retreat_left_clear"),
-            Waypoint(8.0, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "park_left_clear"),
-        ])
-        right = [
-            Waypoint(1.2, (GUN_X, GUN_Y - 0.035, TOP + 0.120), FINGER_OPEN, "hover_gun_handle"),
-            Waypoint(1.0, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_OPEN, "approach_handle"),
-            Waypoint(0.8, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "brace_gun_handle"),
-            Waypoint(3.5, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_CLOSED, "counter_hold_brace"),
-            Waypoint(0.6, (GUN_X, GUN_Y - 0.035, TOP + 0.040), FINGER_OPEN, "release_handle"),
-            Waypoint(1.0, (INLET_X + 0.020, INLET_Y, RING_Z + 0.020), FINGER_OPEN, "approach_ring_tab"),
-            Waypoint(0.6, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "pinch_ring_tab"),
-            Waypoint(1.5, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "rotate_collar_lock", yaw=-0.785),
-            Waypoint(8.0, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "hold_collar_unreleased", yaw=-0.785),
-        ]
-        return {"left": left, "right": right}
-
-    # Full qualification demo:
-    # Left arm: Performs manual proof tug on cup rim and retreats clear
+    # Full qualification demo or negative controls
     left.extend([
         Waypoint(1.0, (INLET_X, ALIGN_Y, TOP + 0.155), FINGER_OPEN, "approach_cup_rim"),
         Waypoint(0.6, (INLET_X, ALIGN_Y, TOP + 0.155), FINGER_CLOSED, "grip_cup_rim"),
         Waypoint(1.0, (INLET_X, ALIGN_Y, TOP + 0.168), FINGER_CLOSED, "manual_proof_tug"),
-        Waypoint(0.6, (INLET_X, ALIGN_Y, TOP + 0.168), FINGER_OPEN, "release_proof_grip"),
-        Waypoint(1.2, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "retreat_left_clear"),
-        Waypoint(4.0, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "park_left_clear"),
     ])
+
+    if cheat == "no_release":
+        left.extend([
+            Waypoint(8.0, (INLET_X, ALIGN_Y, TOP + 0.168), FINGER_CLOSED, "hold_proof_grip_unreleased"),
+        ])
+    else:
+        left.extend([
+            Waypoint(0.6, (INLET_X, ALIGN_Y, TOP + 0.168), FINGER_OPEN, "release_proof_grip"),
+            Waypoint(1.2, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "retreat_left_clear"),
+            Waypoint(4.0, (0.20, 0.22, TOP + 0.150), FINGER_OPEN, "park_left_clear"),
+        ])
 
     # RIGHT ARM: Counter-holds gun handle, rotates locking collar, retreats clear
     right = [
