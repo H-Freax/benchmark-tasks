@@ -98,8 +98,10 @@ kit.part(
         mk.box((0.004, 0.035, 0.020), at=(-0.0065, -0.018, 0.000), color=BRONZE_CAST),
         # Central spring pivot barrel housing
         mk.box((0.018, 0.020, 0.024), at=(0.000, 0.000, 0.000), color=BRONZE_CAST),
-        # Dielectric insulated grip handle post pointing up at +Y end (26 mm thick x 18 mm wide x 55 mm high)
-        mk.box((0.018, 0.026, 0.055), at=(0.000, 0.025, 0.025), color=SAFETY_YELLOW),
+        # Dielectric insulated grip handle stem (18 mm thick x 18 mm wide x 50 mm high)
+        mk.box((0.018, 0.018, 0.050), at=(0.000, 0.025, 0.025), color=SAFETY_YELLOW),
+        # Mechanical capture T-bar cross handle (40 mm wide along Y x 22 mm deep along X x 12 mm thick)
+        mk.box((0.022, 0.040, 0.012), at=(0.000, 0.025, 0.052), color=SAFETY_YELLOW),
     ],
     mass=0.350,
     contact_offset=0.0005,
@@ -117,8 +119,10 @@ kit.part(
         # Dual terminal male bayonet contact blades (insert between clip leaves)
         mk.box((0.014, 0.005, 0.018), at=(0.025, 0.000, -0.018), color=CONTACT_BRASS),
         mk.box((0.014, 0.005, 0.018), at=(-0.025, 0.000, -0.018), color=CONTACT_BRASS),
-        # Front central ergonomic pull-handle loop (28 mm wide x 18 mm thick x 35 mm high)
-        mk.box((0.028, 0.018, 0.035), at=(0.000, 0.000, 0.025), color=SAFETY_YELLOW),
+        # Front central ergonomic pull-handle stem (18 mm wide x 18 mm thick x 35 mm high)
+        mk.box((0.018, 0.018, 0.035), at=(0.000, 0.000, 0.025), color=SAFETY_YELLOW),
+        # Pull-handle capture T-bar cross handle (38 mm wide along Y x 22 mm deep along X x 12 mm thick)
+        mk.box((0.022, 0.038, 0.012), at=(0.000, 0.000, 0.044), color=SAFETY_YELLOW),
     ],
     mass=0.160,
     contact_offset=0.0005,
@@ -165,7 +169,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     # When jaws are around busbar tab at BUSBAR_POS, clamp origin is at BUSBAR_POS + [0, 0.018, 0]
     dr_clamp = math.sqrt((gp[0] - BUSBAR_POS[0]) ** 2 + (gp[1] - (BUSBAR_POS[1] + 0.018)) ** 2)
     dz_clamp = abs(gp[2] - BUSBAR_POS[2])
-    clamped = dr_clamp <= 0.025 and dz_clamp <= 0.025
+    clamped = dr_clamp <= 0.030 and dz_clamp <= 0.030
     if clamped:
         M["clamp_grounded"] = True
 
@@ -194,7 +198,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     # Placed in safety parts tray
     dr_tray = math.sqrt((fp[0] - TRAY_POS[0]) ** 2 + (fp[1] - TRAY_POS[1]) ** 2)
     dz_tray = abs(fp[2] - (TRAY_POS[2] + 0.018))
-    fuse_in_tray = dr_tray <= 0.030 and dz_tray <= 0.020 and not M.get("ungrounded_hazard_tripped", False)
+    fuse_in_tray = dr_tray <= 0.035 and dz_tray <= 0.025 and not M.get("ungrounded_hazard_tripped", False)
     if fuse_in_tray:
         M["fuse_in_tray"] = True
 
@@ -318,23 +322,20 @@ def demo() -> dict[str, list[Waypoint]]:
     # Clamp handle grip coordinates (Left side +Y)
     cg_x = CLAMP_INIT_POS[0]
     cg_y = CLAMP_INIT_POS[1] + 0.025
-    cg_z = CLAMP_INIT_POS[2] + 0.025
+    cg_z = CLAMP_INIT_POS[2] + 0.035
 
     # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
     attach_x = BUSBAR_POS[0]
     attach_y = BUSBAR_POS[1] + 0.018 + 0.025
-    attach_z = BUSBAR_POS[2] + 0.025
+    attach_z = BUSBAR_POS[2] + 0.035
 
     # Fuse pull handle coordinates (Center Y=0)
     fh_x = FUSE_SEATED_POS[0]
     fh_y = FUSE_SEATED_POS[1]
-    fh_z = FUSE_SEATED_POS[2] + 0.025
+    fh_z = FUSE_SEATED_POS[2] + 0.030
 
     # Tray placement coordinates (Right side -Y)
     tray_place_z = TRAY_POS[2] + 0.035
-
-    # Left arm: grasps grounding clamp at +Y, carries and attaches jaws onto busbar at Y=+0.088, then retracts to +Y park
-    # Right arm: waits for grounding, grasps fuse carrier at Y=0, withdraws it, places in tray at Y=-0.180, retracts to -Y park
 
     if cheat == "no_ground":
         # Right arm pulls fuse WITHOUT grounding (trips hazard fault detector -> score 0.0)
