@@ -159,9 +159,12 @@ kit.part(
         mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
         # Bottom drainage spout
         mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        # Flanged grasp handle on -Y outer rim (aligned with robot closing axis)
-        mk.box((0.030, 0.016, 0.045), at=(0.000, -0.045, 0.030), color=STAINLESS_BRIGHT),
-        mk.box((0.038, 0.024, 0.008), at=(0.000, -0.045, 0.055), color=STAINLESS_BRIGHT),
+        # Flanged grasp handle on -Y outer rim with form-locking retention pocket
+        mk.box((0.032, 0.016, 0.040), at=(0.000, -0.045, 0.030), color=STAINLESS_BRIGHT),
+        mk.box((0.042, 0.026, 0.008), at=(0.000, -0.045, 0.054), color=STAINLESS_BRIGHT),
+        mk.box((0.042, 0.026, 0.008), at=(0.000, -0.045, 0.008), color=STAINLESS_BRIGHT),
+        mk.box((0.006, 0.026, 0.038), at=(0.019, -0.045, 0.030), color=STAINLESS_BRIGHT),
+        mk.box((0.006, 0.026, 0.038), at=(-0.019, -0.045, 0.030), color=STAINLESS_BRIGHT),
         # Bayonet locking tabs on rim
         mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
@@ -180,9 +183,12 @@ kit.part(
         mk.box((0.065, 0.065, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
         # Outer seating flange lip
         mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Central apex grasp knob stem & retention flange
-        mk.box((0.030, 0.016, 0.035), at=(0.000, 0.000, 0.022), color=STAINLESS_BRIGHT),
-        mk.box((0.038, 0.024, 0.008), at=(0.000, 0.000, 0.042), color=STAINLESS_BRIGHT),
+        # Central apex grasp knob stem & retention flange with form-locking pocket
+        mk.box((0.032, 0.016, 0.035), at=(0.000, 0.000, 0.022), color=STAINLESS_BRIGHT),
+        mk.box((0.042, 0.026, 0.008), at=(0.000, 0.000, 0.042), color=STAINLESS_BRIGHT),
+        mk.box((0.042, 0.026, 0.008), at=(0.000, 0.000, 0.005), color=STAINLESS_BRIGHT),
+        mk.box((0.006, 0.026, 0.030), at=(0.019, 0.000, 0.022), color=STAINLESS_BRIGHT),
+        mk.box((0.006, 0.026, 0.030), at=(-0.019, 0.000, 0.022), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
 )
