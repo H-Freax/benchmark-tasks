@@ -139,10 +139,10 @@ kit.part("panini_base", (GRILL_XY[0], GRILL_XY[1], TOP), _base_boxes(), mass=Non
 kit.part("staging_tray", (TRAY_XY[0], TRAY_XY[1], TOP), _tray_boxes(), mass=None, color=STAINLESS)
 kit.part("utility_tongs", (TONGS_INIT_XY[0], TONGS_INIT_XY[1], TONGS_INIT_Z), _tongs_boxes(), mass=TONGS_KG, color=BRIGHT_STEEL, solver_position_iterations=16)
 
-# Upper platen counterbalanced by spring hinge mechanism
+# Upper platen counterbalanced by spring hinge mechanism (1.2 N*m friction)
 kit.part("upper_platen", (HINGE_X, HINGE_Y, HINGE_Z), _platen_boxes(), mass=1.20, color=CHASSIS_STEEL, solver_position_iterations=16)
 kit.hinge("platen_pivot", "panini_base", "upper_platen", anchor=(HINGE_X, HINGE_Y, HINGE_Z), axis=(0, -1, 0),
-          lower_deg=0.0, upper_deg=OPEN_ANGLE_DEG, start_deg=OPEN_ANGLE_DEG, friction=3.5)
+          lower_deg=0.0, upper_deg=OPEN_ANGLE_DEG, start_deg=OPEN_ANGLE_DEG, friction=1.2)
 
 FIXTURES = []
 OBJECTS = kit.objects()
@@ -304,27 +304,28 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Left arm: approach insulated platen front handle in open position (75 degrees)
     # Handle runs side-to-side (along Y), fingers close across it with yaw = -pi/2
-    add("left", 1.2, (0.225, 0.000, 1.060), FINGER_OPEN, "approach insulated handle above", yaw=-math.pi / 2)
-    add("left", 0.6, (0.225, 0.000, 1.020), FINGER_OPEN, "align with handle", yaw=-math.pi / 2)
-    add("left", 0.4, (0.225, 0.000, 1.020), FINGER_CLOSED, "grasp insulated handle", yaw=-math.pi / 2)
+    # Commanded TCP adjusted down by 35 mm to center fingers firmly over handle bar
+    add("left", 1.2, (0.225, 0.000, 1.030), FINGER_OPEN, "approach insulated handle above", yaw=-math.pi / 2)
+    add("left", 0.6, (0.225, 0.000, 0.985), FINGER_OPEN, "align with handle", yaw=-math.pi / 2)
+    add("left", 0.4, (0.225, 0.000, 0.985), FINGER_CLOSED, "grasp insulated handle", yaw=-math.pi / 2)
 
     # Lower platen smoothly along circular arc with yaw = -math.pi / 2
-    add("left", 0.6, (0.277, 0.000, 1.006), FINGER_CLOSED, "pivot platen down 60 deg", yaw=-math.pi / 2)
-    add("left", 0.6, (0.323, 0.000, 0.980), FINGER_CLOSED, "pivot platen down 45 deg", yaw=-math.pi / 2)
-    add("left", 0.6, (0.361, 0.000, 0.943), FINGER_CLOSED, "pivot platen down 30 deg", yaw=-math.pi / 2)
-    add("left", 0.6, (0.388, 0.000, 0.897), FINGER_CLOSED, "pivot platen down 15 deg", yaw=-math.pi / 2)
-    add("left", 0.6, (0.402, 0.000, 0.846), FINGER_CLOSED, "seat platen flush on stop 0 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.277, 0.000, 0.970), FINGER_CLOSED, "pivot platen down 60 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.323, 0.000, 0.945), FINGER_CLOSED, "pivot platen down 45 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.361, 0.000, 0.910), FINGER_CLOSED, "pivot platen down 30 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.388, 0.000, 0.860), FINGER_CLOSED, "pivot platen down 15 deg", yaw=-math.pi / 2)
+    add("left", 0.6, (0.402, 0.000, 0.810), FINGER_CLOSED, "seat platen flush on stop 0 deg", yaw=-math.pi / 2)
 
     if variant == "no_release":
-        add("left", 2.0, (0.402, 0.000, 0.846), FINGER_CLOSED, "dwell without release", yaw=-math.pi / 2)
+        add("left", 2.0, (0.402, 0.000, 0.810), FINGER_CLOSED, "dwell without release", yaw=-math.pi / 2)
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
         return plans
 
     # Release insulated handle and retract clear
-    add("left", 0.4, (0.402, 0.000, 0.846), FINGER_OPEN, "release handle", yaw=-math.pi / 2)
-    add("left", 0.8, (0.402, 0.000, 0.930), FINGER_OPEN, "lift left arm", yaw=-math.pi / 2)
+    add("left", 0.4, (0.402, 0.000, 0.810), FINGER_OPEN, "release handle", yaw=-math.pi / 2)
+    add("left", 0.8, (0.402, 0.000, 0.920), FINGER_OPEN, "lift left arm", yaw=-math.pi / 2)
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
 
     # Ensure right arm remains parked clear
