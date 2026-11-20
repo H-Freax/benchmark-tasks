@@ -105,9 +105,9 @@ kit.part(
         mk.box((0.015, 0.140, 0.025), at=(0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.015, 0.140, 0.025), at=(-0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.140, 0.015, 0.025), at=(0.000, 0.065, 0.040), color=CAST_IRON),
-        # Front collar rim segmented to form an 80 mm clearance bayonet rotation notch at -Y
+        # Front collar rim segmented to form an 110 mm clearance bayonet rotation notch at -Y
         mk.box((0.010, 0.015, 0.025), at=(0.060, -0.065, 0.040), color=CAST_IRON),
-        mk.box((0.045, 0.015, 0.025), at=(-0.045, -0.065, 0.040), color=CAST_IRON),
+        mk.box((0.010, 0.015, 0.025), at=(-0.060, -0.065, 0.040), color=CAST_IRON),
         # Internal bayonet detent stops inside collar (positioned at side walls)
         mk.box((0.010, 0.015, 0.010), at=(0.052, 0.020, 0.030), color=CAST_BLACK),
         mk.box((0.010, 0.015, 0.010), at=(-0.052, 0.020, 0.030), color=CAST_BLACK),
@@ -191,10 +191,6 @@ kit.part(
     solver_position_iterations=128,
 )
 
-# Bayonet detent latch for collector bowl and seating lock for strainer cone
-kit.catch("bowl_bayonet_lock", "collector_bowl", [[0.8660254037844387, 0.49999999999999994, 0.0, 0.22], [-0.49999999999999994, 0.8660254037844387, 0.0, 0.0], [0.0, 0.0, 1.0, 0.798], [0.0, 0.0, 0.0, 1.0]])
-kit.catch("cone_seat_catch", "strainer_cone", [[1.0, 0.0, 0.0, 0.22], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.813], [0.0, 0.0, 0.0, 1.0]])
-
 OBJECTS = kit.objects()
 
 
@@ -226,7 +222,6 @@ def _on_step(objects: dict[str, Any]) -> None:
     )
     if bowl_locked:
         M["bowl_locked"] = True
-        kit.engage("bowl_bayonet_lock")
 
     # 2. Strainer cone nested coaxially in collector bowl
     dr_cone = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
@@ -238,7 +233,6 @@ def _on_step(objects: dict[str, Any]) -> None:
     )
     if cone_seated:
         M["cone_seated"] = True
-        kit.engage("cone_seat_catch")
 
     # 3. Press lever mechanical test stroke
     min_lever = min(M.get("min_lever_deg", 25.0), lever_deg)
@@ -440,8 +434,8 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Lock bowl with 30-deg clockwise bayonet rotation
-    # Bowl rotates 30 deg CW: new handle position = (COLLAR_X + 0.090*sin(30), COLLAR_Y - 0.090*cos(30))
-    lock_hx = COLLAR_X + 0.090 * math.sin(math.radians(30.0))
+    # Bowl rotates -30 deg (CW): new handle position = (COLLAR_X - 0.090*sin(30), COLLAR_Y - 0.090*cos(30))
+    lock_hx = COLLAR_X - 0.090 * math.sin(math.radians(30.0))
     lock_hy = COLLAR_Y - 0.090 * math.cos(math.radians(30.0))
     right += [
         Waypoint(1.2, (lock_hx, lock_hy, TOP + 0.080), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
