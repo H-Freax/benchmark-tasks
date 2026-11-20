@@ -291,15 +291,15 @@ def _released(obj_state: ObjectState, margin: float = 0.025) -> bool:
 
 
 def bowl_placed(objects: dict) -> bool:
-    """True if collector bowl is seated in receiver collar."""
+    """True if collector bowl is currently seated in receiver collar."""
     bp, _ = kit.pose(objects, "collector_bowl")
     dr = math.sqrt((bp[0] - COLLAR_X) ** 2 + (bp[1] - COLLAR_Y) ** 2)
     dz = abs(bp[2] - BOWL_SEAT_Z)
-    return bool(mk.MEMORY.get("bowl_placed") or (dr <= 0.025 and dz <= 0.020))
+    return bool(dr <= 0.025 and dz <= 0.020)
 
 
 def bowl_locked(objects: dict) -> bool:
-    """True if collector bowl is bayonet locked into base detents."""
+    """True if collector bowl is currently seated and bayonet locked into detents."""
     if not bowl_placed(objects):
         return False
     bp, bq = kit.pose(objects, "collector_bowl")
@@ -308,33 +308,30 @@ def bowl_locked(objects: dict) -> bool:
     b_mat = mk.quat_to_mat(bq)
     yaw_deg = math.degrees(math.atan2(b_mat[1, 0], b_mat[0, 0]))
     return bool(
-        mk.MEMORY.get("bowl_locked")
-        or (
-            dr <= 0.020
-            and dz <= 0.015
-            and (yaw_deg <= -15.0 or yaw_deg >= 165.0)
-        )
+        dr <= 0.020
+        and dz <= 0.015
+        and (yaw_deg <= -15.0 or yaw_deg >= 165.0)
     )
 
 
 def cone_seated(objects: dict) -> bool:
-    """True if strainer cone is coaxially nested flush inside collector bowl."""
+    """True if strainer cone is currently coaxially nested flush inside collector bowl."""
     if not bowl_locked(objects):
         return False
     bp, _ = kit.pose(objects, "collector_bowl")
     cp, _ = kit.pose(objects, "strainer_cone")
     dr = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
     dz = abs(cp[2] - (bp[2] + 0.003))
-    return bool(mk.MEMORY.get("cone_seated") or (dr <= 0.020 and dz <= 0.018))
+    return bool(dr <= 0.020 and dz <= 0.022)
 
 
 def lever_stroked(objects: dict) -> bool:
-    """True if press lever completed stroke and returned to top rest."""
+    """True if press lever completed stroke and is currently returned to top rest."""
     if not cone_seated(objects):
         return False
     min_l = mk.MEMORY.get("min_lever_deg", 85.0)
     cur_l = kit.q_deg(objects, "lever_pivot")
-    return bool(mk.MEMORY.get("lever_stroked") or (min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= 55.0))
+    return bool(min_l <= LEVER_STROKE_THRESHOLD_DEG and cur_l >= 55.0)
 
 
 def failed(objects: dict) -> bool:

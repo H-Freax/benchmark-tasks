@@ -33,7 +33,8 @@ class TestJuicerScoring(unittest.TestCase):
         bowl_yaw_deg: float = 0.0,
         cone_pos: tuple[float, float, float] = task.CONE_INIT_POS,
         base_pos: tuple[float, float, float] = (task.BASE_X, task.BASE_Y, task.BASE_Z),
-        lever_pitch_deg: float = 0.0,
+        lever_pitch_deg: float = 85.0,
+        min_lever_deg: float = 85.0,
         bowl_placed: bool = False,
         bowl_locked: bool = False,
         cone_seated: bool = False,
@@ -43,7 +44,7 @@ class TestJuicerScoring(unittest.TestCase):
         yaw_rad = math.radians(bowl_yaw_deg)
         bowl_quat = np.array([0.0, 0.0, math.sin(yaw_rad / 2.0), math.cos(yaw_rad / 2.0)])
 
-        pitch_rad = math.radians(lever_pitch_deg)
+        pitch_rad = math.radians(-lever_pitch_deg)
         lever_quat = np.array([0.0, math.sin(pitch_rad / 2.0), 0.0, math.cos(pitch_rad / 2.0)])
 
         moved = {
@@ -56,6 +57,7 @@ class TestJuicerScoring(unittest.TestCase):
         mk.MEMORY["bowl_locked"] = bowl_locked
         mk.MEMORY["cone_seated"] = cone_seated
         mk.MEMORY["lever_stroked"] = lever_stroked
+        mk.MEMORY["min_lever_deg"] = min_lever_deg
         mk.MEMORY["hold_timer"] = hold_timer
         return task.kit.fake_states(moved=moved)
 
@@ -104,6 +106,8 @@ class TestJuicerScoring(unittest.TestCase):
             bowl_pos=(task.COLLAR_X, task.COLLAR_Y, task.BOWL_SEAT_Z),
             bowl_yaw_deg=-30.0,
             cone_pos=(task.COLLAR_X, task.COLLAR_Y, task.CONE_SEAT_Z),
+            lever_pitch_deg=85.0,
+            min_lever_deg=20.0,
             bowl_placed=True,
             bowl_locked=True,
             cone_seated=True,
