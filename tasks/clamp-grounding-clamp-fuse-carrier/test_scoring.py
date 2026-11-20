@@ -59,7 +59,7 @@ class TestDisconnectScoring(unittest.TestCase):
         self.assertFalse(task.success(objs))
 
     def test_clamp_grounded_stage(self):
-        busbar_clamp_p = (task.BUSBAR_POS[0] - 0.018, task.BUSBAR_POS[1], task.BUSBAR_POS[2])
+        busbar_clamp_p = (task.BUSBAR_POS[0], task.BUSBAR_POS[1] + 0.018, task.BUSBAR_POS[2])
         objs = self.make_state(
             clamp_pos=busbar_clamp_p,
             clamp_lifted=True,
@@ -69,7 +69,7 @@ class TestDisconnectScoring(unittest.TestCase):
         self.assertFalse(task.success(objs))
 
     def test_fuse_extracted_stage(self):
-        busbar_clamp_p = (task.BUSBAR_POS[0] - 0.018, task.BUSBAR_POS[1], task.BUSBAR_POS[2])
+        busbar_clamp_p = (task.BUSBAR_POS[0], task.BUSBAR_POS[1] + 0.018, task.BUSBAR_POS[2])
         objs = self.make_state(
             clamp_pos=busbar_clamp_p,
             fuse_pos=(task.FUSE_SEATED_POS[0], task.FUSE_SEATED_POS[1], task.FUSE_SEATED_POS[2] + 0.080),
@@ -81,7 +81,7 @@ class TestDisconnectScoring(unittest.TestCase):
         self.assertFalse(task.success(objs))
 
     def test_full_success_hold(self):
-        busbar_clamp_p = (task.BUSBAR_POS[0] - 0.018, task.BUSBAR_POS[1], task.BUSBAR_POS[2])
+        busbar_clamp_p = (task.BUSBAR_POS[0], task.BUSBAR_POS[1] + 0.018, task.BUSBAR_POS[2])
         tray_fuse_p = (task.TRAY_POS[0], task.TRAY_POS[1], task.TRAY_POS[2] + 0.018)
         objs = self.make_state(
             clamp_pos=busbar_clamp_p,

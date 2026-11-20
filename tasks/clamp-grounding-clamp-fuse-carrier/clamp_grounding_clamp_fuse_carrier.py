@@ -42,16 +42,13 @@ TABLE_TOP = {"station": 0.748}
 TOP = TABLE_TOP[SCENE]
 
 # Station Positions (Left arm at +Y, Right arm at -Y)
-# Grounding clamp is on +Y side (handled by Left Arm)
-# Distribution panel is centered at Y = 0.0
-# Ground busbar tab within panel is at +Y side of enclosure (+0.060 m)
-# Anti-static parts tray is on -Y side (-0.180 m, handled by Right Arm)
 BOX_X = 0.220
 BOX_Y = 0.000
 BOX_BASE_Z = TOP + 0.055
 
-BUSBAR_POS = np.array([BOX_X, 0.060, TOP + 0.045])
-CLAMP_INIT_POS = np.array([0.180, 0.180, TOP + 0.035])
+# Ground busbar tab extending on the accessible +Y flange of the enclosure
+BUSBAR_POS = np.array([BOX_X, 0.088, TOP + 0.075])
+CLAMP_INIT_POS = np.array([0.180, 0.200, TOP + 0.035])
 FUSE_SEATED_POS = np.array([BOX_X, 0.000, TOP + 0.055])
 TRAY_POS = np.array([0.220, -0.180, TOP + 0.015])
 
@@ -75,8 +72,8 @@ kit.part(
         mk.box((0.008, 0.180, 0.080), at=(-0.066, 0.000, 0.000), color=ANSI_GRAY),
         # Open enclosure door (hinged on +X rim, swung open out of way)
         mk.box((0.140, 0.006, 0.080), at=(0.050, -0.145, 0.020), color=ANSI_GRAY),
-        # Copper Ground Busbar Tab (6 mm thick in Y x 25 mm wide in X x 40 mm high in Z)
-        mk.box((0.025, 0.006, 0.040), at=(0.000, 0.060, -0.010), color=COPPER_SHINE),
+        # Copper Ground Busbar Tab extending vertically from the +Y side flange (6 mm thick in Y x 25 mm wide in X x 35 mm high in Z)
+        mk.box((0.025, 0.006, 0.035), at=(0.000, 0.088, 0.020), color=COPPER_SHINE),
         # Non-colliding U-channel receiver spring clip terminals flanking the blades
         # Upper terminal clips (at x = +0.025, flanking y=0.000)
         mk.box((0.018, 0.003, 0.016), at=(0.025, 0.007, -0.025), color=CONTACT_BRASS),
@@ -96,13 +93,13 @@ kit.part(
     name="grounding_clamp",
     pos=(CLAMP_INIT_POS[0], CLAMP_INIT_POS[1], CLAMP_INIT_POS[2]),
     boxes=[
-        # Cast bronze duckbill jaws (flanking y = 0 with 9 mm gap to slide over 6 mm busbar)
-        mk.box((0.035, 0.004, 0.020), at=(0.018, 0.0065, 0.000), color=BRONZE_CAST),
-        mk.box((0.035, 0.004, 0.020), at=(0.018, -0.0065, 0.000), color=BRONZE_CAST),
+        # Cast bronze duckbill jaws pointing inward along -Y (flanking x = 0 with 9 mm gap to slide over 6 mm busbar)
+        mk.box((0.004, 0.035, 0.020), at=(0.0065, -0.018, 0.000), color=BRONZE_CAST),
+        mk.box((0.004, 0.035, 0.020), at=(-0.0065, -0.018, 0.000), color=BRONZE_CAST),
         # Central spring pivot barrel housing
-        mk.box((0.020, 0.018, 0.024), at=(0.000, 0.000, 0.000), color=BRONZE_CAST),
-        # Rear dielectric insulated grip handle post (26 mm wide x 18 mm thick x 55 mm high)
-        mk.box((0.026, 0.018, 0.055), at=(-0.025, 0.000, 0.025), color=SAFETY_YELLOW),
+        mk.box((0.018, 0.020, 0.024), at=(0.000, 0.000, 0.000), color=BRONZE_CAST),
+        # Dielectric insulated grip handle post pointing up at +Y end (26 mm thick x 18 mm wide x 55 mm high)
+        mk.box((0.018, 0.026, 0.055), at=(0.000, 0.025, 0.025), color=SAFETY_YELLOW),
     ],
     mass=0.350,
     contact_offset=0.0005,
@@ -165,10 +162,10 @@ def _on_step(objects: dict[str, Any]) -> None:
 
     # 1. Grounding clamp status
     # Jaws clamped over copper busbar tab
-    # When jaws are around busbar tab at BUSBAR_POS, clamp origin is at BUSBAR_POS - [0.018, 0, 0]
-    dr_clamp = math.sqrt((gp[0] - (BUSBAR_POS[0] - 0.018)) ** 2 + (gp[1] - BUSBAR_POS[1]) ** 2)
+    # When jaws are around busbar tab at BUSBAR_POS, clamp origin is at BUSBAR_POS + [0, 0.018, 0]
+    dr_clamp = math.sqrt((gp[0] - BUSBAR_POS[0]) ** 2 + (gp[1] - (BUSBAR_POS[1] + 0.018)) ** 2)
     dz_clamp = abs(gp[2] - BUSBAR_POS[2])
-    clamped = dr_clamp <= 0.020 and dz_clamp <= 0.020
+    clamped = dr_clamp <= 0.025 and dz_clamp <= 0.025
     if clamped:
         M["clamp_grounded"] = True
 
@@ -319,13 +316,13 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Clamp handle grip coordinates (Left side +Y)
-    cg_x = CLAMP_INIT_POS[0] - 0.025
-    cg_y = CLAMP_INIT_POS[1]
+    cg_x = CLAMP_INIT_POS[0]
+    cg_y = CLAMP_INIT_POS[1] + 0.025
     cg_z = CLAMP_INIT_POS[2] + 0.025
 
     # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
-    attach_x = BUSBAR_POS[0] - 0.018 - 0.025
-    attach_y = BUSBAR_POS[1]
+    attach_x = BUSBAR_POS[0]
+    attach_y = BUSBAR_POS[1] + 0.018 + 0.025
     attach_z = BUSBAR_POS[2] + 0.025
 
     # Fuse pull handle coordinates (Center Y=0)
@@ -336,7 +333,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Tray placement coordinates (Right side -Y)
     tray_place_z = TRAY_POS[2] + 0.035
 
-    # Left arm: grasps grounding clamp at +Y, carries and attaches jaws onto busbar at Y=+0.060, then retracts to +Y park
+    # Left arm: grasps grounding clamp at +Y, carries and attaches jaws onto busbar at Y=+0.088, then retracts to +Y park
     # Right arm: waits for grounding, grasps fuse carrier at Y=0, withdraws it, places in tray at Y=-0.180, retracts to -Y park
 
     if cheat == "no_ground":
@@ -356,13 +353,13 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (cg_x, cg_y, cg_z), FINGER_CLOSED, "clamp_grasp"),
         Waypoint(1.0, (cg_x, cg_y, CARRY_Z), FINGER_CLOSED, "clamp_lift"),
         # Carry clamp toward enclosure busbar tab
-        Waypoint(0.8, (attach_x - 0.040, attach_y, CARRY_Z), FINGER_CLOSED, "clamp_carry_1"),
-        Waypoint(0.8, (attach_x - 0.040, attach_y, attach_z), FINGER_CLOSED, "clamp_align"),
+        Waypoint(0.8, (attach_x, attach_y + 0.040, CARRY_Z), FINGER_CLOSED, "clamp_carry_1"),
+        Waypoint(0.8, (attach_x, attach_y + 0.040, attach_z), FINGER_CLOSED, "clamp_align"),
         # Push duckbill jaws over copper busbar tab
         Waypoint(1.2, (attach_x, attach_y, attach_z), FINGER_CLOSED, "clamp_attach"),
         # Release handle so spring jaws bite into copper busbar
         Waypoint(0.8, (attach_x, attach_y, attach_z), FINGER_OPEN, "clamp_release"),
-        Waypoint(1.0, (attach_x - 0.050, attach_y, CARRY_Z), FINGER_OPEN, "clamp_clear"),
+        Waypoint(1.0, (attach_x, attach_y + 0.040, CARRY_Z), FINGER_OPEN, "clamp_clear"),
         Waypoint(1.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(12.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_park"),
     ]
