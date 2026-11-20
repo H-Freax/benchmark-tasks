@@ -98,7 +98,7 @@ def build_all(root: Path) -> None:
     svg = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 540" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1a1a1a">
   <rect width="920" height="540" fill="#ffffff"/>
   <text x="30" y="34" font-size="17" font-weight="bold">Spring-Backed Single-Card Case &amp; Riser — Fabrication Drawing (all dimensions in mm)</text>
-  <text x="30" y="54" font-size="12" fill="#444">Unbranded 2-piece ABS enclosure + 6061-T6 follower + 2x guided compression springs (combined k = 200 N/m, 0.95 mm single-card throat)</text>
+  <text x="30" y="54" font-size="12" fill="#444">Unbranded 2-piece ABS enclosure + 6061-T6 follower + 2x guided compression springs (combined k = 2500 N/m, 1.15 mm single-card throat)</text>
 
   <!-- TOP VIEW (scale 3 px/mm, center at 220, 195) -->
   <text x="70" y="92" font-size="14" font-weight="bold">1. Top View (Case + Thumb Window)</text>
