@@ -110,10 +110,10 @@ def _tray_boxes() -> list[mk.BoxSpec]:
 def _tongs_boxes() -> list[mk.BoxSpec]:
     boxes = []
     # Grip handle body (projecting forward to +X, centered at +0.055)
-    boxes.append(mk.box((0.110, 0.022, 0.016), at=(0.055, 0.0, 0.008), color=BRIGHT_STEEL))
+    boxes.append(mk.box((0.110, 0.018, 0.014), at=(0.055, 0.0, 0.007), color=BRIGHT_STEEL))
     # Scalloped grasping jaws (projecting backward into grill at -0.055)
-    boxes.append(mk.box((0.075, 0.008, 0.016), at=(-0.055, -0.008, 0.008), color=BRIGHT_STEEL))
-    boxes.append(mk.box((0.075, 0.008, 0.016), at=(-0.055, 0.008, 0.008), color=BRIGHT_STEEL))
+    boxes.append(mk.box((0.075, 0.008, 0.014), at=(-0.055, -0.008, 0.007), color=BRIGHT_STEEL))
+    boxes.append(mk.box((0.075, 0.008, 0.014), at=(-0.055, 0.008, 0.007), color=BRIGHT_STEEL))
     return boxes
 
 
@@ -178,7 +178,7 @@ def _step_rules(objects) -> None:
     if not tongs or not platen:
         return
 
-    t_pos = kit.point(objects, "utility_tongs", (0.0, 0.0, 0.008))
+    t_pos = kit.point(objects, "utility_tongs", (0.0, 0.0, 0.007))
     d_grill = math.hypot(t_pos[0] - GRILL_XY[0], t_pos[1] - GRILL_XY[1])
     d_tray = math.hypot(t_pos[0] - TRAY_XY[0], t_pos[1] - TRAY_XY[1])
 
@@ -258,8 +258,9 @@ def demo() -> dict[str, list[Waypoint]]:
             add(arm, dt, last.pos, last.finger, label, last.yaw)
 
     # Initial grasp coordinates for tongs handle at front (+X)
+    # Right arm on -Y side grasps with fingers closing front-to-back (yaw = pi/2)
     t_grip_xy = (0.355, 0.000)
-    t_grip_z = GRILL_PLATE_Z + 0.020
+    t_grip_z = GRILL_PLATE_Z + 0.016
 
     tray_dest_xy = (TRAY_XY[0], TRAY_XY[1])
     tray_dest_z = TOP + 0.022
@@ -271,23 +272,23 @@ def demo() -> dict[str, list[Waypoint]]:
     add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park")
 
     # Right arm: approach and grasp tongs on forward grill zone
-    add("right", 1.2, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.090), FINGER_OPEN, "approach tongs above grill")
-    add("right", 0.6, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_OPEN, "descend to tongs grip")
-    add("right", 0.4, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_CLOSED, "pinch tongs grip")
+    add("right", 1.2, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.090), FINGER_OPEN, "approach tongs above grill", yaw=math.pi / 2)
+    add("right", 0.6, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_OPEN, "descend to tongs grip", yaw=math.pi / 2)
+    add("right", 0.4, (t_grip_xy[0], t_grip_xy[1], t_grip_z), FINGER_CLOSED, "pinch tongs grip", yaw=math.pi / 2)
     # Lift tongs clear (> 60 mm)
-    add("right", 0.8, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "lift tongs clear of grill")
+    add("right", 0.8, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "lift tongs clear of grill", yaw=math.pi / 2)
 
     if variant == "no_tray":
-        add("right", 2.0, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "hold tongs suspended")
+        add("right", 2.0, (t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "hold tongs suspended", yaw=math.pi / 2)
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
         return plans
 
     # Transfer tongs across to side rest tray on right (-Y)
-    add("right", 1.2, (tray_dest_xy[0], tray_dest_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "transfer tongs to tray")
-    add("right", 0.6, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_CLOSED, "lower tongs onto tray")
-    add("right", 0.4, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_OPEN, "release tongs")
+    add("right", 1.2, (tray_dest_xy[0], tray_dest_xy[1], t_grip_z + 0.085), FINGER_CLOSED, "transfer tongs to tray", yaw=math.pi / 2)
+    add("right", 0.6, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_CLOSED, "lower tongs onto tray", yaw=math.pi / 2)
+    add("right", 0.4, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z), FINGER_OPEN, "release tongs", yaw=math.pi / 2)
     # Retract right arm to clear park position
     add("right", 0.8, (tray_dest_xy[0], tray_dest_xy[1], tray_dest_z + 0.080), FINGER_OPEN, "lift right arm")
     add("right", 1.0, RIGHT_PARK, FINGER_OPEN, "park right arm")
@@ -302,6 +303,7 @@ def demo() -> dict[str, list[Waypoint]]:
     wait_until("left", clock["right"] - 1.0, "wait for tongs clear")
 
     # Left arm: approach insulated platen front handle in open position (75 degrees)
+    # Handle runs side-to-side (along Y), fingers close across it (yaw = 0.0)
     add("left", 1.2, (0.225, 0.000, 1.060), FINGER_OPEN, "approach insulated handle above")
     add("left", 0.6, (0.225, 0.000, 1.020), FINGER_OPEN, "align with handle")
     add("left", 0.4, (0.225, 0.000, 1.020), FINGER_CLOSED, "grasp insulated handle")
