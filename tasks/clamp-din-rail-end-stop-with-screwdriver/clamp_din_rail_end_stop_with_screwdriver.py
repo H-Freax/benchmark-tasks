@@ -216,14 +216,14 @@ end_stop = kit.part(
 SLIDE_TRAVEL = FLUSH_Y - START_Y
 kit.slider(
     "rail_slide",
-    parent=None,
+    parent="din_rail",
     child="end_stop",
     axis=(0, 1, 0),
     lower=-0.010,
-    upper=SLIDE_TRAVEL + 0.002,
+    upper=SLIDE_TRAVEL,
     start=0.0,
     stiffness=0.0,
-    damping=15.0,
+    damping=1.0,
     friction=0.15,
 )
 
@@ -319,13 +319,13 @@ def _on_step(objects: dict) -> None:
                 advance = min(SCREW_PITCH, turns * SCREW_PITCH)
                 M["screw_advance_m"] = advance
 
-                # Clamping foot contacts rail underside at advance >= 0.5 mm
-                if advance >= 0.0005:
-                    clamped_depth = advance - 0.0005
+                # Clamping foot contacts rail underside at advance >= 0.10 mm (1/4 turn preload)
+                if advance >= 0.00010:
+                    clamped_depth = advance - 0.00010
                     # Torque builds up with rotation: T = T_RUN + K_ROT * dtheta
                     torque = min(
                         0.55,
-                        T_RUN + (clamped_depth / 0.0002) * (T_SEAT - T_RUN) + 0.05,
+                        T_RUN + (clamped_depth / 0.00005) * (T_SEAT - T_RUN) + 0.05,
                     )
                     M["torque_Nm"] = torque
                     if torque >= T_SEAT:
@@ -407,7 +407,7 @@ def screw_torqued(objects: dict) -> bool:
         end_stop_flush(objects)
         and mk.MEMORY.get("clamped")
         and mk.MEMORY.get("torque_Nm", 0.0) >= T_SEAT
-        and mk.MEMORY.get("screw_advance_m", 0.0) >= 0.0006
+        and mk.MEMORY.get("screw_advance_m", 0.0) >= 0.00015
     )
 
 
@@ -546,7 +546,7 @@ def demo() -> dict[str, list[Waypoint]]:
         # Push bracket forward along rail to terminal block stack face
         Waypoint(2.0, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "push_bracket_flush"),
         # Counter-hold stack firmly under axial compression
-        Waypoint(7.0, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "hold_bracket_snug"),
+        Waypoint(6.5, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "hold_bracket_snug"),
     ]
 
     # Left arm: operates on +Y (screwdriver rest is at TOOL_REST_POS = (0.22, 0.18, ...))
@@ -561,9 +561,9 @@ def demo() -> dict[str, list[Waypoint]]:
         # Lift screwdriver cleanly from rest
         Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.155), FINGER_CLOSED, "lift_driver"),
         # Transfer above M4 screw on end bracket
-        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.155), FINGER_CLOSED, "hover_screw"),
+        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.155), FINGER_CLOSED, "hover_screw", yaw=0.70),
         # Engage screw slot
-        Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw"),
+        Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw", yaw=0.70),
     ]
 
     if cheat == "slide_only":
@@ -578,10 +578,9 @@ def demo() -> dict[str, list[Waypoint]]:
         ]
         return {"left": left, "right": right}
 
-    # Tighten M4 screw: rotate wrist clockwise 360 degrees
+    # Tighten M4 screw: rotate wrist clockwise
     left.extend([
-        Waypoint(1.2, driver_engage_tcp, FINGER_CLOSED, "turn_180", yaw=-math.pi),
-        Waypoint(1.2, driver_engage_tcp, FINGER_CLOSED, "torque_click", yaw=-2.0 * math.pi),
+        Waypoint(1.5, driver_engage_tcp, FINGER_CLOSED, "turn_torque", yaw=-0.70),
     ])
 
     if cheat == "no_release":
@@ -590,13 +589,13 @@ def demo() -> dict[str, list[Waypoint]]:
             Waypoint(6.0, (RAIL_X - 0.015, FLUSH_Y, TOP + 0.065), FINGER_CLOSED, "hold_unreleased")
         )
         left.append(
-            Waypoint(6.0, driver_engage_tcp, FINGER_CLOSED, "hold_driver_unreleased", yaw=-2.0 * math.pi)
+            Waypoint(6.0, driver_engage_tcp, FINGER_CLOSED, "hold_driver_unreleased", yaw=-0.70)
         )
         return {"left": left, "right": right}
 
     # Full completion: disengage screwdriver, return to tool rest, release both hands
     left.extend([
-        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.155), FINGER_CLOSED, "disengage_screw", yaw=-2.0 * math.pi),
+        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.155), FINGER_CLOSED, "disengage_screw", yaw=-0.70),
         Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.155), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "lower_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "release_driver", yaw=0.0),
@@ -607,7 +606,7 @@ def demo() -> dict[str, list[Waypoint]]:
     right.extend([
         Waypoint(1.0, (RAIL_X - 0.015, FLUSH_Y - 0.040, TOP + 0.065), FINGER_CLOSED, "back_off"),
         Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
-        Waypoint(3.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_right"),
+        Waypoint(3.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_right"),
     ])
 
     return {"left": left, "right": right}
