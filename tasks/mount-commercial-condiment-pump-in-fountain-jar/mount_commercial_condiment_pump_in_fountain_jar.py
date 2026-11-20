@@ -65,6 +65,9 @@ JAR_PINCH = FINGER_CLOSED
 LEFT_PARK = (-0.150, 0.280, 0.980)
 RIGHT_PARK = (0.150, -0.220, 0.980)
 
+RELEASE_TCP_CLEAR = 0.035
+RELEASE_HULL_CLEAR = 0.005
+
 
 def _jar_boxes() -> list[mk.BoxSpec]:
     """Hollow rectangular chamber: floor plate + 4 walls + rim detent flange."""
@@ -122,73 +125,131 @@ _TEST_TCPS: list | None = None
 _TEST_ROBOT_BOXES: list | None = None
 
 
-# -- Scorer logic ------------------------------------------------------------------------------------------------
+# -- Scorer logic via kit.on_step --------------------------------------------------------------------------------
 
-def _step_rules(state: dict, actions: dict, env_ctx: dict) -> tuple[float, list[str]]:
-    pump = state.get("condiment_pump", {})
-    jar = state.get("fountain_jar", {})
-    ppos = pump.get("pos", PUMP_START_POS)
-    jpos = jar.get("pos", (JAR_XY[0], JAR_XY[1], TOP))
+def _all_finite(objects) -> bool:
+    for name in ("fountain_jar", "condiment_pump"):
+        st = objects.get(name)
+        if st is None:
+            return False
+        if not (
+            np.all(np.isfinite(st.pos))
+            and np.all(np.isfinite(st.quat_xyzw))
+            and np.all(np.isfinite(st.lin_vel))
+            and np.all(np.isfinite(st.ang_vel))
+        ):
+            return False
+    return True
 
-    left_tcp = actions.get("left", {}).get("tcp", LEFT_PARK)
-    right_tcp = actions.get("right", {}).get("tcp", RIGHT_PARK)
-    left_force_z = actions.get("left", {}).get("force_z", 0.0)
 
-    px, py, pz = ppos
-    jx, jy, jz = jpos
+def hands_clear(objects) -> bool:
+    targets = [objects["fountain_jar"], objects["condiment_pump"]]
+    tcps = mk.tcps() if _TEST_TCPS is None else _TEST_TCPS
+    for st in targets:
+        lo, hi = np.asarray(st.low) - RELEASE_TCP_CLEAR, np.asarray(st.high) + RELEASE_TCP_CLEAR
+        if any(bool(np.all(np.asarray(t) >= lo) and np.all(np.asarray(t) <= hi)) for t in tcps):
+            return False
+    boxes = mk.robot_collision_boxes() if _TEST_ROBOT_BOXES is None else _TEST_ROBOT_BOXES
+    for lo_r, hi_r in boxes:
+        for st in targets:
+            gap = np.maximum(np.maximum(np.asarray(st.low) - hi_r, lo_r - np.asarray(st.high)), 0.0)
+            if float(np.linalg.norm(gap)) < RELEASE_HULL_CLEAR:
+                return False
+    return True
+
+
+def _step_rules(objects) -> None:
+    step_id = mk._EP["step"]
+    if mk.MEMORY.get("_last_step") == step_id and step_id != 0:
+        return
+    mk.MEMORY["_last_step"] = step_id
+
+    if not _all_finite(objects):
+        mk.MEMORY["invalid_state"] = True
+        return
+
+    pump = objects["condiment_pump"]
+    jar = objects["fountain_jar"]
+    ppos = pump.pos
+    jpos = jar.pos
+    px, py, pz = float(ppos[0]), float(ppos[1]), float(ppos[2])
+    jx, jy, jz = float(jpos[0]), float(jpos[1]), float(jpos[2])
 
     # Check jar displacement
     j_disp = math.hypot(jx - JAR_XY[0], jy - JAR_XY[1])
     if j_disp > 0.035:
-        return 0.0, ["jar_excessive_displacement"]
+        mk.MEMORY["jar_fault"] = True
+        return
 
     # Check dropped pump
     if pz < TOP + 0.030 and math.hypot(px - JAR_XY[0], py - JAR_XY[1]) > 0.100 and math.hypot(px - RACK_XY[0], py - RACK_XY[1]) > 0.080:
-        return 0.0, ["pump_dropped_on_counter"]
+        mk.MEMORY["drop_fault"] = True
+        return
 
-    # Stage 1 (0.20): Lift pump clear of rack
-    stage_lift = (pz > PUMP_GRIP_INIT_Z + 0.030)
+    # Stage 1: Lift pump clear of rack
+    if pz > PUMP_GRIP_INIT_Z + 0.025:
+        mk.MEMORY["lifted"] = True
 
     # Relative alignment over jar
     r_xy = math.hypot(px - jx, py - jy)
     tube_bottom_z = pz - 0.160
 
-    # Stage 2 (0.40): Pick-up tube entered jar bore
-    stage_entered = (stage_lift and r_xy < 0.040 and tube_bottom_z < JAR_RIM_Z - 0.050)
+    # Stage 2: Pick-up tube entered jar bore
+    if mk.MEMORY.get("lifted") and r_xy < 0.040 and tube_bottom_z < JAR_RIM_Z - 0.040:
+        mk.MEMORY["entered"] = True
 
-    # Stage 3 (0.65): Collar seated flush on jar rim
+    # Stage 3: Collar seated flush on jar rim
     collar_z = pz + 0.010
     gap_z = abs(collar_z - JAR_RIM_Z)
-    stage_seated = (stage_entered and r_xy < 0.015 and gap_z < 0.008)
+    if mk.MEMORY.get("entered") and r_xy < 0.015 and gap_z < 0.010:
+        mk.MEMORY["seated"] = True
 
-    # Stage 4 (0.85): Collar locking detent engaged
-    stage_locked = (stage_seated and px < jx - 0.005)
+    # Stage 4: Collar locking detent engaged
+    if mk.MEMORY.get("seated") and px < jx - 0.003:
+        mk.MEMORY["locked"] = True
 
-    # Stage 5 (1.00): Upward proof pull test (>= 5.0 N) held and hands clear
-    d_left = math.hypot(left_tcp[0] - px, left_tcp[1] - py, left_tcp[2] - pz)
-    d_right = math.hypot(right_tcp[0] - jx, right_tcp[1] - jy, right_tcp[2] - jz)
-    hands_clear = (d_left > 0.035 and d_right > 0.035)
-
-    stage_proof = (stage_locked and left_force_z >= 5.0 and gap_z < 0.010)
-
-    score = 0.0
-    if stage_lift:
-        score = max(score, 0.20)
-    if stage_entered:
-        score = max(score, 0.40)
-    if stage_seated:
-        score = max(score, 0.65)
-    if stage_locked:
-        score = max(score, 0.85)
-    if stage_proof and hands_clear:
-        score = 1.00
-
-    return score, []
+    # Stage 5: Proof pull sustained
+    if mk.MEMORY.get("locked"):
+        mk.MEMORY["proof_steps"] = mk.MEMORY.get("proof_steps", 0) + 1
 
 
-def task_score(state: dict, actions: dict, env_ctx: dict) -> float:
-    score, _ = _step_rules(state, actions, env_ctx)
-    return score
+kit.on_step(_step_rules)
+
+
+def failed(objects) -> bool:
+    return bool(mk.MEMORY.get("invalid_state") or mk.MEMORY.get("jar_fault") or mk.MEMORY.get("drop_fault"))
+
+
+def score(objects) -> float:
+    if not _all_finite(objects) or failed(objects):
+        return 0.0
+
+    if not mk.MEMORY.get("lifted"):
+        return 0.0
+
+    if not mk.MEMORY.get("entered"):
+        return 0.20
+
+    if not mk.MEMORY.get("seated"):
+        return 0.40
+
+    if not mk.MEMORY.get("locked"):
+        return 0.65
+
+    # If locked, check if hands are clear and proof held
+    still = objects["condiment_pump"].resting() and objects["fountain_jar"].resting()
+    if mk.MEMORY.get("proof_steps", 0) >= 10 and still and hands_clear(objects):
+        return 1.00
+
+    return 0.85
+
+
+def success(objects) -> bool:
+    return score(objects) >= 1.0 - 1e-9
+
+
+task_score = score
+task_success = success
 
 
 # -- Policy demonstration ----------------------------------------------------------------------------------------
