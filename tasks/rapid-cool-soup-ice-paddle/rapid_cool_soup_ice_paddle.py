@@ -119,8 +119,8 @@ MIN_LIFT_CLEAR_Z = 0.025          # lifted >= 25 mm out of cradle
 MIN_SUBMERGE_DEPTH = 0.020        # blade submerged >= 20 mm below liquid surface
 AGITATION_MIN_REVS = 3.0          # >= 3 circular revolutions for partial credit (0.60)
 AGITATION_FULL_REVS = 5.0         # >= 5 circular revolutions for full credit (0.80)
-MIN_STIR_R = 0.015                # minimum radius from pot axis
-MAX_STIR_R = 0.075                # maximum radius from pot axis (clears 102 mm inner radius)
+MIN_STIR_R = 0.008                # minimum radius from pot axis
+MAX_STIR_R = 0.085                # maximum radius from pot axis (clears 102 mm inner radius)
 MAX_SPLASH_SPEED = 0.45           # linear speed > 0.45 m/s while submerged causes splash fault
 MAX_SPLASH_ACCEL = 6.0            # acceleration > 6.0 m/s^2 while submerged causes splash fault
 DRAIN_HOLD_STEPS = 16             # 16 steps (0.8 s) drain hold above liquid level
@@ -359,11 +359,11 @@ def _step_rules(objects) -> None:
             if "prev_theta" in mk.MEMORY:
                 prev_th = mk.MEMORY["prev_theta"]
                 d_th = (theta - prev_th + math.pi) % (2 * math.pi) - math.pi
-                if d_th > 0.01:
+                if 0.005 < d_th < math.pi:
                     mk.MEMORY["cum_phase"] = mk.MEMORY.get("cum_phase", 0.0) + d_th
-                elif d_th < -0.01:
-                    mk.MEMORY["cum_phase"] = max(0.0, mk.MEMORY.get("cum_phase", 0.0) + d_th)
             mk.MEMORY["prev_theta"] = theta
+        else:
+            mk.MEMORY.pop("prev_theta", None)
     else:
         mk.MEMORY.pop("prev_theta", None)
         mk.MEMORY.pop("prev_v", None)
