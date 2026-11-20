@@ -50,8 +50,8 @@ JAR_RIM_Z = TOP + JAR_H  # 0.7475 + 0.075 = 0.8225 m
 JAR_KG = 1.20
 
 # Jar loop handle (on -Y side, towards right robot arm)
-JAR_HANDLE_XY = (JAR_XY[0], JAR_XY[1] - JAR_D_Y / 2 - 0.035)  # (0.260, -0.020) m
-JAR_HANDLE_Z = TOP + JAR_H / 2                               # 0.7850 m
+JAR_HANDLE_XY = (JAR_XY[0], JAR_XY[1] - 0.095)               # (0.260, -0.015) m
+JAR_HANDLE_Z = TOP + 0.0015 + JAR_H / 2                      # 0.7865 m
 
 # 2. Sanitary Wire Wash Rack
 RACK_XY = (0.240, 0.250)
@@ -201,44 +201,46 @@ def _step_rules(objects) -> None:
         mk.MEMORY["invalid_state"] = True
         return
 
-    pump = objects["condiment_pump"]
-    jar = objects["fountain_jar"]
-    ppos = pump.pos
-    jpos = jar.pos
-    px, py, pz = float(ppos[0]), float(ppos[1]), float(ppos[2])
-    jx, jy, jz = float(jpos[0]), float(jpos[1]), float(jpos[2])
+    # Exact origin tracking via kit.point
+    collar_pt = kit.point(objects, "condiment_pump", (0.0, 0.0, 0.0))
+    tube_tip_pt = kit.point(objects, "condiment_pump", (0.0, 0.0, -TUBE_L))
+    jar_center_pt = kit.point(objects, "fountain_jar", (0.0, 0.0, 0.0))
+    jar_rim_pt = kit.point(objects, "fountain_jar", (0.0, 0.0, JAR_H))
 
-    # Check jar displacement
-    j_disp = math.hypot(jx - JAR_XY[0], jy - JAR_XY[1])
+    c_x, c_y, c_z = float(collar_pt[0]), float(collar_pt[1]), float(collar_pt[2])
+    j_x, j_y, j_z = float(jar_center_pt[0]), float(jar_center_pt[1]), float(jar_center_pt[2])
+    rim_z = float(jar_rim_pt[2])
+    tube_z = float(tube_tip_pt[2])
+
+    # Check jar displacement from starting anchor
+    j_disp = math.hypot(j_x - JAR_XY[0], j_y - JAR_XY[1])
     if j_disp > 0.035:
         mk.MEMORY["jar_fault"] = True
         return
 
     # Check dropped pump
-    if pz < TOP + 0.030 and math.hypot(px - JAR_XY[0], py - JAR_XY[1]) > 0.120 and math.hypot(px - RACK_XY[0], py - RACK_XY[1]) > 0.100:
+    if c_z < TOP + 0.020 and math.hypot(c_x - JAR_XY[0], c_y - JAR_XY[1]) > 0.120 and math.hypot(c_x - RACK_XY[0], c_y - RACK_XY[1]) > 0.100:
         mk.MEMORY["drop_fault"] = True
         return
 
-    # Stage 1: Lift pump clear of rack
-    if pz > PUMP_COLLAR_INIT_Z + 0.030:
+    # Stage 1: Lift pump clear of rack socket
+    if c_z > PUMP_COLLAR_INIT_Z + 0.030:
         mk.MEMORY["lifted"] = True
 
-    # Relative alignment over jar
-    r_xy = math.hypot(px - jx, py - jy)
-    tube_bottom_z = pz - TUBE_L
+    # Relative alignment over jar rim
+    r_xy = math.hypot(c_x - j_x, c_y - j_y)
 
     # Stage 2: Pick-up tube entered jar bore
-    if mk.MEMORY.get("lifted") and r_xy < 0.040 and tube_bottom_z < JAR_RIM_Z - 0.005:
+    if mk.MEMORY.get("lifted") and r_xy < 0.035 and tube_z < rim_z - 0.010:
         mk.MEMORY["entered"] = True
 
     # Stage 3: Collar seated flush on jar rim
-    collar_z = pz
-    gap_z = abs(collar_z - JAR_RIM_Z)
-    if mk.MEMORY.get("entered") and r_xy < 0.025 and gap_z < 0.020:
+    gap_z = abs(c_z - rim_z)
+    if mk.MEMORY.get("entered") and r_xy < 0.025 and gap_z < 0.015:
         mk.MEMORY["seated"] = True
 
     # Stage 4: Collar locking detent engaged
-    if mk.MEMORY.get("seated") and px < jx - 0.002:
+    if mk.MEMORY.get("seated") and (c_x - j_x) < -0.002:
         mk.MEMORY["locked"] = True
 
     # Stage 5: Proof pull sustained
@@ -247,7 +249,7 @@ def _step_rules(objects) -> None:
 
     if step_id % 20 == 0 or step_id in (1, 10, 50, 100, 150, 200, 250, 300, 320):
         faults = [k for k in ("invalid_state", "jar_fault", "drop_fault") if mk.MEMORY.get(k)]
-        print(f"[STEP {step_id:04d}] score={score(objects):.2f} pz={pz:.4f} ppos=({px:.3f},{py:.3f},{pz:.3f}) jpos=({jx:.3f},{jy:.3f},{jz:.3f}) r_xy={r_xy:.4f} gap_z={gap_z:.4f} lifted={mk.MEMORY.get('lifted')} entered={mk.MEMORY.get('entered')} seated={mk.MEMORY.get('seated')} locked={mk.MEMORY.get('locked')} faults={faults}", flush=True)
+        print(f"[STEP {step_id:04d}] score={score(objects):.2f} cz={c_z:.4f} collar=({c_x:.3f},{c_y:.3f}) jar=({j_x:.3f},{j_y:.3f}) r_xy={r_xy:.4f} gap_z={gap_z:.4f} tube_z={tube_z:.4f} rim_z={rim_z:.4f} lifted={mk.MEMORY.get('lifted')} entered={mk.MEMORY.get('entered')} seated={mk.MEMORY.get('seated')} locked={mk.MEMORY.get('locked')} faults={faults}", flush=True)
 
 
 kit.on_step(_step_rules)
@@ -310,9 +312,9 @@ def demo() -> dict[str, list[Waypoint]]:
     rx, ry = RACK_XY
     hx, hy = JAR_HANDLE_XY
 
-    carry_z = 0.940  # 940 mm: generous clearance above both rack socket and jar rim
+    carry_z = 0.940  # generous clearance above both rack socket and jar rim
 
-    # Right arm: steady the stainless fountain jar side loop handle at (0.260, -0.020, 0.7850)
+    # Right arm: steady the stainless fountain jar side loop handle at (0.260, -0.015, 0.7865)
     add("right", 1.2, (hx, hy, JAR_HANDLE_Z + 0.040), FINGER_OPEN, "approach jar handle")
     add("right", 0.6, (hx, hy, JAR_HANDLE_Z), FINGER_OPEN, "descend to jar handle")
     add("right", 0.4, (hx, hy, JAR_HANDLE_Z), JAR_PINCH, "pinch jar handle")
