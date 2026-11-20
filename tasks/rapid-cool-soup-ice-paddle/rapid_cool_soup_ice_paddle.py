@@ -176,7 +176,7 @@ def _pot_boxes() -> list[mk.BoxSpec]:
 
     return [
         # Solid base floor
-        *_oct_solid(POT_INNER_ACROSS, 0.0, POT_FLOOR_H, color=STAINLESS),
+        *_oct_solid(POT_OUTER_ACROSS, 0.0, POT_FLOOR_H, color=STAINLESS),
         # 8-sided deep pot wall
         *_oct_ring(POT_OUTER_ACROSS, POT_WALL_THICK, POT_FLOOR_H, wall_h, color=STAINLESS),
         # Rolled top rim lip
@@ -321,12 +321,12 @@ def _step_rules(objects) -> None:
     pot_st = objects["stockpot"]
     pad_st = objects["ice_paddle"]
 
-    # 1. Pot stability check: stockpot must not slide > 30 mm or tilt > 10 deg
+    # 1. Pot stability check: stockpot must not slide > 30 mm or tilt > 10 deg (after initial settling)
     pot_pos, _ = kit.pose(objects, "stockpot")
     pot_xy = (float(pot_pos[0]), float(pot_pos[1]))
     pot_slip = math.hypot(pot_xy[0] - POT_XY[0], pot_xy[1] - POT_XY[1])
     pot_tilt = _tilt_deg(pot_st)
-    if pot_slip > POT_MAX_SLIP or pot_tilt > POT_MAX_TILT_DEG:
+    if step_id > 5 and (pot_slip > POT_MAX_SLIP or pot_tilt > POT_MAX_TILT_DEG):
         mk.MEMORY["pot_fault"] = True
 
     # 2. Dropped paddle fault: paddle falls onto counter top outside stand and pot
