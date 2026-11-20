@@ -105,8 +105,8 @@ kit.part(
         mk.box((0.015, 0.140, 0.025), at=(0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.015, 0.140, 0.025), at=(-0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.140, 0.015, 0.025), at=(0.000, 0.065, 0.040), color=CAST_IRON),
-        # Front collar rim segmented to form a 50 mm clearance notch at -Y
-        mk.box((0.045, 0.015, 0.025), at=(0.045, -0.065, 0.040), color=CAST_IRON),
+        # Front collar rim segmented to form an 80 mm clearance bayonet rotation notch at -Y
+        mk.box((0.020, 0.015, 0.025), at=(0.055, -0.065, 0.040), color=CAST_IRON),
         mk.box((0.045, 0.015, 0.025), at=(-0.045, -0.065, 0.040), color=CAST_IRON),
         # Internal bayonet detent stops inside collar (positioned at side walls)
         mk.box((0.010, 0.015, 0.010), at=(0.052, 0.020, 0.030), color=CAST_BLACK),
@@ -444,8 +444,9 @@ def demo() -> dict[str, list[Waypoint]]:
     right += [
         Waypoint(1.2, (lock_hx, lock_hy, TOP + 0.080), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
         Waypoint(0.8, (lock_hx, lock_hy, TOP + 0.080), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
-        Waypoint(1.0, (lock_hx, lock_hy, BOWL_CARRY_Z), FINGER_OPEN, "bowl_clear"),
-        Waypoint(1.2, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
+        Waypoint(1.0, (lock_hx, lock_hy, BOWL_CARRY_Z + 0.020), FINGER_OPEN, "bowl_clear", yaw=math.radians(-30.0)),
+        Waypoint(0.8, (lock_hx, -0.200, BOWL_CARRY_Z + 0.020), FINGER_OPEN, "right_retract_side", yaw=math.radians(-30.0)),
+        Waypoint(1.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
         Waypoint(18.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_park"),
     ]
 
