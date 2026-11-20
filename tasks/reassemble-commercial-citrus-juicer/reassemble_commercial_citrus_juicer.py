@@ -156,9 +156,9 @@ kit.part(
         mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
         # Bottom drainage spout
         mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        # Flanged grasp handle on -X outer rim (positive vertical lift catch)
-        mk.box((0.016, 0.014, 0.020), at=(-0.045, 0.000, 0.010), color=STAINLESS_BRIGHT),
-        mk.box((0.022, 0.038, 0.008), at=(-0.045, 0.000, 0.022), color=STAINLESS_BRIGHT),
+        # Flanged grasp handle on -Y outer rim (aligned with robot closing axis)
+        mk.box((0.030, 0.016, 0.045), at=(0.000, -0.045, 0.030), color=STAINLESS_BRIGHT),
+        mk.box((0.038, 0.024, 0.008), at=(0.000, -0.045, 0.055), color=STAINLESS_BRIGHT),
         # Bayonet locking tabs on rim
         mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
@@ -177,9 +177,9 @@ kit.part(
         mk.box((0.065, 0.065, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
         # Outer seating flange lip
         mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Central apex flanged grasp knob (positive vertical lift catch)
-        mk.box((0.016, 0.014, 0.020), at=(0.000, 0.000, 0.014), color=STAINLESS_BRIGHT),
-        mk.box((0.022, 0.038, 0.008), at=(0.000, 0.000, 0.026), color=STAINLESS_BRIGHT),
+        # Central apex grasp knob stem & retention flange
+        mk.box((0.030, 0.016, 0.035), at=(0.000, 0.000, 0.022), color=STAINLESS_BRIGHT),
+        mk.box((0.038, 0.024, 0.008), at=(0.000, 0.000, 0.042), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
 )
@@ -391,28 +391,28 @@ def demo() -> dict[str, list[Waypoint]]:
         right = [Waypoint(10.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "park_right")]
         return {"left": left, "right": right}
 
-    # Bowl handle coordinates (at -X rim of the bowl)
-    h_x = BOWL_INIT_POS[0] - 0.045
-    h_y = BOWL_INIT_POS[1]
-    h_z = BOWL_INIT_POS[2] + 0.015
+    # Bowl handle coordinates (at -Y rim of the bowl, aligned with gripper fingers)
+    h_x = BOWL_INIT_POS[0]
+    h_y = BOWL_INIT_POS[1] - 0.045
+    h_z = BOWL_INIT_POS[2] + 0.030
 
-    # Cone knob coordinates
+    # Cone knob coordinates (at center apex of strainer cone)
     c_x = CONE_INIT_POS[0]
     c_y = CONE_INIT_POS[1]
-    c_z = CONE_INIT_POS[2] + 0.020
+    c_z = CONE_INIT_POS[2] + 0.025
 
     # Right arm: installs collector bowl into base collar and locks bayonet detents
     right = [
-        Waypoint(1.2, (h_x, h_y, TOP + 0.120), FINGER_OPEN, "bowl_approach"),
-        Waypoint(0.8, (h_x, h_y, h_z + 0.005), FINGER_CLOSED, "bowl_grasp"),
+        Waypoint(1.2, (h_x, h_y, TOP + 0.140), FINGER_OPEN, "bowl_approach"),
+        Waypoint(0.8, (h_x, h_y, h_z), FINGER_CLOSED, "bowl_grasp"),
         Waypoint(1.0, (h_x, h_y, TOP + 0.140), FINGER_CLOSED, "bowl_lift"),
-        Waypoint(1.5, (COLLAR_X - 0.045, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "bowl_align"),
-        Waypoint(1.2, (COLLAR_X - 0.045, COLLAR_Y, TOP + 0.070), FINGER_CLOSED, "bowl_insert"),
+        Waypoint(1.5, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.140), FINGER_CLOSED, "bowl_align"),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.070), FINGER_CLOSED, "bowl_insert"),
     ]
 
     if cheat == "bowl_only":
         right += [
-            Waypoint(0.8, (COLLAR_X - 0.045, COLLAR_Y, TOP + 0.070), FINGER_OPEN, "bowl_release"),
+            Waypoint(0.8, (COLLAR_X, COLLAR_Y - 0.045, TOP + 0.070), FINGER_OPEN, "bowl_release"),
             Waypoint(1.2, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_retract"),
             Waypoint(8.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_park"),
         ]
@@ -422,10 +422,13 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Lock bowl with 30-deg clockwise bayonet rotation
+    # Bowl rotates 30 deg CW: new handle position = (COLLAR_X + 0.045*sin(30), COLLAR_Y - 0.045*cos(30))
+    lock_hx = COLLAR_X + 0.045 * math.sin(math.radians(30.0))
+    lock_hy = COLLAR_Y - 0.045 * math.cos(math.radians(30.0))
     right += [
-        Waypoint(1.2, (COLLAR_X - 0.039, COLLAR_Y + 0.022, TOP + 0.070), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
-        Waypoint(0.8, (COLLAR_X - 0.039, COLLAR_Y + 0.022, TOP + 0.070), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
-        Waypoint(1.0, (COLLAR_X - 0.039, COLLAR_Y + 0.022, TOP + 0.140), FINGER_OPEN, "bowl_clear"),
+        Waypoint(1.2, (lock_hx, lock_hy, TOP + 0.070), FINGER_CLOSED, "bowl_twist", yaw=math.radians(-30.0)),
+        Waypoint(0.8, (lock_hx, lock_hy, TOP + 0.070), FINGER_OPEN, "bowl_release", yaw=math.radians(-30.0)),
+        Waypoint(1.0, (lock_hx, lock_hy, TOP + 0.140), FINGER_OPEN, "bowl_clear"),
         Waypoint(1.2, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_retract"),
         Waypoint(18.0, (0.180, -0.200, TOP + 0.140), FINGER_OPEN, "right_park"),
     ]
@@ -441,8 +444,8 @@ def demo() -> dict[str, list[Waypoint]]:
         # Wait while right arm installs bowl (t = 6.9 s)
         Waypoint(7.0, (0.180, 0.200, TOP + 0.140), FINGER_OPEN, "left_wait"),
         # Approach strainer cone knob
-        Waypoint(1.2, (c_x, c_y, TOP + 0.120), FINGER_OPEN, "cone_approach"),
-        Waypoint(0.8, (c_x, c_y, c_z + 0.005), FINGER_CLOSED, "cone_grasp"),
+        Waypoint(1.2, (c_x, c_y, TOP + 0.140), FINGER_OPEN, "cone_approach"),
+        Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, TOP + 0.140), FINGER_CLOSED, "cone_lift"),
         Waypoint(1.5, (COLLAR_X, COLLAR_Y, TOP + 0.140), FINGER_CLOSED, "cone_align"),
         Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.085), FINGER_CLOSED, "cone_seat"),
