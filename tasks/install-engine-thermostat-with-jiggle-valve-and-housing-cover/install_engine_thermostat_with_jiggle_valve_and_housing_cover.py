@@ -110,7 +110,7 @@ gasket_boxes = [
     # Perimeter square approximation of annular ring
     mk.box((GASKET_OD, GASKET_OD, GASKET_H), at=(0, 0, 0), color=BLACK_RUBBER),
     # Molded installation alignment grip tab
-    mk.box((0.014, 0.008, 0.016), at=(0, -GASKET_OD / 2, 0.008), color=BLACK_RUBBER),
+    mk.box((0.014, 0.008, 0.024), at=(0, -GASKET_OD / 2, 0.012), color=BLACK_RUBBER),
 ]
 kit.part("gasket", GASKET_START_POS, gasket_boxes, mass=0.015, color=BLACK_RUBBER, contact_offset=0.0005)
 
@@ -353,7 +353,7 @@ def demo():
     (gx, gy, gz) = GASKET_START_POS
     gx_tab = gx
     gy_tab = gy - GASKET_OD / 2
-    gasket_grasp_z = gz + 0.008
+    gasket_grasp_z = gz + 0.016
     gasket_grip_offset = gasket_grasp_z - gz
     hx_gasket = hx
     hy_gasket = hy - GASKET_OD / 2
