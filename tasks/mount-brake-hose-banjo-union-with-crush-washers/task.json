@@ -1,0 +1,21 @@
+{
+  "title": "Mount an automotive brake hose banjo union with copper crush washers and thread hollow bolt into caliper bore",
+  "category": "Impact on jobs",
+  "keywords": [
+    "automotive service",
+    "brake maintenance",
+    "hydraulics",
+    "banjo fitting",
+    "copper crush washer",
+    "bimanual"
+  ],
+  "instruction": "Position the brake hose banjo eyelet over the caliper port on the lower washer, insert the hollow banjo bolt through the eyelet, thread it home against the upper washer, and release.",
+  "context": "Automotive Service Technicians and Mechanics (SOC 49-3023: >760,000 workers) and Heavy Vehicle Technicians (SOC 49-3042: >210,000 workers) service hydraulic braking systems daily per SAE J1401 and DOT safety regulations. Replacing a brake hose requires securing the banjo fitting eyelet between two soft annealed copper crush washers (DIN 7603A / SAE) against the caliper fluid boss using an M10 hollow fluid bolt to guarantee a leak-free seal under extreme hydraulic pressure.",
+  "setup": "Workstation bench (z 0.7475 m). Cast-iron disc brake caliper on steel fixture plate at (0.280, 0.000) with M10 threaded fluid inlet boss (z 0.8125 m) and pre-seated lower copper crush washer (10.2 x 15 x 1.5 mm). Reinforced flexible brake hose banjo fitting (OD 20 mm, ID 10.2 mm, 10 mm height, mass 0.085 kg) staged on support cradle at (0.280, 0.090, 0.7725 m). M10 hollow banjo bolt (14 mm hex head, mass 0.045 kg) with captive upper copper crush washer staged in bolt caddy at (0.280, -0.090, 0.7725 m).",
+  "scoring": "Scored cumulatively from recorded poses and retention test. 0.25 for positioning banjo eyelet over caliper port boss (radial <= 10 mm, z <= 15 mm). 0.50 for seating banjo on lower washer and inserting bolt through eyelet into caliper bore (radial <= 6 mm, z <= 12 mm). 0.75 for bolt threaded home into caliper boss against upper washer (radial <= 2.5 mm, z <= 2.5 mm, tilt <= 12 deg). 1.00 for hands clear (> 25 mm) and passing 10 N axial proof pull along brake line (< 2.0 mm slip). Score 0 latched on drop or tilt > 25 deg.",
+  "run_limit": "1,200 steps (60 seconds at 20 Hz)",
+  "reset_notes": "Unthread the M10 hollow banjo bolt and lift it out of the caliper bore. Return the banjo bolt to its caddy. Lift the brake hose banjo eyelet off the caliper boss and return it to its support cradle. Ensure both copper crush washers remain in their designated inspection positions.",
+  "fidelity": "Rigid bodies with multi-box approximations. Catch weld for positive thread engagement with 10 N axial retention proof pull. Clearance measured from gripper link boxes.",
+  "scores": "Dream-1: 0.0; demo: 1.0",
+  "media": "M-AB63FR"
+}
