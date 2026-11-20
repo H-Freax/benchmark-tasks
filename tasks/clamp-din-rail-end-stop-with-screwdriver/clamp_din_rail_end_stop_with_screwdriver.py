@@ -33,6 +33,7 @@ import numpy as np
 import mechkit as mk
 from yam_arena.task_file import GREY, TABLE_TOP, Box, ObjectState
 
+TAG = "clamp_din_rail_end_stop_with_screwdriver"
 SCENE = "station"
 SCORE_OVER = "end"
 SUCCESS_HOLD_S = 1.0
