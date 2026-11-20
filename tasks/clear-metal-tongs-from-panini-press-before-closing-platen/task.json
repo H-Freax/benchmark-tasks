@@ -1,0 +1,20 @@
+{
+  "name": "clear-metal-tongs-from-panini-press-before-closing-platen",
+  "title": "Clear metal tongs from commercial panini press before closing heated grooved platen",
+  "keywords": [
+    "panini press",
+    "commercial contact grill",
+    "utility tongs",
+    "safety prerequisite",
+    "platen hinge",
+    "burn hazard"
+  ],
+  "instruction": "Grasp the metal tongs resting across the lower panini grill plate with your right hand and place them safely onto the side staging rest tray. Then grasp the insulated handle with your left hand, smoothly pivot the counterbalanced upper platen downward 75 degrees until resting flush on the mechanical lower stops, and retract both hands clear.",
+  "context": "Fast food and counter workers (BLS SOC 35-3023: 3,460,000 workers) and food preparation workers (BLS SOC 35-2021: 891,000 workers), representing over 4.35 million US food service personnel, routinely operate commercial grooved panini presses and contact grills (Waring Commercial / Vollrath standard). Under OSHA kitchen safety and commercial culinary operations, closing a heavy spring-counterbalanced cast iron platen (450°F, 7 kg) onto forgotten stainless metal tongs crushes internal heating elements, damages the precision grooved plates, bends hinge linkages, and risks thermal grease splatter. Workers must verify the lower grill is completely clear of metal utensils before pulling the counterbalanced platen down into the cooking position.",
+  "setup": "Commercial prep counter (Z=0.7475 m). Center: tabletop commercial grooved panini grill (280x300x190 mm, 7.5 kg cast iron/stainless chassis) at (0.280, 0.040) m with lower grooved plate at Z=0.8125 m, insulated front handle at (0.420, 0.040, 0.945) m, and upper platen open at 75 degrees. Stainless utility tongs (240 mm length, 180 g) lie across the lower grill surface. Right side: stainless prep staging rest tray at (0.280, 0.260, 0.760) m.",
+  "scoring": "Stage progression: 0.20: metal tongs grasped and lifted clear of lower grill plate (>50 mm); 0.50: tongs deposited safely onto side rest tray (>80 mm from grill perimeter); 0.75: left gripper grasps insulated platen handle and pivots platen down past 45 degrees; 0.90: upper platen fully seated flush against lower mechanical stop (<4 mm vertical gap); 1.00: upper platen flush, both hands retracted clear (TCPs >= 45 mm, collision hulls clear), and assembly resting still for >= 20 steps (1.0 s). Defect latches (0.0): closing platen while tongs remain on lower grill, gripper fingers contacting heated grill plates, dropped tongs, or hands not clear.",
+  "run_limit": "1,200 steps (60 seconds at 20 Hz)",
+  "reset_notes": "Lift upper platen to 75 degree detent, return stainless tongs across lower grooved grill plate, and clear side staging tray.",
+  "fidelity": "Rigid bodies and composite collision boxes for rectangular panini press chassis, lower grooved grill plate, counterbalanced upper platen with insulated front handle, stainless utility tongs, and side rest tray. Physical revolute joint on upper platen with torsional counterweight resistance and mechanical stops. Non-latched live state scoring with safety defect interlock.",
+  "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete runs, 350 steps each)."
+}
