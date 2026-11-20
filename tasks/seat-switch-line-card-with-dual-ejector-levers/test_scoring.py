@@ -60,8 +60,14 @@ def test_connectors_mating():
     assert _run([_objects(gap=0.006, lever_l=-20, lever_r=20)])[0] == 0.5
 
 
-def test_seated_levers_open():
-    assert _run([_objects(gap=0.0005, lever_l=-5, lever_r=5)]) == (0.75, False)
+def test_seated_levers_open_cannot_award_075():
+    # Reviewer requirement: levers open (> 2.5 deg) cannot award 0.75
+    assert _run([_objects(gap=0.0005, lever_l=-5, lever_r=5)]) == (0.50, False)
+
+
+def test_seated_and_shut_awards_075():
+    # Both levers shut <= 2.5 deg and seated <= 1.0 mm awards 0.75
+    assert _run([_objects(gap=0.0005, lever_l=-2.0, lever_r=2.0)]) == (0.75, False)
 
 
 def test_seated_and_shut():
@@ -87,7 +93,7 @@ def test_tab_points_follow_the_levers():
 
 
 def test_one_lever_shut_is_not_success():
-    assert _run([_objects(gap=0.0003, lever_l=-0.4, lever_r=5.0)]) == (0.75, False)
+    assert _run([_objects(gap=0.0003, lever_l=-0.4, lever_r=5.0)]) == (0.50, False)
 
 
 def test_seated_then_backed_out_keeps_progress():

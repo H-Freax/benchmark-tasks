@@ -28,6 +28,8 @@ INSTRUCTION = "Seat the switch line card: swing both ejector levers closed into 
 
 LOOKS = {
     "steel": m.Look(m.rgb(0.62, 0.63, 0.65), metallic=0.6, roughness=0.45),
+    "rack_post": m.Look(m.rgb(0.18, 0.19, 0.21), metallic=0.7, roughness=0.4),
+    "neighbor": m.Look(m.rgb(0.25, 0.26, 0.28), metallic=0.5, roughness=0.5),
     "dark": m.Look(m.rgb(0.16, 0.17, 0.19), roughness=0.6),
     "face": m.Look(m.rgb(0.20, 0.21, 0.23), metallic=0.3, roughness=0.5),
     "pcb": m.Look(m.rgb(0.10, 0.35, 0.18), roughness=0.7),
@@ -84,6 +86,11 @@ CHASSIS_PARTS, CHASSIS_COLS = _join(
     _box("conn_base_r", (CONN_X0 + 0.028, -CONN_Y - 0.03, 0.012), (SLOT_DEPTH, -CONN_Y + 0.03, 0.045), "dark"),
     _box("ear_l", (0.0, 0.235, 0.0), (0.004, 0.262, 0.064), "steel", collide=False),
     _box("ear_r", (0.0, -0.262, 0.0), (0.004, -0.235, 0.064), "steel", collide=False),
+    # 19-inch 4-post rack bay vertical mounting uprights (EIA-310-D standard, 482.6 mm outer mounting span)
+    _box("rack_upright_l", (-0.010, 0.235, -0.050), (0.030, 0.265, 0.160), "rack_post", collide=False),
+    _box("rack_upright_r", (-0.010, -0.265, -0.050), (0.030, -0.235, 0.160), "rack_post", collide=False),
+    # Adjacent 1U modular chassis unit above in the rack bay (constraining top approach)
+    _box("neighbor_above", (0.010, -0.235, 0.066), (SLOT_DEPTH, 0.235, 0.110), "neighbor", collide=False),
     *[_box(f"vent{i}", (0.06 + 0.04 * i, -0.17, 0.064), (0.075 + 0.04 * i, 0.17, 0.0645), "dark", collide=False)
       for i in range(10)],
 )
@@ -184,8 +191,9 @@ AT_PINS = 0.025            # Stage 0.25 threshold: card pushed within 25 mm of h
 ENGAGING = 0.008           # Stage 0.50 threshold: card within 8 mm connector mating zone
 HOME = 0.0010              # Stage 0.75 threshold: card seated within 1.0 mm
 COCK_LIMIT = 0.0015        # Defect latch: skew > 1.5 mm while mating permanently bends pins
-SHUT_DEG = 3.0             # Levers swung shut within 3.0 degrees
+SHUT_DEG = 2.5             # Levers swung shut within 2.5 degrees (per review)
 HANDS_CLEAR = 0.030        # Grippers released > 30 mm clear of finger tabs
+PROOF_PULL_N = 20.0        # 20 N automated retention proof pull along -X withdrawal axis
 FULL_HOLD_STEPS = 20       # 1.0 s held (20 steps at 20 Hz)
 UNHELD = 0.75
 
@@ -232,6 +240,14 @@ def _latch(environment) -> None:
             m.set_target(environment, "card", link, 0.0)
             _STATE["latched"][link] = True
 
+    # Automated 20 N proof pull along -X withdrawal axis once seated, shut, and clear
+    shut = all(lever_deg(st, k) <= SHUT_DEG for k in ("lever_l", "lever_r"))
+    worst = float(gaps.max())
+    if worst <= HOME and shut and _STATE["clear"]:
+        m.push(environment, "card", (-PROOF_PULL_N, 0.0, 0.0), body="frame")
+    else:
+        m.push(environment, "card", (0.0, 0.0, 0.0), body="frame")
+
 
 def tab_points(card) -> np.ndarray:
     """The middle of each lever's finger tab (left, right), world coordinates."""
@@ -274,8 +290,8 @@ def _assess(objects) -> tuple[float, bool]:
     _STATE["at_pins"] |= worst <= AT_PINS
     _STATE["engaging"] |= worst <= ENGAGING
     seated = worst <= HOME
-    _STATE["seated"] |= seated
     shut = all(lever_deg(card, k) <= SHUT_DEG for k in ("lever_l", "lever_r"))
+    _STATE["seated"] |= (seated and shut)
 
     if seated and shut and _STATE["clear"]:
         return 1.0, True

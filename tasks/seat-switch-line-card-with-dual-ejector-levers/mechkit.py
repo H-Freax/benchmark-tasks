@@ -728,11 +728,35 @@ def unlock(environment, part: str, link: str) -> None:
     asset.set_joint_position_target(_tensor(asset, 0.0), joint_ids=[j])
 
 
+_PUSHED: set[tuple[str, int]] = set()
+
+
+def push(environment, part: str, force, at=None, body: str | None = None) -> None:
+    """Hold `force` (N, station frame) on a part's body at station point `at` (default: the body's centre of mass), at every
+    physics step until changed: the drag of a braked tape roll, a cable's pull. `push(env, part, (0, 0, 0))` stops it; a reset stops all."""
+    import torch
+
+    base = environment.unwrapped
+    asset = base.scene[part]
+    origin = _np(base.scene.env_origins[0])
+    if body is None and "frame" in getattr(asset, "body_names", ()):
+        body = "frame"
+    i = 0 if body is None else int(asset.find_bodies(body)[0][0])
+    f = torch.tensor([[[float(v) for v in force]]], device=asset.device)
+    pos = None if at is None else torch.tensor([[[float(v) for v in np.asarray(at, float) + origin]]], device=asset.device)
+    asset.permanent_wrench_composer.set_forces_and_torques_index(forces=f, torques=torch.zeros_like(f), positions=pos, body_ids=[i], is_global=True)
+    _PUSHED.add((part, i))
+
+
 def _restore_touched(environment) -> None:
-    """Give changed joints back their own gains and targets, before a reset's settling steps can act on the old ones."""
+    """Give changed joints back their own gains and targets, and stop held forces, before a reset's settling steps can act on the old ones."""
     for part, link in list(_TOUCHED):
         unlock(environment, part, link)
     _TOUCHED.clear()
+    for part, i in list(_PUSHED):
+        asset = environment.unwrapped.scene[part]
+        asset.permanent_wrench_composer.reset()
+    _PUSHED.clear()
 
 
 def set_visible(path: str, visible: bool) -> None:
