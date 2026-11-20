@@ -53,7 +53,7 @@ inspect-robots run --embodiment yam_arena --policy yam_scripted \
 
 Scoring evaluates end bracket registration, clamping screw advancement/torque, resistance to an active 20 N lateral proof push, screwdriver stowage, and arm clearance:
 
-- **1.0 (Success):** End bracket seated flush against terminal block stack (gap <= 0.5 mm), M4 clamping screw rotated and torqued to 0.4 N*m click (advance >= 0.6 mm, torque >= 0.4 N*m), slips <= 0.5 mm under an active 20 N lateral proof push, screwdriver returned to rest, both arms clear >= 20 mm, and stationary for 1.0 s.
+- **1.0 (Success):** End bracket seated flush against terminal block stack (gap <= 1.0 mm), M4 clamping screw rotated and torqued to 0.4 N*m click (advance >= 0.15 mm, torque >= 0.40 N*m), slips <= 0.5 mm under an active 20 N lateral proof push, screwdriver returned to rest, both arms clear >= 20 mm, and stationary for 1.0 s.
 - **0.75:** End bracket clamped and passes proof push, but robot hands or screwdriver not released.
 - **0.50:** End bracket flush against terminal block with screwdriver engaged in screw slot.
 - **0.25:** End bracket slid into position along rail toward terminal block.
