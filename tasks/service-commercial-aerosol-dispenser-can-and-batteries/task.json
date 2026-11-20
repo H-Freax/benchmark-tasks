@@ -1,0 +1,21 @@
+{
+  "title": "Service a commercial metered aerosol air freshener dispenser",
+  "category": "Impact on jobs",
+  "keywords": [
+    "janitor",
+    "custodian",
+    "restroom",
+    "aerosol dispenser",
+    "refill can",
+    "clamshell latch"
+  ],
+  "instruction": "Service the wall-mounted metered aerosol dispenser: press the top release latch to swing open the front cover, remove the spent aerosol can to the discard tray, seat the fresh refill can into the cradle collar, push the cover shut until latched, and verify latching.",
+  "context": "Janitors and building cleaners (2,432,600 jobs, BLS SOC 37-2011) maintain and supply commercial restrooms. Automated metered aerosol air fresheners require routine can exchanges: depressing the top spring catch releases the bottom-hinged cover, allowing the spent 5.3 oz can to be extracted and a fresh refill seated flush under the overhead actuator hammer before latching and proof-checking the housing.",
+  "setup": "All coordinates in meters from the arm baseline midpoint on the table (Z=0.748). Wall panel at X=0.435. Dispenser chassis (210x90x85 mm) mounted at X=0.350, Y=0.000, bottom Z=0.080 with bottom-hinged front clamshell cover (0 to 90 deg) and top spring latch (travel 6 mm, k=1200 N/m) at Z=0.290. Spent aerosol can (65 mm OD x 140 mm H, 210 g) starts seated in internal 68 mm collar cradle. Discard tray at (0.30, 0.18, 0.02). Fresh refill can stands on staging rest at (0.32, -0.12, 0.08).",
+  "scoring": "Monotonic 5-stage cumulative score: 0.20 when top latch is depressed >= 3 mm and cover swings open >= 60 deg; 0.40 when spent can rests in discard tray; 0.65 when fresh can seats flush in cradle collar (<12 mm offset, upright); 0.85 when cover swings shut (<3 deg) and latches; 1.00 when outward proof tug passes and both hands clear >= 50 mm for >= 1.0 s.",
+  "run_limit": "800 steps (40 seconds at 20 Hz)",
+  "reset_notes": "Extract fresh can from cradle, place back on staging rest. Insert spent can into cradle. Swing cover shut until latch clicks.",
+  "fidelity": "True 1:1 commercial restroom dispenser dimensions (210x90x85 mm, 450 g total). Real hollow enclosure cavity with 68 mm collar collar and overhead actuator block. Pure rigid body PhysX contact dynamics; zero solid-box stand-ins, zero artificial grasp bosses, and zero proximity weld shortcuts.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0",
+  "media": "M-4WX2DZ"
+}
