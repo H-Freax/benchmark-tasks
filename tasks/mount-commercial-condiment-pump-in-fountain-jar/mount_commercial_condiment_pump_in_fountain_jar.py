@@ -5,7 +5,7 @@ BLS SOC 35-2021: Food Preparation Workers
 
 Assembling and locking a commercial portion-control condiment pump assembly into a
 deep stainless steel fountain jar after sanitation.
-- Steady stainless fountain jar with right hand.
+- Steady stainless fountain jar base/lower wall with right hand.
 - Grasp pump stem from wash rack with left hand, lift vertically clear of socket.
 - Transfer coaxially over fountain jar bore.
 - Insert pick-up tube down into jar bore.
@@ -20,19 +20,18 @@ from __future__ import annotations
 import math
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 
-from pathlib import Path
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import mechkit as mk
+
 from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN
 from yam_arena.demo import Waypoint
 from yam_arena.task_file import TABLE_TOP
 
 SCENE = "station"
-
 TOP = TABLE_TOP[SCENE]
 
 # Palette
@@ -61,7 +60,7 @@ PUMP_KG = 0.380
 TUBE_L = 0.080
 PUMP_COLLAR_INIT_Z = TOP + RACK_H + 0.002  # 0.8445 m
 PUMP_START_POS = (RACK_XY[0], RACK_XY[1], PUMP_COLLAR_INIT_Z)
-PUMP_GRIP_INIT_Z = PUMP_COLLAR_INIT_Z + 0.020  # 0.8645 m
+PUMP_GRIP_INIT_Z = PUMP_COLLAR_INIT_Z + 0.0275  # local stem center: 0.0275 m
 
 # Grasps
 STEM_PINCH = FINGER_CLOSED
@@ -118,7 +117,7 @@ def _pump_boxes() -> list[mk.BoxSpec]:
     # Rectangular lid collar (Z in [0.0, 0.010])
     boxes.append(mk.box((JAR_W_X + 0.008, JAR_D_Y + 0.008, 0.010), at=(0.0, 0.0, 0.005), color=STAINLESS))
     # Inner centering boss
-    boxes.append(mk.box((JAR_W_X - 2 * JAR_THICK - 0.004, JAR_D_Y - 2 * JAR_THICK - 0.004, 0.006), at=(0.0, 0.0, -0.003), color=DARK_STAINLESS))
+    boxes.append(mk.box((JAR_W_X - 2 * JAR_THICK - 0.008, JAR_D_Y - 2 * JAR_THICK - 0.008, 0.006), at=(0.0, 0.0, -0.003), color=DARK_STAINLESS))
     # Vertical grip stem (Z in [0.010, 0.045])
     boxes.append(mk.box((0.022, 0.022, 0.035), at=(0.0, 0.0, 0.0275), color=STAINLESS))
     # Portion knob / plunger (Z in [0.045, 0.060])
@@ -212,17 +211,17 @@ def _step_rules(objects) -> None:
     tube_bottom_z = pz - TUBE_L
 
     # Stage 2: Pick-up tube entered jar bore
-    if mk.MEMORY.get("lifted") and r_xy < 0.040 and tube_bottom_z < JAR_RIM_Z - 0.020:
+    if mk.MEMORY.get("lifted") and r_xy < 0.040 and tube_bottom_z < JAR_RIM_Z - 0.005:
         mk.MEMORY["entered"] = True
 
     # Stage 3: Collar seated flush on jar rim
     collar_z = pz
     gap_z = abs(collar_z - JAR_RIM_Z)
-    if mk.MEMORY.get("entered") and r_xy < 0.015 and gap_z < 0.012:
+    if mk.MEMORY.get("entered") and r_xy < 0.020 and gap_z < 0.015:
         mk.MEMORY["seated"] = True
 
     # Stage 4: Collar locking detent engaged
-    if mk.MEMORY.get("seated") and px < jx - 0.003:
+    if mk.MEMORY.get("seated") and px < jx - 0.002:
         mk.MEMORY["locked"] = True
 
     # Stage 5: Proof pull sustained
@@ -293,11 +292,11 @@ def demo() -> dict[str, list[Waypoint]]:
     jx, jy = JAR_XY
     rx, ry = RACK_XY
 
-    carry_z = PUMP_GRIP_INIT_Z + 0.090  # 0.8645 + 0.090 = 0.9545 m
+    carry_z = PUMP_GRIP_INIT_Z + 0.080  # 0.8720 + 0.080 = 0.9520 m
 
-    # Right arm: steady the stainless fountain jar
-    add("right", 1.2, (jx + 0.065, jy, JAR_RIM_Z - 0.030), FINGER_OPEN, "approach jar rim")
-    add("right", 0.6, (jx + 0.060, jy, JAR_RIM_Z - 0.030), JAR_PINCH, "steady jar wall")
+    # Right arm: steady the stainless fountain jar from the side (-Y wall, well clear of collar rim)
+    add("right", 1.2, (jx, jy - 0.075, JAR_RIM_Z - 0.035), FINGER_OPEN, "approach jar side")
+    add("right", 0.6, (jx, jy - 0.065, JAR_RIM_Z - 0.035), JAR_PINCH, "steady jar lower wall")
 
     # Left arm: approach and pick up pump from wash rack
     add("left", 1.0, (rx, ry, PUMP_GRIP_INIT_Z + 0.050), FINGER_OPEN, "approach rack above pump")
@@ -326,32 +325,32 @@ def demo() -> dict[str, list[Waypoint]]:
             wait_until(arm, end_t, "finish")
         return plans
 
-    # Seat lid collar flush on jar rim (collar at JAR_RIM_Z, stem at JAR_RIM_Z + 0.020)
-    add("left", 0.8, (jx, jy, JAR_RIM_Z + 0.020), STEM_PINCH, "seat collar flush on rim")
+    # Seat lid collar flush on jar rim (collar sits on rim at JAR_RIM_Z, stem at JAR_RIM_Z + 0.0275)
+    add("left", 0.8, (jx, jy, JAR_RIM_Z + 0.0275), STEM_PINCH, "seat collar flush on rim")
 
     if variant == "no_lock":
-        add("left", 2.0, (jx, jy, JAR_RIM_Z + 0.020), STEM_PINCH, "dwell seated without latch")
+        add("left", 2.0, (jx, jy, JAR_RIM_Z + 0.0275), STEM_PINCH, "dwell seated without latch")
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
         return plans
 
     # Press collar locking tab into detent slot
-    add("left", 0.6, (jx - 0.008, jy, JAR_RIM_Z + 0.019), STEM_PINCH, "press locking tab forward into detent")
-    add("left", 0.4, (jx, jy, JAR_RIM_Z + 0.020), STEM_PINCH, "latch detent engaged")
+    add("left", 0.6, (jx - 0.008, jy, JAR_RIM_Z + 0.0265), STEM_PINCH, "press locking tab forward into detent")
+    add("left", 0.4, (jx, jy, JAR_RIM_Z + 0.0275), STEM_PINCH, "latch detent engaged")
 
     # Upward verification proof pull (lift with >=5.0 N upward force against mechanical detent)
-    add("left", 0.8, (jx, jy, JAR_RIM_Z + 0.022), STEM_PINCH, "apply 5 N upward proof pull")
-    add("left", 0.5, (jx, jy, JAR_RIM_Z + 0.020), STEM_PINCH, "proof sustained")
+    add("left", 0.8, (jx, jy, JAR_RIM_Z + 0.0295), STEM_PINCH, "apply 5 N upward proof pull")
+    add("left", 0.5, (jx, jy, JAR_RIM_Z + 0.0275), STEM_PINCH, "proof sustained")
 
     # Release pump stem and retract left arm
-    add("left", 0.6, (jx, jy, JAR_RIM_Z + 0.020), FINGER_OPEN, "release pump stem")
+    add("left", 0.6, (jx, jy, JAR_RIM_Z + 0.0275), FINGER_OPEN, "release pump stem")
     add("left", 0.8, (jx, jy, JAR_RIM_Z + 0.080), FINGER_OPEN, "retract left arm")
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
 
     # Right arm release jar and retract
     wait_until("right", clock["left"] - 1.5, "hold jar through proof")
-    add("right", 0.6, (jx + 0.065, jy, JAR_RIM_Z - 0.030), FINGER_OPEN, "release jar rim")
+    add("right", 0.6, (jx, jy - 0.075, JAR_RIM_Z - 0.035), FINGER_OPEN, "release jar side")
     add("right", 1.2, RIGHT_PARK, FINGER_OPEN, "park right arm")
 
     # Stillness hold: both arms parked clear
