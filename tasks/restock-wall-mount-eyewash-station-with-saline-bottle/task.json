@@ -1,0 +1,22 @@
+{
+  "title": "Service an emergency eyewash station: swing cover open, clear spent bottle, seat 32 oz saline bottle and latch cover",
+  "category": "Impact on jobs",
+  "keywords": [
+    "facility maintenance",
+    "occupational health",
+    "eyewash station",
+    "bottle replacement",
+    "hinged cover",
+    "latch"
+  ],
+  "name": "restock-wall-mount-eyewash-station-with-saline-bottle",
+  "instruction": "Service the emergency eyewash station: swing the cover open, clear the spent bottle, seat the 32 oz saline bottle, and latch the cover.",
+  "context": "Mandatory safety compliance under OSHA 29 CFR 1910.151(c) and ANSI Z358.1 requires regular inspection and bottle replacement on emergency eyewash stations across chemical processing, automotive, manufacturing, and laboratory facilities, impacting over 1,510,000 general maintenance and repair workers (BLS 49-9071) and 350,000 occupational health and safety technicians (BLS 29-9011). A wall-mount station protects workers from caustic chemical exposure. The technician must unlatch and swing the clear acrylic dust cover door open past its detent, take the spent container out of the molded cradle cavity onto the discard bench, pick up the full 32 oz sealed saline bottle (980 g) and seat it upright into the cradle with its contoured eyecup oriented forward toward the user, and snap the cover shut against its detent latch so it is ready for immediate emergency access.",
+  "setup": "All positions in cm from table center. Wall-mount eyewash station housing (24 x 14 x 10 cm, 650 g, green rigid ABS) mounted to fixture at x = 28.0, y = 5.0, z = 11.0 cm above table. Features true 8.2 x 8.2 x 21.0 cm hollow receiver cradle cavity. Clear acrylic dust cover door with latch tab hinged on right edge at x = 33.5, y = -1.5, z = 11.0 cm, swinging open on a 105 deg revolute joint. Spent bottle (7.5 cm OD, 20 cm height, 350 g) staged inside cradle cavity. Fresh 32 oz sealed saline eyewash bottle (7.5 cm OD, 21 cm height, 980 g) with integral green eyecup nozzle staged upright on bench at x = 24.0, y = -15.0, z = 10.5 cm. Discard area on right bench at x = 38.0, y = 16.0 cm.",
+  "scoring": "Evaluated at trial end. 0.00 at start. 0.20 when dust cover door is swung open past detent (>= 60 deg). 0.40 when spent bottle is cleared from cradle onto bench discard area (> 8 cm from cradle). 0.70 when fresh 32 oz saline bottle is seated upright into cradle cavity (< 2.5 cm horizontal, < 2.0 cm vertical error). 0.85 when fresh bottle is seated with contoured eyecup nozzle oriented forward toward user (+x, yaw within 25 deg). 1.00 strictly requires spent bottle in discard area, fresh bottle seated and oriented, dust cover re-closed onto detent latch (< 6 deg from shut), hands clear (>= 50 mm), and held in equilibrium for >= 1.0 s.",
+  "reset_notes": "Swing door open, place spent bottle back into cradle, return fresh bottle to staging mark at x = 24.0, y = -15.0 cm, and swing door shut.",
+  "fidelity": "Rigid bodies. Eyewash housing collider features true hollow cavity with internal floor cradle stop. Door hinge modeled with USD Physics revolute joint (0.08 N*m/rad stiffness, 0.15 N*m Coulomb friction). Sealed 32 oz bottle modeled as composite body with true 980 g mass.",
+  "scores": "Dream-1 run: 0.0; demo: 1.0 (two runs, 334 steps each).",
+  "run_limit": "800 steps (40.0 s at 20 Hz).",
+  "media": "M-Q256TV"
+}
