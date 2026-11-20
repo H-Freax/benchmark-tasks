@@ -1,10 +1,11 @@
-"""Measured outcome baseline, no referencephase/commands as score input."""
+"""Outcome score from actual poses, contacts, material state and robot links; never reads reference phases or commands."""
 import numpy as np
 from scipy.spatial.transform import Rotation
 
 class PrimaryScore:
+ DT=.05   # control step (s)
  def __init__(self):self.reset()
- def reset(self):self.last=-1;self.setting_witness=None;self.withdraw_streak=0;self.value=0.;self.latest={};self.release_streak=0;self.prev_pose=None
+ def reset(self):self.last=-1;self.setting_witness=None;self.withdraw_streak=0;self.value=0.;self.latest={};self.release_streak=0;self.prev={};self.prev_down=None;self.hammered=0.
  def observe(self,row,G):
   control=row['control']
   if not isinstance(control,int)or control<=self.last:raise ValueError('Fresh unique actualscoretime required')
@@ -22,6 +23,11 @@ class PrimaryScore:
   wedge=(R['anchor_ring'].T@(pos['setting_wedge']-pos['anchor_ring']))[2]
   # Bodies use full common modelorigin; actualconegeometry startsz5mm.
   actual_down=-float(wedge)
+  # Plug travel counts as hammer-driven when it happens in a control step in which the hammer bore on the punch
+  # with 10 N or more (largest contact force over that step's physics steps).
+  peak=row.get('hammer_punch_peak_N')
+  if self.prev_down is not None and peak is not None and peak>=10.:self.hammered+=max(0.,actual_down-self.prev_down)
+  self.prev_down=actual_down
   contacts=row.get('contacts',{});pairs=contacts.get('pairs',{});unavailable=contacts.get('unavailable_views',{})
   wall=[]
   for k in range(4):
@@ -32,7 +38,7 @@ class PrimaryScore:
   # Visible shoulderflush is the primary settingwitness; actual wedge/material/wall
   # readback prevent awarding a geometric proxy to a physically unset/broken mechanism.
   witness=(current_anchor_seated and-.0002<=gap<=.00015 and lateral<.0004 and align<np.deg2rad(2)
-            and actual_down>=.0014 and all(x is True for x in wall)and current_material_good)
+            and actual_down>=.0014 and self.hammered>=.0007 and all(x is True for x in wall)and current_material_good)
   if witness:self.setting_witness={'control':control,'gap_m':gap,'actual_wedge_down_m':actual_down}
   if self.setting_witness and not current_anchor_seated:self.setting_witness=None
   pverts=np.vstack([s['vertices']for s in parts['punch']['geoms']]);world=pverts@R['punch'].T+pos['punch'];zmin=float(((world-top)@axis).min())
@@ -40,21 +46,25 @@ class PrimaryScore:
   sideclear=float(max(low[0]-hc[0]-rad,hc[0]-rad-high[0],low[1]-hc[1]-rad,hc[1]-rad-high[1]))
   out=zmin>.01 or sideclear>.01
   retained=(self.setting_witness is not None and current_anchor_seated and all(x is True for x in wall))
-  # Both poseincrement and actualnativevelocities must support a releasedstable claim.
-  rv=np.array(b['anchor_ring']['native_velocity']);wv=np.array(b['setting_wedge']['native_velocity'])
-  velocity_known_stable=np.isfinite(rv).all()and np.isfinite(wv).all()and np.linalg.norm(rv[:3])<.005 and np.linalg.norm(wv[:3])<.005 and np.linalg.norm(rv[3:])<.1 and np.linalg.norm(wv[3:])<.1
+  # At rest means the body's actual pose changed by less than 5 mm/s and .1 rad/s over the last control step.
+  # The simulator's own velocity readback is recorded but not used: for the jammed sleeve and plug it stays
+  # at several rad/s while their poses do not change at all.
+  speed={}
+  for n in ['anchor_ring','setting_wedge','punch','hammer']:
+   if n in self.prev:
+    p0,R0=self.prev[n];speed[n]=(float(np.linalg.norm(pos[n]-p0))/self.DT,float(Rotation.from_matrix(R[n]@R0.T).magnitude())/self.DT)
+   self.prev[n]=(pos[n].copy(),R[n].copy())
+  rest=lambda names:all(n in speed and speed[n][0]<.005 and speed[n][1]<.1 for n in names)
+  velocity_known_stable=rest(['anchor_ring','setting_wedge'])
   self.withdraw_streak=self.withdraw_streak+1 if retained and out and velocity_known_stable else 0
   released,release_reason=self.released_tools_and_hands(row,G,parts,pos,R)
-  tool_pose_now=np.array([pos['punch'],pos['hammer']])
-  pose_quiet=(self.prev_pose is not None and float(np.max(np.linalg.norm(tool_pose_now-self.prev_pose,axis=1)))<.0005)
-  self.prev_pose=tool_pose_now.copy()
-  tool_velocity_quiet=all(np.linalg.norm(np.array(b[n]['native_velocity'])[:3])<.005 and np.linalg.norm(np.array(b[n]['native_velocity'])[3:])<.1 for n in ['punch','hammer'])
-  self.release_streak=self.release_streak+1 if retained and out and released and velocity_known_stable and pose_quiet and tool_velocity_quiet else 0
+  tools_at_rest=rest(['punch','hammer'])
+  self.release_streak=self.release_streak+1 if retained and out and released and velocity_known_stable and tools_at_rest else 0
   self.value=1. if self.release_streak>=21 else .75 if self.withdraw_streak>=11 else .5 if retained else 0.
-  self.latest=dict(primary_score=self.value,setting_witness=self.setting_witness,shoulder_gap_m=gap,actual_wedge_down_m=actual_down,wall_contacts=wall,
+  self.latest=dict(primary_score=self.value,setting_witness=self.setting_witness,shoulder_gap_m=gap,actual_wedge_down_m=actual_down,hammer_driven_plug_travel_m=self.hammered,wall_contacts=wall,
     punch_min_axial_clearance_m=zmin,punch_wholebody_lateral_separation_m=sideclear,anchor_origin_shift_m=float(anchor_shift),stable_fresh_streak=self.withdraw_streak,
-    native_velocity_stable=bool(velocity_known_stable),contacts_unknown=unavailable,fullscore_implemented=True,tool_release_clearance=released,tool_release_reason=release_reason,release_stable_fresh_streak=self.release_streak,
-    limit='Actual0/.5/.75/1 withsamefrozeninputprofile. Fullscope/model/media/referenceevidence stillpending. Native angularvelocity/pose inconsistencies cannot be silently treatedstable.')
+    anchor_at_rest=bool(velocity_known_stable),tools_at_rest=bool(tools_at_rest),pose_speeds_m_s_rad_s=speed,contacts_unknown=unavailable,tool_release_clearance=released,tool_release_reason=release_reason,release_stable_fresh_streak=self.release_streak,
+    limit='Outcome stages 0/.5/.75/1 from actual poses, contacts and robot links; rest is judged from pose change per control step.')
   return self.latest
 
  def released_tools_and_hands(self,row,G,parts,pos,R):

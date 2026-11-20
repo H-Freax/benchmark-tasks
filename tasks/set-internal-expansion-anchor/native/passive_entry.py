@@ -1,4 +1,4 @@
-"""Full geometry passive diagnostic, score0."""
+"""Both arms hold the ready pose: a passive reset check of the scene. The untouched scene scores 0."""
 from pathlib import Path
 import sys
 HERE=Path(__file__).resolve().parent;sys.path.insert(0,str(HERE))

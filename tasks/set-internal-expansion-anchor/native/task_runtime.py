@@ -1,4 +1,4 @@
-"""Full-size drop-in contact coupon. Diagnostic score always0, no body pose writes."""
+"""Scene, sleeve material law, trace recording and outcome score of the anchor-setting task. No body pose writes."""
 from pathlib import Path
 import os,sys,json,hashlib,math
 import numpy as np
@@ -14,6 +14,7 @@ station.BASES={s:tuple(p)for s,p in G['robot_bases_m'].items()}
 OBJECTS=ng.objects(G);SCENE='station';SCORE_OVER='end';SUCCESS_HOLD_S=.05;CONTROL_HZ=20.
 _COMMAND=None;CONTROL=0;LAST_ACTUAL=None;PHASE_PROVIDER=lambda:'passive_reset'
 MATERIAL={};MATERIAL_LOGGED_STEP=None;LAST_MATERIAL={};CONTACT_STEP=None;MATERIAL_DRIVES={};CONTACT_STEP=None
+BLOW_PEAK=0.   # largest hammer-on-punch contact force (N) over the physics steps since the last control step
 from contact_diagnostics import Diagnostics
 CONTACTS=Diagnostics(sys.modules[__name__])
 from primary_score import PrimaryScore
@@ -44,7 +45,7 @@ def material_update(base,t):
   # is selected from task phases or commanded object expansion.
   target=math.degrees(r['plastic_angle']);drive.GetTargetPositionAttr().Set(target)
   r.update(USD_target_plastic_angle_deg=float(drive.GetTargetPositionAttr().Get()),
-           native_joint_drive_update_effect='unverified until actual contact/native loading',joint=path)
+           joint=path)
   rows[name]=r
  MATERIAL_LOGGED_STEP=t;LAST_MATERIAL=rows
  TRACE.mkdir(parents=True,exist_ok=True)
@@ -52,7 +53,7 @@ def material_update(base,t):
 
 @ng.pk.on_substep
 def substep(env):
- global CONTACT_STEP
+ global CONTACT_STEP,BLOW_PEAK
  base=env.unwrapped
  if not MATERIAL:return
  step=int(base._sim_step_counter);material_update(base,float(step))
@@ -70,12 +71,13 @@ def substep(env):
       for j in range(int(starts[ix]),int(starts[ix])+int(counts[ix])):entries.append(dict(normal_force_N=float(np.asarray(normal[j]).reshape(-1)[0]),point_world_m=point[j].tolist(),normal_world=direction[j].tolist(),separation_m=np.asarray(separation[j]).tolist()))
      sample[key]=dict(counts=counts.tolist(),entries=entries)
     except Exception as e:sample[key]={'unknown':type(e).__name__+':'+str(e)}
+  BLOW_PEAK=max(BLOW_PEAK,sum(abs(x['normal_force_N'])for x in sample['hammer_punch'].get('entries',[])))
   with(TRACE/'impact-contacts.jsonl').open('a')as f:f.write(json.dumps(dict(actual_physics_step=step,physics_dt_s=float(base.physics_dt),pairs=sample),allow_nan=False)+'\n')
 
 @ng.pk.on_reset
 def reset(env):
- global CONTROL,_COMMAND,LAST_ACTUAL,MATERIAL_LOGGED_STEP,LAST_MATERIAL,CONTACT_STEP
- CONTROL=0;_COMMAND=None;LAST_ACTUAL=None;CONTACTS.reset();PRIMARY.reset();MATERIAL.clear();MATERIAL_LOGGED_STEP=None;LAST_MATERIAL={};CONTACT_STEP=None
+ global CONTROL,_COMMAND,LAST_ACTUAL,MATERIAL_LOGGED_STEP,LAST_MATERIAL,CONTACT_STEP,BLOW_PEAK
+ BLOW_PEAK=0.;CONTROL=0;_COMMAND=None;LAST_ACTUAL=None;CONTACTS.reset();PRIMARY.reset();MATERIAL.clear();MATERIAL_LOGGED_STEP=None;LAST_MATERIAL={};CONTACT_STEP=None
  hp=hinge_parameters()
  for j in G['joints']:MATERIAL[j['name']]=PassivePlasticRoot(hp['stiffness_Nm_per_rad'],hp['yield_moment_Nm'])
 
@@ -102,7 +104,7 @@ def inventory(base):
 
 @ng.pk.on_step
 def observe(env):
- global CONTROL,LAST_ACTUAL
+ global CONTROL,LAST_ACTUAL,BLOW_PEAK
  if _COMMAND is None:return
  base=env.unwrapped;CONTROL+=1
  if CONTROL==1:inventory(base)
@@ -117,6 +119,7 @@ def observe(env):
  ring=np.array(ps['anchor_ring']);R=Rotation.from_quat(ring[3:]).as_matrix()
  relative={n:(R.T@(np.array(p[:3])-ring[:3])).tolist()for n,p in ps.items()if n in ['setting_wedge','punch']}
  row=dict(control=CONTROL,time_s=CONTROL/20,physics_step=int(base._sim_step_counter),geometry_sha256=GSHA,phase=PHASE_PROVIDER(),command14=_COMMAND,rigid_bodies=bodies,robots=robots,material=LAST_MATERIAL,relative_to_ring=relative,formal_score=None,score=0.,object_pose_writes_after_reset=0,external_task_wrenches=0,contacts=CONTACTS.observe(base))
+ row['hammer_punch_peak_N']=float(BLOW_PEAK);BLOW_PEAK=0.
  row['primary']=PRIMARY.observe(row,G);row['score']=PRIMARY.value
  LAST_ACTUAL=row;TRACE.mkdir(parents=True,exist_ok=True)
  with(TRACE/'observations.jsonl').open('a')as f:f.write(json.dumps(row,allow_nan=False)+'\n')

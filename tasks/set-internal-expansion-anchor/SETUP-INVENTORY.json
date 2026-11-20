@@ -347,18 +347,18 @@
       ],
       "world_bounds_m": [
         [
-          0.2,
+          0.14,
           -0.24,
           0.7625
         ],
         [
-          0.48000000000000004,
+          0.42000000000000004,
           -0.18,
           0.7925
         ]
       ],
       "origin_pose_xyzw": [
-        0.2,
+        0.14,
         -0.21,
         0.7775,
         0.0,
@@ -368,7 +368,14 @@
       ],
       "shape_count": 5,
       "mass_method": "exact disjoint mixed-density steel and ash solid integrals",
-      "density_kg_m3": null
+      "density_kg_m3": null,
+      "piece_densities_kg_m3": [
+        7850.0,
+        7850.0,
+        7850.0,
+        7850.0,
+        700.0
+      ]
     },
     {
       "name": "hammer_cradle",
@@ -388,18 +395,18 @@
       ],
       "world_bounds_m": [
         [
-          0.23500000000000001,
+          0.17500000000000002,
           -0.23399999999999999,
           0.7474999999999999
         ],
         [
-          0.47500000000000003,
+          0.41500000000000004,
           -0.186,
           0.7705
         ]
       ],
       "origin_pose_xyzw": [
-        0.2,
+        0.14,
         -0.21,
         0.7775,
         0.0,
@@ -412,94 +419,12 @@
       "density_kg_m3": 700.0
     },
     {
-      "name": "left_pedestal",
-      "mass_kg": 7.0868544000000036,
-      "fixed": true,
-      "local_bounds_m": [
-        [
-          -0.09,
-          -0.09,
-          -0.1525
-        ],
-        [
-          0.09,
-          0.09,
-          0.0
-        ]
-      ],
-      "world_bounds_m": [
-        [
-          -0.09,
-          0.215,
-          0.7475
-        ],
-        [
-          0.09,
-          0.395,
-          0.9
-        ]
-      ],
-      "origin_pose_xyzw": [
-        0,
-        0.305,
-        0.9,
-        0,
-        0,
-        0,
-        1
-      ],
-      "shape_count": 6,
-      "mass_method": "exact nonoverlapping6weldedsteelwallsolids",
-      "density_kg_m3": 7850.0
-    },
-    {
-      "name": "right_pedestal",
-      "mass_kg": 7.0868544000000036,
-      "fixed": true,
-      "local_bounds_m": [
-        [
-          -0.09,
-          -0.09,
-          -0.1525
-        ],
-        [
-          0.09,
-          0.09,
-          0.0
-        ]
-      ],
-      "world_bounds_m": [
-        [
-          -0.09,
-          -0.395,
-          0.7475
-        ],
-        [
-          0.09,
-          -0.215,
-          0.9
-        ]
-      ],
-      "origin_pose_xyzw": [
-        0,
-        -0.305,
-        0.9,
-        0,
-        0,
-        0,
-        1
-      ],
-      "shape_count": 6,
-      "mass_method": "exact nonoverlapping6weldedsteelwallsolids",
-      "density_kg_m3": 7850.0
-    },
-    {
       "name": "punch_vrest",
       "mass_kg": 0.04085427273422974,
       "fixed": true,
       "local_bounds_m": [
         [
-          0.19999999999999998,
+          0.2,
           0.225,
           0.7475
         ],
@@ -511,7 +436,7 @@
       ],
       "world_bounds_m": [
         [
-          0.19999999999999998,
+          0.2,
           0.225,
           0.7475
         ],
@@ -537,14 +462,14 @@
   ],
   "robot_bases_m": {
     "left": [
-      0,
+      0.0,
       0.305,
-      0.9
+      0.75
     ],
     "right": [
-      0,
+      0.0,
       -0.305,
-      0.9
+      0.75
     ]
   },
   "joints": [
