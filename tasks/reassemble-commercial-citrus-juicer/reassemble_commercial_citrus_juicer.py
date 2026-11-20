@@ -80,7 +80,7 @@ CONE_SEAT_Z = TOP + 0.053
 
 # Lever Hinge Anchor & Parameters
 LEVER_ANCHOR = np.array([BASE_X - 0.080, 0.000, TOP + 0.165])
-LEVER_STROKE_THRESHOLD_DEG = 25.0
+LEVER_STROKE_THRESHOLD_DEG = 35.0
 
 
 # -- 1. Cast Iron Base Assembly (bench-mounted) --------------------------------
@@ -463,12 +463,12 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(0.8, (0.270, -0.090, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
         Waypoint(0.8, (0.220, -0.040, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
-        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_seat"),
+        Waypoint(1.2, (COLLAR_X, COLLAR_Y, TOP + 0.072), FINGER_CLOSED, "cone_seat"),
     ]
 
     if cheat == "no_release":
         right += [
-            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_CLOSED, "cone_hold"),
+            Waypoint(10.0, (COLLAR_X, COLLAR_Y, TOP + 0.072), FINGER_CLOSED, "cone_hold"),
         ]
         left = [
             Waypoint(12.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
@@ -476,7 +476,7 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     right += [
-        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.082), FINGER_OPEN, "cone_release"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.072), FINGER_OPEN, "cone_release"),
         Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
         Waypoint(1.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_retract"),
         Waypoint(12.0, (0.180, -0.200, BOWL_CARRY_Z), FINGER_OPEN, "right_park"),
@@ -498,13 +498,11 @@ def demo() -> dict[str, list[Waypoint]]:
         # Execute mechanical test stroke past 25 deg
         Waypoint(0.8, (0.210, 0.000, 0.985), FINGER_CLOSED, "lever_stroke_1", yaw=math.radians(90.0)),
         Waypoint(0.8, (0.240, 0.000, 0.935), FINGER_CLOSED, "lever_stroke_2", yaw=math.radians(90.0)),
-        Waypoint(0.8, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke_3", yaw=math.radians(90.0)),
+        Waypoint(0.8, (0.248, 0.000, 0.880), FINGER_CLOSED, "lever_stroke_3", yaw=math.radians(90.0)),
         # Release lever to spring-return to rest stop
         Waypoint(0.8, (0.171, 0.000, 1.016), FINGER_OPEN, "lever_release", yaw=math.radians(90.0)),
         Waypoint(1.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
-
-    return {"left": left, "right": right}
 
     return {"left": left, "right": right}
