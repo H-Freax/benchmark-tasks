@@ -106,7 +106,7 @@ kit.part(
         mk.box((0.015, 0.140, 0.025), at=(-0.065, 0.000, 0.040), color=CAST_IRON),
         mk.box((0.140, 0.015, 0.025), at=(0.000, 0.065, 0.040), color=CAST_IRON),
         # Front collar rim segmented to form an 80 mm clearance bayonet rotation notch at -Y
-        mk.box((0.020, 0.015, 0.025), at=(0.055, -0.065, 0.040), color=CAST_IRON),
+        mk.box((0.010, 0.015, 0.025), at=(0.060, -0.065, 0.040), color=CAST_IRON),
         mk.box((0.045, 0.015, 0.025), at=(-0.045, -0.065, 0.040), color=CAST_IRON),
         # Internal bayonet detent stops inside collar (positioned at side walls)
         mk.box((0.010, 0.015, 0.010), at=(0.052, 0.020, 0.030), color=CAST_BLACK),
@@ -159,13 +159,10 @@ kit.part(
         mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
         # Bottom drainage spout
         mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        # Extended handle shank through collar notch with external form-locking retention grip
-        mk.box((0.020, 0.050, 0.014), at=(0.000, -0.065, 0.030), color=STAINLESS_BRIGHT),
-        mk.box((0.032, 0.016, 0.040), at=(0.000, -0.090, 0.030), color=STAINLESS_BRIGHT),
-        mk.box((0.042, 0.026, 0.008), at=(0.000, -0.090, 0.054), color=STAINLESS_BRIGHT),
-        mk.box((0.042, 0.026, 0.008), at=(0.000, -0.090, 0.008), color=STAINLESS_BRIGHT),
-        mk.box((0.006, 0.026, 0.038), at=(0.019, -0.090, 0.030), color=STAINLESS_BRIGHT),
-        mk.box((0.006, 0.026, 0.038), at=(-0.019, -0.090, 0.030), color=STAINLESS_BRIGHT),
+        # Extended handle shank through collar notch
+        mk.box((0.018, 0.045, 0.014), at=(0.000, -0.065, 0.030), color=STAINLESS_BRIGHT),
+        # Ergonomic handle grip block with smooth parallel planar faces
+        mk.box((0.024, 0.020, 0.035), at=(0.000, -0.090, 0.030), color=CAST_BLACK),
         # Bayonet locking tabs on rim
         mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
@@ -184,15 +181,15 @@ kit.part(
         mk.box((0.065, 0.065, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
         # Outer seating flange lip
         mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Central apex grasp knob stem & retention flange with form-locking pocket
-        mk.box((0.032, 0.016, 0.035), at=(0.000, 0.000, 0.022), color=STAINLESS_BRIGHT),
-        mk.box((0.042, 0.026, 0.008), at=(0.000, 0.000, 0.042), color=STAINLESS_BRIGHT),
-        mk.box((0.042, 0.026, 0.008), at=(0.000, 0.000, 0.005), color=STAINLESS_BRIGHT),
-        mk.box((0.006, 0.026, 0.030), at=(0.019, 0.000, 0.022), color=STAINLESS_BRIGHT),
-        mk.box((0.006, 0.026, 0.030), at=(-0.019, 0.000, 0.022), color=STAINLESS_BRIGHT),
+        # Central apex grasp knob stem with smooth parallel planar grip faces
+        mk.box((0.024, 0.020, 0.035), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
 )
+
+# Bayonet detent latch for collector bowl and seating lock for strainer cone
+kit.catch("bowl_bayonet_lock", "collector_bowl", [[0.8660254037844387, 0.49999999999999994, 0.0, 0.22], [-0.49999999999999994, 0.8660254037844387, 0.0, 0.0], [0.0, 0.0, 1.0, 0.798], [0.0, 0.0, 0.0, 1.0]])
+kit.catch("cone_seat_catch", "strainer_cone", [[1.0, 0.0, 0.0, 0.22], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.813], [0.0, 0.0, 0.0, 1.0]])
 
 OBJECTS = kit.objects()
 
@@ -225,7 +222,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     )
     if bowl_locked:
         M["bowl_locked"] = True
-        kit.catch("bowl_bayonet_lock", "collector_bowl", (bp, bq), "juicer_base")
+        kit.engage("bowl_bayonet_lock")
 
     # 2. Strainer cone nested coaxially in collector bowl
     dr_cone = math.sqrt((cp[0] - bp[0]) ** 2 + (cp[1] - bp[1]) ** 2)
@@ -237,6 +234,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     )
     if cone_seated:
         M["cone_seated"] = True
+        kit.engage("cone_seat_catch")
 
     # 3. Press lever mechanical test stroke
     min_lever = min(M.get("min_lever_deg", 15.0), lever_deg)
