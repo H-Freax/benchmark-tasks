@@ -41,15 +41,19 @@ SCENE = "station"
 TABLE_TOP = {"station": 0.748}
 TOP = TABLE_TOP[SCENE]
 
-# Station Positions
+# Station Positions (Left arm at +Y, Right arm at -Y)
+# Grounding clamp is on +Y side (handled by Left Arm)
+# Distribution panel is centered at Y = 0.0
+# Ground busbar tab within panel is at +Y side of enclosure (+0.060 m)
+# Anti-static parts tray is on -Y side (-0.180 m, handled by Right Arm)
 BOX_X = 0.220
 BOX_Y = 0.000
 BOX_BASE_Z = TOP + 0.055
 
-BUSBAR_POS = np.array([BOX_X, -0.060, TOP + 0.045])
-CLAMP_INIT_POS = np.array([0.180, -0.180, TOP + 0.035])
+BUSBAR_POS = np.array([BOX_X, 0.060, TOP + 0.045])
+CLAMP_INIT_POS = np.array([0.180, 0.180, TOP + 0.035])
 FUSE_SEATED_POS = np.array([BOX_X, 0.000, TOP + 0.055])
-TRAY_POS = np.array([0.220, 0.180, TOP + 0.015])
+TRAY_POS = np.array([0.220, -0.180, TOP + 0.015])
 
 
 # -- Kit Setup -----------------------------------------------------------------
@@ -64,15 +68,15 @@ kit.part(
     boxes=[
         # Heavy-gauge steel backplate mounting chassis
         mk.box((0.140, 0.180, 0.010), at=(0.000, 0.000, -0.045), color=ANSI_GRAY),
-        # Enclosure side walls (left -Y, right +Y, top +X, bottom -X)
+        # Enclosure side walls (left +Y, right -Y, top +X, bottom -X)
         mk.box((0.140, 0.008, 0.080), at=(0.000, 0.086, 0.000), color=ANSI_GRAY),
         mk.box((0.140, 0.008, 0.080), at=(0.000, -0.086, 0.000), color=ANSI_GRAY),
         mk.box((0.008, 0.180, 0.080), at=(0.066, 0.000, 0.000), color=ANSI_GRAY),
         mk.box((0.008, 0.180, 0.080), at=(-0.066, 0.000, 0.000), color=ANSI_GRAY),
         # Open enclosure door (hinged on +X rim, swung open out of way)
-        mk.box((0.140, 0.006, 0.080), at=(0.050, 0.145, 0.020), color=ANSI_GRAY),
+        mk.box((0.140, 0.006, 0.080), at=(0.050, -0.145, 0.020), color=ANSI_GRAY),
         # Copper Ground Busbar Tab (6 mm thick in Y x 25 mm wide in X x 40 mm high in Z)
-        mk.box((0.025, 0.006, 0.040), at=(0.000, -0.060, -0.010), color=COPPER_SHINE),
+        mk.box((0.025, 0.006, 0.040), at=(0.000, 0.060, -0.010), color=COPPER_SHINE),
         # Non-colliding U-channel receiver spring clip terminals flanking the blades
         # Upper terminal clips (at x = +0.025, flanking y=0.000)
         mk.box((0.018, 0.003, 0.016), at=(0.025, 0.007, -0.025), color=CONTACT_BRASS),
@@ -199,8 +203,8 @@ def _on_step(objects: dict[str, Any]) -> None:
 
     # 4. Hands clear
     hands_clear = (
-        _released(objects["grounding_clamp"], 0.040)
-        and _released(objects["fuse_carrier"], 0.040)
+        _released(objects["grounding_clamp"], 0.035)
+        and _released(objects["fuse_carrier"], 0.035)
     )
 
     # 5. Success hold counter
@@ -225,6 +229,9 @@ def _on_step(objects: dict[str, Any]) -> None:
             f"score={score(objects)}",
             flush=True,
         )
+
+
+kit.on_step(_on_step)
 
 
 def _released(obj_state: Any, margin: float = 0.035) -> bool:
@@ -255,10 +262,10 @@ def failed(objects: dict[str, Any]) -> bool:
     return False
 
 
-
 def success(objects: dict[str, Any]) -> bool:
     """True if full task requirements are satisfied."""
     return score(objects) >= 1.0
+
 
 def score(objects: dict[str, Any]) -> float:
     """Calculate staged task score with safety lockout (0.0 to 1.0)."""
@@ -286,7 +293,7 @@ def score(objects: dict[str, Any]) -> float:
         pts += 0.25
 
     # Stage 4: Fuse carrier placed in safety tray and hands clear (0.25 -> total 1.0)
-    if M.get("fuse_in_tray", False) and _released(objects["fuse_carrier"], 0.040):
+    if M.get("fuse_in_tray", False) and _released(objects["fuse_carrier"], 0.035):
         # Require 15 consecutive steps of stable hold
         if M.get("hold_timer", 0) >= 15:
             pts += 0.25
@@ -294,38 +301,47 @@ def score(objects: dict[str, Any]) -> float:
     return min(1.0, pts)
 
 
+# Exported constants
+SCORE_OVER = "end"
+SUCCESS_HOLD_S = 1.0
+
+
 # -- Scripted Demo Waypoints ---------------------------------------------------
 
 def demo() -> dict[str, list[Waypoint]]:
     cheat = os.environ.get("DISCONNECT_CHEAT", "")
 
+    CARRY_Z = TOP + 0.140
+
     if cheat == "nothing":
-        left = [Waypoint(10.0, (0.180, 0.200, TOP + 0.150), FINGER_OPEN, "park_left")]
-        right = [Waypoint(10.0, (0.180, -0.200, TOP + 0.150), FINGER_OPEN, "park_right")]
+        left = [Waypoint(10.0, (0.180, 0.200, CARRY_Z), FINGER_OPEN, "park_left")]
+        right = [Waypoint(10.0, (0.180, -0.200, CARRY_Z), FINGER_OPEN, "park_right")]
         return {"left": left, "right": right}
 
-    # Clamp handle grip coordinates
+    # Clamp handle grip coordinates (Left side +Y)
     cg_x = CLAMP_INIT_POS[0] - 0.025
     cg_y = CLAMP_INIT_POS[1]
     cg_z = CLAMP_INIT_POS[2] + 0.025
-    CARRY_Z = TOP + 0.140
 
-    # Busbar tab attachment coordinates for clamp handle
+    # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
     attach_x = BUSBAR_POS[0] - 0.018 - 0.025
     attach_y = BUSBAR_POS[1]
     attach_z = BUSBAR_POS[2] + 0.025
 
-    # Fuse pull handle coordinates
+    # Fuse pull handle coordinates (Center Y=0)
     fh_x = FUSE_SEATED_POS[0]
     fh_y = FUSE_SEATED_POS[1]
     fh_z = FUSE_SEATED_POS[2] + 0.025
 
-    # Tray placement coordinates
+    # Tray placement coordinates (Right side -Y)
     tray_place_z = TRAY_POS[2] + 0.035
+
+    # Left arm: grasps grounding clamp at +Y, carries and attaches jaws onto busbar at Y=+0.060, then retracts to +Y park
+    # Right arm: waits for grounding, grasps fuse carrier at Y=0, withdraws it, places in tray at Y=-0.180, retracts to -Y park
 
     if cheat == "no_ground":
         # Right arm pulls fuse WITHOUT grounding (trips hazard fault detector -> score 0.0)
-        left = [Waypoint(10.0, (0.180, -0.200, CARRY_Z), FINGER_OPEN, "left_park")]
+        left = [Waypoint(10.0, (0.180, 0.200, CARRY_Z), FINGER_OPEN, "left_park")]
         right = [
             Waypoint(1.2, (fh_x, fh_y, CARRY_Z), FINGER_OPEN, "fuse_approach"),
             Waypoint(0.8, (fh_x, fh_y, fh_z), FINGER_CLOSED, "fuse_grasp"),
@@ -335,7 +351,7 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     left = [
-        # 1. Approach and grasp grounding clamp handle
+        # 1. Approach and grasp grounding clamp handle (+Y side)
         Waypoint(1.2, (cg_x, cg_y, CARRY_Z), FINGER_OPEN, "clamp_approach"),
         Waypoint(0.8, (cg_x, cg_y, cg_z), FINGER_CLOSED, "clamp_grasp"),
         Waypoint(1.0, (cg_x, cg_y, CARRY_Z), FINGER_CLOSED, "clamp_lift"),
@@ -347,18 +363,18 @@ def demo() -> dict[str, list[Waypoint]]:
         # Release handle so spring jaws bite into copper busbar
         Waypoint(0.8, (attach_x, attach_y, attach_z), FINGER_OPEN, "clamp_release"),
         Waypoint(1.0, (attach_x - 0.050, attach_y, CARRY_Z), FINGER_OPEN, "clamp_clear"),
-        Waypoint(1.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "left_retract"),
-        Waypoint(12.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "left_park"),
+        Waypoint(1.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_retract"),
+        Waypoint(12.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_park"),
     ]
 
     if cheat == "ground_only":
-        right = [Waypoint(16.0, (0.180, 0.200, CARRY_Z), FINGER_OPEN, "right_park")]
+        right = [Waypoint(16.0, (0.180, -0.200, CARRY_Z), FINGER_OPEN, "right_park")]
         return {"left": left, "right": right}
 
     # Right arm: waits for grounding clamp attachment (t = 8.0s), then extracts fuse
     right = [
         # Park until grounding clamp is attached to busbar
-        Waypoint(8.0, (0.180, 0.200, CARRY_Z), FINGER_OPEN, "right_wait"),
+        Waypoint(8.0, (0.180, -0.200, CARRY_Z), FINGER_OPEN, "right_wait"),
         # Approach and grasp ceramic fuse carrier pull-handle
         Waypoint(1.2, (fh_x, fh_y, CARRY_Z), FINGER_OPEN, "fuse_approach"),
         Waypoint(0.8, (fh_x, fh_y, fh_z), FINGER_CLOSED, "fuse_grasp"),
@@ -373,14 +389,14 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     right += [
-        # Carry fuse carrier over to safety parts tray
+        # Carry fuse carrier over to safety parts tray (-Y side)
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_CLOSED, "tray_approach"),
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_CLOSED, "tray_place"),
         # Release fuse carrier into tray and retract clear
         Waypoint(0.8, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_OPEN, "fuse_release"),
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_OPEN, "tray_clear"),
-        Waypoint(1.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "right_retract"),
-        Waypoint(8.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "right_park"),
+        Waypoint(1.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_retract"),
+        Waypoint(8.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_park"),
     ]
 
     return {"left": left, "right": right}
