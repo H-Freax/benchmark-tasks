@@ -313,17 +313,22 @@ def _update_mechanics(objects: dict):
             M["proof_start_z"] = cup_p[2]
             M["proof_slip_m"] = 0.0
         elif proof_state == "pulling":
-            kit.pull("paint_cup", (0.0, 0.0, PROOF_PULL_FORCE_N))
+            pull_pt = (INLET_X, INLET_Y, CUP_SEATED_Z + 0.030)
+            kit.pull("paint_cup", (0.0, 0.0, PROOF_PULL_FORCE_N), pull_pt)
             M["proof_timer"] = M.get("proof_timer", 0) + 1
-            slip = abs(cup_p[2] - M.get("proof_start_z", cup_p[2]))
-            M["proof_slip_m"] = max(M.get("proof_slip_m", 0.0), slip)
-
-            if slip > PROOF_MAX_SLIP_M:
+            if math.isnan(cup_p[2]):
                 M["proof_state"] = "failed"
                 kit.pull("paint_cup")
-            elif M["proof_timer"] >= PROOF_HOLD_STEPS:
-                M["proof_state"] = "held"
-                kit.pull("paint_cup")
+            else:
+                slip = abs(cup_p[2] - M.get("proof_start_z", cup_p[2]))
+                M["proof_slip_m"] = max(M.get("proof_slip_m", 0.0), slip)
+
+                if slip > PROOF_MAX_SLIP_M:
+                    M["proof_state"] = "failed"
+                    kit.pull("paint_cup")
+                elif M["proof_timer"] >= PROOF_HOLD_STEPS:
+                    M["proof_state"] = "held"
+                    kit.pull("paint_cup")
     elif not M.get("ring_locked") and hands_clear and proof_state == "pulling":
         M["proof_state"] = "failed"
         kit.pull("paint_cup")
