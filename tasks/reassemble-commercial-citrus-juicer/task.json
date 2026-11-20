@@ -20,5 +20,5 @@
   "reset_notes": "Place juicer base at x 0.22 m, y 0.00 m with lever at 85 deg rest. Place collector bowl at x 0.22 m, y -0.14 m. Place strainer cone at x 0.32 m, y -0.14 m.",
   "fidelity": "Heavy cast-iron base with rubber suction feet and 80 mm inner diameter receiver collar with internal bayonet detents. Stamped 304 stainless collector bowl (0.045 kg, 80 mm outer) with matching bayonet tabs and annular support shelf (54 mm outer, 36 mm hollow center). Perforated stainless strainer cone (0.035 kg, 48 mm flange) with 52 mm central knob. Sprung press lever (rest at 85 deg). Strict 25 mm hand clearance and 1.0 s hold.",
   "scores": "Dream-1: 0.0; demo_1: 1.0; demo_2: 1.0; ctrl_noop: 0.0; ctrl_bowl_only: 0.25; ctrl_bowl_locked: 0.50; ctrl_cone_seated: 0.75; ctrl_no_release: 0.50",
-  "media": "M-XVBR6W"
+  "media": "M-HF8JSU"
 }

@@ -79,7 +79,7 @@ a commercial citrus press:
 - **Negative Control No Release (`ctrl_no_release`)**: `0.50` in 596 steps.
 - **Dream-1 Baseline (`dream_1`)**: `0.0` in 600 steps.
 - **Unit Tests**: 10/10 offline unit tests pass cleanly (`test_scoring.py`).
-- **Media ID**: `M-XVBR6W` (contains genuine top-camera H.264 `demo.mp4`, `model_run.mp4`, and
+- **Media ID**: `M-HF8JSU` (contains genuine top-camera H.264 `demo.mp4`, `model_run.mp4`, and
   `setup.png`).
 - **Novelty**: `robocurve-pr-check` status 100% CLEAR across all 3,212+ PRs. Zero collisions,
   zero precedents.
