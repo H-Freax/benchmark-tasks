@@ -63,7 +63,7 @@ INLET_SEAT_Z = TOP + 0.145  # Top rim of fluid inlet boss
 INLET_BORE_BOTTOM_Z = TOP + 0.130  # Internal sealing face (15 mm insertion depth)
 
 # Gravity paint cup (650 mL rigid nylon cup)
-# Start position on table
+# Start position on table: lowest box is at -0.077 relative to origin, so CUP_START_Z = TOP + 0.0770
 CUP_START_X = 0.240
 CUP_START_Y = 0.160
 CUP_BODY_DIAM = 0.090  # 90 mm diameter
@@ -71,13 +71,12 @@ CUP_BODY_HEIGHT = 0.125  # 125 mm body height
 CUP_SPOUT_DIAM = 0.015  # 15 mm outer diameter
 CUP_SPOUT_LEN = 0.018  # 18 mm spout length
 CUP_TOTAL_HEIGHT = CUP_BODY_HEIGHT + CUP_SPOUT_LEN  # 143 mm total height
-CUP_START_Z = TOP + CUP_TOTAL_HEIGHT / 2.0
+CUP_START_Z = TOP + 0.0770  # Exactly resting on tabletop (lowest point at TOP + 0.000)
 
 # When fully seated in inlet:
-# Spout tip is at INLET_BORE_BOTTOM_Z (TOP + 0.130)
-# Cup bottom flange is at INLET_SEAT_Z (TOP + 0.145)
-# Cup center Z when seated:
-CUP_SEATED_Z = INLET_SEAT_Z + CUP_BODY_HEIGHT / 2.0  # TOP + 0.2075 m
+# Inlet rim is at TOP + 0.150 m. Cup neck shoulder is at -0.061 m relative to origin.
+# Thus seated cup origin Z = TOP + 0.150 + 0.061 = TOP + 0.2110 m.
+CUP_SEATED_Z = TOP + 0.2110  # Perfectly flush seated in inlet socket
 
 # Locking collar cam ring:
 # Concentric with inlet boss, height 16 mm, outer diameter 32 mm
@@ -170,9 +169,7 @@ kit.hinge(
 # Bayonet cam lock weld: disarmed when authored, engaged when ring is locked past 40 deg
 cup_seated_T = np.eye(4)
 cup_seated_T[:3, 3] = [INLET_X, INLET_Y, CUP_SEATED_Z]
-gun_stand_T = np.eye(4)
-gun_stand_T[:3, 3] = [GUN_X, GUN_Y, GUN_STAND_Z]
-kit.catch("cup_bayonet_lock", "paint_cup", cup_seated_T, parent="spray_gun", parent_T=gun_stand_T)
+kit.catch("cup_bayonet_lock", "paint_cup", cup_seated_T)
 
 # -- 3. Gravity Paint Cup (Free Rigid Body) -----------------------------------
 # 650 mL cup with bottom cylindrical spout nozzle and dual bayonet lugs
@@ -217,31 +214,31 @@ mk.MEMORY.update({
 def _update_mechanics(objects: dict):
     """Step callback executing physics contact and proof checks."""
     M = mk.MEMORY
+    step = M.get("step_count", 0)
+    M["step_count"] = step + 1
 
-    cup_p, cup_q = kit.pose(objects, "paint_cup")
+    cup_p, _ = kit.pose(objects, "paint_cup")
     gun_p, _ = kit.pose(objects, "spray_gun")
-    ring_p, _ = kit.pose(objects, "locking_ring")
 
     # Current inlet coordinates relative to gun pose
     inlet_cur_x = gun_p[0]
     inlet_cur_y = gun_p[1]
-    inlet_cur_z = gun_p[2] + (INLET_SEAT_Z - GUN_STAND_Z)
 
     # Radial XY offset of cup from fluid inlet axis
     xy_offset = math.hypot(cup_p[0] - inlet_cur_x, cup_p[1] - inlet_cur_y)
     # Cup vertical distance: seated when cup_p[2] is near CUP_SEATED_Z
     z_diff = cup_p[2] - (gun_p[2] + (CUP_SEATED_Z - GUN_STAND_Z))
 
-    # Compute cup tilt angle from vertical [0, 0, 1]
-    # Quaternion: [x, y, z, w]
-    qx, qy, qz, qw = cup_q
-    # Up vector z-component: 1 - 2*(qx^2 + qy^2)
-    up_z = 1.0 - 2.0 * (qx * qx + qy * qy)
+    # Compute cup tilt angle from vertical [0, 0, 1] using transformed local Z
+    cup_top_pt = kit.point(objects, "paint_cup", (0.0, 0.0, 1.0))
+    cup_base_pt = kit.point(objects, "paint_cup", (0.0, 0.0, 0.0))
+    up_vec = cup_top_pt - cup_base_pt
+    up_norm = np.linalg.norm(up_vec)
+    up_z = float(up_vec[2] / up_norm) if up_norm > 1e-6 else 1.0
     up_z = max(-1.0, min(1.0, up_z))
-    tilt_rad = math.acos(up_z)
-    tilt_deg = math.degrees(tilt_rad)
+    tilt_deg = math.degrees(math.acos(up_z))
 
-    # 1. Alignment check (hovering within 25 mm XY and within 50 mm above inlet)
+    # 1. Alignment check (hovering within 25 mm XY and within 55 mm above inlet)
     aligned = bool(
         xy_offset <= 0.025
         and 0.000 <= z_diff <= 0.055
@@ -258,11 +255,9 @@ def _update_mechanics(objects: dict):
     M["cup_seated"] = seated
 
     # 3. Locking collar rotation angle (read from hinge angle)
-    # Ring hinge angle: 0 deg = unlocked, negative for clockwise rotation (down to -45 deg)
     try:
         ring_angle = kit.q_deg(objects, "ring_latch")
     except Exception:
-        # Fallback using ring pose
         ring_angle = 0.0
 
     # Locking condition: cup is seated and ring is rotated clockwise >= 40 deg
@@ -275,7 +270,6 @@ def _update_mechanics(objects: dict):
         kit.engage("cup_bayonet_lock")
 
     # 4. Proof pull evaluation:
-    # Triggered once ring is locked, hands are clear, and test bench applies 20 N upward pull
     hands_clear = bool(
         _released(objects["paint_cup"], CLEAR_MARGIN_M)
         and _released(objects["spray_gun"], CLEAR_MARGIN_M)
@@ -289,7 +283,6 @@ def _update_mechanics(objects: dict):
             M["proof_start_z"] = cup_p[2]
             M["proof_slip_m"] = 0.0
         elif proof_state == "pulling":
-            # Apply active 20 N upward retention proof pull
             kit.pull("paint_cup", (0.0, 0.0, PROOF_PULL_FORCE_N))
             M["proof_timer"] = M.get("proof_timer", 0) + 1
             slip = abs(cup_p[2] - M.get("proof_start_z", cup_p[2]))
@@ -297,14 +290,22 @@ def _update_mechanics(objects: dict):
 
             if slip > PROOF_MAX_SLIP_M:
                 M["proof_state"] = "failed"
-                kit.pull("paint_cup")  # stop pull
+                kit.pull("paint_cup")
             elif M["proof_timer"] >= PROOF_HOLD_STEPS:
                 M["proof_state"] = "held"
-                kit.pull("paint_cup")  # stop pull
+                kit.pull("paint_cup")
     elif not ring_locked and hands_clear and proof_state == "pulling":
-        # Loose cup pulled loose immediately
         M["proof_state"] = "failed"
         kit.pull("paint_cup")
+
+    if step % 20 == 0:
+        cur_score = score(objects)
+        print(
+            f"[{TAG}] step={step:3d} cup_z={cup_p[2]:.4f} xy_off={xy_offset*1000:.1f}mm "
+            f"z_diff={z_diff*1000:.1f}mm tilt={tilt_deg:.1f}deg ring={ring_angle:.1f}deg "
+            f"seated={seated} proof={M.get('proof_state')} score={cur_score}",
+            flush=True,
+        )
 
 
 kit.on_step(_update_mechanics)
@@ -352,15 +353,18 @@ def proof_held(objects: dict) -> bool:
 
 def failed(objects: dict) -> bool:
     """Score 0 if cup dropped, overturned, knocked off bench, or proof failed."""
-    p, q = kit.pose(objects, "paint_cup")
+    p, _ = kit.pose(objects, "paint_cup")
 
     # Dropped off bench
     if p[2] < TOP - 0.020:
         return True
 
     # Extreme tilt: overturned > 45 deg
-    qx, qy, qz, qw = q
-    up_z = 1.0 - 2.0 * (qx * qx + qy * qy)
+    cup_top_pt = kit.point(objects, "paint_cup", (0.0, 0.0, 1.0))
+    cup_base_pt = kit.point(objects, "paint_cup", (0.0, 0.0, 0.0))
+    up_vec = cup_top_pt - cup_base_pt
+    up_norm = np.linalg.norm(up_vec)
+    up_z = float(up_vec[2] / up_norm) if up_norm > 1e-6 else 1.0
     if up_z < math.cos(math.radians(45.0)):
         return True
 
@@ -472,23 +476,27 @@ def demo() -> dict[str, list[Waypoint]]:
     ]
 
     # Right arm manipulates cup and collar
+    # Gripper grasps cup body at z = TOP + 0.110 (33 mm above cup origin)
+    CUP_GRIP_Z_OFFSET = 0.033
+    SEAT_TCP_Z = CUP_SEATED_Z + CUP_GRIP_Z_OFFSET  # TOP + 0.2440
+
     right = [
         # Hover over paint cup
         Waypoint(1.2, (CUP_START_X, CUP_START_Y, TOP + 0.220), FINGER_OPEN, "hover_cup"),
         # Descend to grip cup body
-        Waypoint(1.0, (CUP_START_X, CUP_START_Y, TOP + 0.140), FINGER_OPEN, "descend_cup"),
-        Waypoint(0.8, (CUP_START_X, CUP_START_Y, TOP + 0.140), FINGER_CLOSED, "grip_cup"),
+        Waypoint(1.0, (CUP_START_X, CUP_START_Y, TOP + 0.110), FINGER_OPEN, "descend_cup"),
+        Waypoint(0.8, (CUP_START_X, CUP_START_Y, TOP + 0.110), FINGER_CLOSED, "grip_cup"),
         # Lift cup vertically clear of table
-        Waypoint(1.2, (CUP_START_X, CUP_START_Y, TOP + 0.240), FINGER_CLOSED, "lift_cup"),
+        Waypoint(1.2, (CUP_START_X, CUP_START_Y, TOP + 0.260), FINGER_CLOSED, "lift_cup"),
         # Transfer cup horizontally above fluid inlet boss
-        Waypoint(1.5, (INLET_X, INLET_Y, TOP + 0.240), FINGER_CLOSED, "align_above_inlet"),
+        Waypoint(1.5, (INLET_X, INLET_Y, TOP + 0.260), FINGER_CLOSED, "align_above_inlet"),
         # Lower cup into alignment zone (Stage 1 credit: 0.25)
-        Waypoint(1.0, (INLET_X, INLET_Y, TOP + 0.220), FINGER_CLOSED, "hover_inlet_aligned"),
+        Waypoint(1.0, (INLET_X, INLET_Y, SEAT_TCP_Z + 0.030), FINGER_CLOSED, "hover_inlet_aligned"),
     ]
 
     if cheat == "align_only":
         right.extend([
-            Waypoint(2.0, (INLET_X, INLET_Y, TOP + 0.220), FINGER_CLOSED, "hold_aligned"),
+            Waypoint(2.0, (INLET_X, INLET_Y, SEAT_TCP_Z + 0.030), FINGER_CLOSED, "hold_aligned"),
             Waypoint(4.0, (0.20, 0.25, TOP + 0.200), FINGER_OPEN, "retreat_right"),
         ])
         left.append(
@@ -498,10 +506,10 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Seat cup axially into fluid inlet (Stage 2 credit: 0.50)
     right.extend([
-        Waypoint(1.2, (INLET_X, INLET_Y, CUP_SEATED_Z), FINGER_CLOSED, "seat_spout_in_boss"),
-        # Release cup grip and clear up 30 mm
-        Waypoint(0.8, (INLET_X, INLET_Y, CUP_SEATED_Z), FINGER_OPEN, "release_cup_seat"),
-        Waypoint(0.8, (INLET_X, INLET_Y, TOP + 0.250), FINGER_OPEN, "clear_above_cup"),
+        Waypoint(1.2, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_CLOSED, "seat_spout_in_boss"),
+        # Release cup grip and clear up 35 mm
+        Waypoint(0.8, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_OPEN, "release_cup_seat"),
+        Waypoint(0.8, (INLET_X, INLET_Y, TOP + 0.280), FINGER_OPEN, "clear_above_cup"),
     ])
 
     if cheat == "seat_only":
@@ -524,14 +532,14 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.5, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_CLOSED, "rotate_collar_lock", yaw=-0.785),
         # Disengage from collar
         Waypoint(0.6, (INLET_X + 0.020, INLET_Y, RING_Z), FINGER_OPEN, "release_ring_tab", yaw=-0.785),
-        Waypoint(0.8, (INLET_X, INLET_Y, TOP + 0.250), FINGER_OPEN, "clear_above_collar", yaw=0.0),
+        Waypoint(0.8, (INLET_X, INLET_Y, TOP + 0.280), FINGER_OPEN, "clear_above_collar", yaw=0.0),
     ])
 
     if cheat == "no_release":
         # Grip cup and hold in place without completing proof and release
         right.extend([
-            Waypoint(1.0, (INLET_X, INLET_Y, CUP_SEATED_Z), FINGER_CLOSED, "hold_unreleased"),
-            Waypoint(6.0, (INLET_X, INLET_Y, CUP_SEATED_Z), FINGER_CLOSED, "hold_unreleased_dwell"),
+            Waypoint(1.0, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_CLOSED, "hold_unreleased"),
+            Waypoint(6.0, (INLET_X, INLET_Y, SEAT_TCP_Z), FINGER_CLOSED, "hold_unreleased_dwell"),
         ])
         left.append(
             Waypoint(7.0, (GUN_X, GUN_Y - 0.030, TOP + 0.080), FINGER_CLOSED, "brace_hold")
@@ -541,12 +549,12 @@ def demo() -> dict[str, list[Waypoint]]:
     # Stage 4: Retention proof tug & clear arms
     right.extend([
         # Grip upper rim of mounted cup for proof tug
-        Waypoint(1.0, (INLET_X, INLET_Y, CUP_SEATED_Z + 0.040), FINGER_OPEN, "approach_cup_rim"),
-        Waypoint(0.6, (INLET_X, INLET_Y, CUP_SEATED_Z + 0.040), FINGER_CLOSED, "grip_cup_rim"),
+        Waypoint(1.0, (INLET_X, INLET_Y, TOP + 0.270), FINGER_OPEN, "approach_cup_rim"),
+        Waypoint(0.6, (INLET_X, INLET_Y, TOP + 0.270), FINGER_CLOSED, "grip_cup_rim"),
         # Tug upward against mechanical bayonet lock to verify positive engagement
-        Waypoint(1.2, (INLET_X, INLET_Y, CUP_SEATED_Z + 0.055), FINGER_CLOSED, "manual_proof_tug"),
+        Waypoint(1.2, (INLET_X, INLET_Y, TOP + 0.285), FINGER_CLOSED, "manual_proof_tug"),
         # Release cup rim
-        Waypoint(0.6, (INLET_X, INLET_Y, CUP_SEATED_Z + 0.040), FINGER_OPEN, "release_proof_grip"),
+        Waypoint(0.6, (INLET_X, INLET_Y, TOP + 0.285), FINGER_OPEN, "release_proof_grip"),
         # Retreat clear >= 25 mm
         Waypoint(1.2, (0.20, 0.25, TOP + 0.200), FINGER_OPEN, "retreat_right_clear"),
         Waypoint(4.0, (0.20, 0.25, TOP + 0.200), FINGER_OPEN, "park_right_clear"),
