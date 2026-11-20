@@ -166,8 +166,8 @@ kit.part(
         # Bayonet locking tabs on rim (positioned to pass detents on drop, latch on 30 deg CW twist)
         mk.box((0.012, 0.010, 0.008), at=(0.046, 0.012, 0.018), color=STAINLESS_BRIGHT),
         mk.box((0.012, 0.010, 0.008), at=(-0.046, -0.012, 0.018), color=STAINLESS_BRIGHT),
-        # Internal support shelf for strainer cone
-        mk.box((0.066, 0.066, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
+        # Internal support shelf for strainer cone (54 mm shelf for 48 mm cone flange)
+        mk.box((0.054, 0.054, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
     ],
     mass=0.045,
     contact_offset=0.0005,
@@ -179,12 +179,12 @@ kit.part(
     name="strainer_cone",
     pos=(CONE_INIT_POS[0], CONE_INIT_POS[1], CONE_INIT_POS[2]),
     boxes=[
-        # Conical reamer body (46 mm wide, drops inside 68 mm funnel cup opening)
-        mk.box((0.046, 0.046, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
-        # Outer seating flange lip (62 mm wide, rests flush on 66 mm internal shelf)
-        mk.box((0.062, 0.062, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
-        # Central apex grasp knob stem with smooth parallel planar grip faces
-        mk.box((0.024, 0.018, 0.035), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
+        # Conical reamer body (36 mm wide, drops inside 68 mm funnel cup opening)
+        mk.box((0.036, 0.036, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
+        # Outer seating flange lip (48 mm wide, clears 68 mm rotated bowl walls and rests flush on 54 mm internal shelf)
+        mk.box((0.048, 0.048, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
+        # Central apex grasp knob stem with smooth parallel planar grip faces (28 mm wide x 18 mm thick x 45 mm high)
+        mk.box((0.028, 0.018, 0.045), at=(0.000, 0.000, 0.030), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
     contact_offset=0.0005,
