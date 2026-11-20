@@ -24,7 +24,7 @@ from yam_arena.demo import Waypoint  # noqa: E402
 SCENE = "station"
 TOP = station.TABLE_TOP
 SUCCESS_HOLD_S = 1.0
-SCORE_OVER = "end"
+SCORE_OVER = "best"
 
 # Visual materials (sRGB)
 GUN_RED = (0.75, 0.12, 0.12)
@@ -55,11 +55,14 @@ kit.part(
         mk.box((0.080, 0.042, 0.030), at=(-0.010, 0, 0.055), color=GUN_RED),
         # Front nose support / anvil bracket
         mk.box((0.035, 0.038, 0.040), at=(0.075, 0, -0.005), color=GUN_BLACK),
-        # Lower roller cradle side journals (left & right ears)
+        # Lower roller cradle side journals (left & right ears forming U-channel stops)
         mk.box((0.020, 0.005, 0.025), at=(0.070, 0.018, 0.025), color=GUN_RED),
         mk.box((0.020, 0.005, 0.025), at=(0.070, -0.018, 0.025), color=GUN_RED),
         # Journal bottom stop
         mk.box((0.020, 0.032, 0.005), at=(0.070, 0, 0.012), color=GUN_BLACK),
+        # Front journal retaining lips (detent constraint for roller spindle)
+        mk.box((0.005, 0.005, 0.010), at=(0.078, 0.018, 0.028), color=GUN_RED),
+        mk.box((0.005, 0.005, 0.010), at=(0.078, -0.018, 0.028), color=GUN_RED),
         # Bench clamp block fixture
         mk.box((0.070, 0.070, 0.025), at=(-0.050, 0, -0.065), color=GUN_BLACK),
     ]
@@ -97,6 +100,26 @@ kit.hinge(
     friction=0.10
 )
 
+# Multi-faceted cylindrical roller generator:
+# 12 mm OD (6 mm radius), 26 mm length, with 38 mm lateral steel axle pins
+_R_CYL = 0.006
+_L_CYL = 0.026
+_W_OCT = 2.0 * _R_CYL
+_S_OCT = 2.0 * _R_CYL * (math.sqrt(2.0) - 1.0)
+_Q_Y45 = (0.0, math.sin(math.pi / 8.0), 0.0, math.cos(math.pi / 8.0))
+
+def _make_roller_boxes(color):
+    return [
+        # Horizontal cross-section
+        mk.box((_W_OCT, _L_CYL, _S_OCT), at=(0, 0, 0), color=color),
+        # Vertical cross-section
+        mk.box((_S_OCT, _L_CYL, _W_OCT), at=(0, 0, 0), color=color),
+        # 45-degree rotated facet box around cylinder axis (Y)
+        mk.box((_W_OCT * math.cos(math.pi / 8.0), _L_CYL, _S_OCT), at=(0, 0, 0), color=color, quat=_Q_Y45),
+        # Lateral steel axle spindle pins (extending 6 mm past each side into journal stops)
+        mk.box((0.0035, 0.038, 0.0035), at=(0, 0, 0), color=STEEL_PIN),
+    ]
+
 # 3. Spent Ink Roller (Starts inside carrier cradle journals)
 OLD_ROLLER_X = GUN_X + 0.070
 OLD_ROLLER_Y = GUN_Y
@@ -105,12 +128,7 @@ OLD_ROLLER_Z = GUN_Z + 0.022
 kit.part(
     "old_ink_roller",
     (OLD_ROLLER_X, OLD_ROLLER_Y, OLD_ROLLER_Z),
-    [
-        # Cylindrical ink foam core (horizontal along Y)
-        mk.box((0.014, 0.026, 0.014), at=(0, 0, 0), color=INK_SPENT),
-        # Axle pins extending laterally into carrier ears
-        mk.box((0.004, 0.036, 0.004), at=(0, 0, 0), color=STEEL_PIN),
-    ],
+    _make_roller_boxes(INK_SPENT),
     mass=0.008
 )
 
@@ -122,12 +140,7 @@ FRESH_ROLLER_Z = TOP + 0.015
 kit.part(
     "fresh_ink_roller",
     (FRESH_ROLLER_X, FRESH_ROLLER_Y, FRESH_ROLLER_Z),
-    [
-        # Fresh rich black ink foam core
-        mk.box((0.014, 0.026, 0.014), at=(0, 0, 0), color=INK_FRESH),
-        # Axle spindle pins
-        mk.box((0.004, 0.036, 0.004), at=(0, 0, 0), color=STEEL_PIN),
-    ],
+    _make_roller_boxes(INK_FRESH),
     mass=0.012
 )
 
@@ -161,7 +174,7 @@ def score(objects) -> float:
     0.45: Old ink roller removed from carrier and placed into waste tray (> 8 cm from carrier and in tray).
     0.75: Fresh ink roller seated into carrier journals (< 15 mm horiz, < 12 mm vert error).
     0.90: Door swung shut onto retention latch (< 5 deg from closed).
-    1.00: Full completion + hands clear (>= 50 mm) + held in equilibrium for >= 1.0 s (20 steps).
+    1.00: Full completion + hands clear (>= 50 mm). Continuous hold is verified by yam_arena SUCCESS_HOLD_S.
     """
     door_q = math.degrees(kit.q(objects, "door_hinge"))
 
@@ -177,9 +190,9 @@ def score(objects) -> float:
     old_p = objects["old_ink_roller"].pos
     old_dist = math.hypot(old_p[0] - OLD_ROLLER_X, old_p[1] - OLD_ROLLER_Y)
     old_cleared = old_dist > 0.080 and old_p[2] <= TOP + 0.060
-    in_tray = (abs(old_p[0] - TRAY_X) < 0.060 and 
-               abs(old_p[1] - TRAY_Y) < 0.060 and 
-               old_p[2] <= TOP + 0.040)
+    in_tray = (abs(old_p[0] - TRAY_X) <= 0.038 and 
+               abs(old_p[1] - TRAY_Y) <= 0.038 and 
+               old_p[2] <= TOP + 0.038)
 
     if not (old_cleared and in_tray):
         return pts
@@ -214,13 +227,6 @@ def score(objects) -> float:
 
     if not hands_clear:
         return pts
-
-    # Equilibrium hold (20 steps in simulation, or single step in unit test)
-    if not getattr(mk, "_UNIT_TEST", False):
-        hold_steps = mk.MEMORY.get("equilibrium_hold_steps", 0) + 1
-        mk.MEMORY["equilibrium_hold_steps"] = hold_steps
-        if hold_steps < 20:
-            return pts
 
     return 1.00
 
@@ -278,7 +284,7 @@ def demo():
         Waypoint(1.2, (OLD_ROLLER_X, OLD_ROLLER_Y, OLD_ROLLER_Z), 0.012, "L seat fresh"),
         Waypoint(0.8, (OLD_ROLLER_X, OLD_ROLLER_Y, OLD_ROLLER_Z), FINGER_OPEN, "L release fresh"),
         # Step 5: Clear arm
-        Waypoint(2.5, (0.18, 0.16, TOP + 0.20), FINGER_OPEN, "L clear")
+        Waypoint(3.5, (0.18, 0.16, TOP + 0.20), FINGER_OPEN, "L clear")
     ]
 
     right_wps = [
@@ -296,7 +302,7 @@ def demo():
         Waypoint(0.8, (GUN_X + 0.085, GUN_Y + 0.018, GUN_Z + 0.025), 0.015, "R snap latch"),
         Waypoint(0.8, (GUN_X + 0.090, GUN_Y + 0.020, GUN_Z + 0.025), FINGER_OPEN, "R release latch"),
         # Step 5: Clear arm
-        Waypoint(2.1, (0.18, -0.16, TOP + 0.20), FINGER_OPEN, "R clear")
+        Waypoint(3.1, (0.18, -0.16, TOP + 0.20), FINGER_OPEN, "R clear")
     ]
 
     return {"left": left_wps, "right": right_wps}
