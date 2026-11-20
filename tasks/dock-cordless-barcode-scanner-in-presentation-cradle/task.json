@@ -1,0 +1,22 @@
+{
+  "name": "dock-cordless-barcode-scanner-in-presentation-cradle",
+  "title": "Dock a cordless barcode scanner into its weighted presentation cradle with bimanual counter-holding",
+  "category": "Impact on jobs",
+  "keywords": [
+    "retail",
+    "point of sale",
+    "barcode scanner",
+    "presentation cradle",
+    "docking",
+    "bimanual coordination"
+  ],
+  "instruction": "Steady the presentation cradle with the left arm and dock the cordless barcode scanner into its socket with the right arm.",
+  "context": "Cashiers, retail salespersons, pharmacy aides, and warehouse order fillers (>7,500,000 workers under BLS SOC 41-2011, 41-2031, 53-7065) dock and undock cordless 2D handheld imagers (Zebra DS2278) into weighted desktop presentation cradles (Zebra CR2278-PC). Docking requires bimanual coordination: steadying the weighted cradle base against sliding while guiding the scanner nose down into the contoured receiver socket until latched against charging pins.",
+  "setup": "All positions referenced in cm from robot station table center. Zebra CR2278 presentation charging cradle (380 g cast-iron weighted base, 15.0 x 10.0 x 8.5 cm) placed at x = 36.0, y = -5.0, z = 4.25 cm above table (table top z = 75.0 cm world frame). Zebra DS2278 cordless imager (214 g, 17.5 x 6.6 x 9.9 cm) starts upright at x = 30.0, y = -10.0, z = 5.5 cm above table with contoured handle, scan head housing, and brass charging pads.",
+  "scoring": "Evaluated at trial end. 0.00 if cradle tipped/knocked. 0.25 if left arm steadies cradle base (< 15 cm) while right arm lifts scanner. 0.50 if scanner aligned over cradle throat (< 6 cm from target). 0.75 if scanner seated in cradle socket (< 2.5 cm, < 15 deg tilt). 1.00 strictly requires seated scanner, both hands cleared (> 4 cm), and stable equilibrium maintained for >= 1.0 s (20 control steps).",
+  "reset_notes": "Lift scanner out of cradle socket and return upright to initial counter coordinates; re-center cradle on counter markings.",
+  "fidelity": "1:1 full-scale commercial hardware: Zebra DS2278 handheld scanner (214 g) and CR2278 weighted presentation cradle (380 g) modeled with authentic physical dimensions and masses. Pure rigid-body contact physics, zero grasp bosses, zero proximity catch welds.",
+  "scores": "Dream-1: 0.0; Negative control (unsteadied): 0.0; Negative control (unreleased): 0.75; Scripted demo 1: 1.0; Scripted demo 2: 1.0.",
+  "run_limit": "800 steps (40.0 s at 20 Hz). Scripted demo completes in ~240 steps.",
+  "media": "M-PBHF8C"
+}
