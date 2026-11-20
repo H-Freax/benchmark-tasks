@@ -6,14 +6,14 @@ The stockpot contains hot broth simulant (liquid depth 45 mm, surface at Z = 0.8
 The front-left rim of the pot features a welded stainless paddle hanging bracket with a horizontal resting saddle
 at (0.240, 0.170, Z = 0.8425 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.045, Z = 0.8025 m).
 To the robot's left stands a sanitary stainless paddle stand (100 x 100 x 30 mm, 500 g) at (0.220, 0.220) holding an upright
-commercial rapid cooling paddle (San Jamar Rapi-Kool style: 450 g, 65 mm finned HDPE cooling blade, 18 mm collar with
+commercial rapid cooling paddle (San Jamar Rapi-Kool style: 120 g hollow HDPE shell, 65 mm finned cooling blade, 18 mm collar with
 radial hanging hook extending 25 mm, and 45 mm cylindrical grip handle).
 
 Restaurant cooks (1.44M US jobs, O*NET 35-2014.00) and food preparation workers (891k, O*NET 35-2021.00) rapidly chill
 large stockpots of cooked soups, stocks, and chili under FDA Food Code 3-501.14 (cooling from 135 deg F to 70 deg F within
 2 hours and to 41 deg F within 4 hours to prevent spore germination of Clostridium perfringens and Bacillus cereus).
 Leaving hot stockpots to cool passively in ambient air violates food safety limits. Cooks use hollow polyethylene ice
-cooling wands filled with frozen core water. The cook retrieves the heavy frozen paddle from its stand, submerges the
+cooling wands filled with frozen core water. The cook retrieves the frozen paddle from its stand, submerges the
 finned blade deep into the hot broth, agitates with circular stirring strokes to circulate liquid around the cold fins
 without splashing scalding broth over the rim, raises the paddle to allow broth to drain back into the pot, and hooks
 the integrated collar hook onto the pot rim bracket so the paddle stays suspended.
@@ -108,13 +108,13 @@ PADDLE_HOOK_PROJ = 0.025          # hook extends 25 mm radially along +Y
 PADDLE_HOOK_LIP = 0.010           # downward retaining lip
 PADDLE_HANDLE_DIA = 0.024         # 24 mm cylindrical grip handle
 PADDLE_HANDLE_L = 0.045           # handle from z = +0.018 to +0.063 m
-PADDLE_GRIP_Z_LOCAL = 0.030       # ergonomic grip centre in paddle frame (+30 mm above collar)
-PADDLE_KG = 0.450                 # simulated 450 g (frozen water core in HDPE shell)
+PADDLE_GRIP_Z_LOCAL = 0.040       # ergonomic grip centre in paddle frame (+40 mm above collar)
+PADDLE_KG = 0.120                 # simulated 120 g (hollow HDPE cooling wand shell)
 
 # Initial placement of paddle in stand:
 # Paddle rests blade-down in stand socket. Blade bottom at STAND_FLOOR_Z = 0.7595 m.
 # Collar origin z = STAND_FLOOR_Z + PADDLE_BLADE_L = 0.7595 + 0.065 = 0.8245 m.
-# Handle grip centre in world frame = 0.8245 + 0.030 = 0.8545 m.
+# Handle grip centre in world frame = 0.8245 + 0.040 = 0.8645 m.
 PADDLE_START_POS = (STAND_XY[0], STAND_XY[1], STAND_FLOOR_Z + PADDLE_BLADE_L)
 
 # Local hook engagement point in paddle frame
@@ -237,10 +237,10 @@ kit = mk.Kit()
 kit.part("storage_stand", (STAND_XY[0], STAND_XY[1], TOP), _stand_boxes(), mass=None, color=STAND_STEEL)
 
 # 8 qt stockpot on silicone heat mat (free rigid body, sits solidly with friction)
-kit.part("stockpot", (POT_XY[0], POT_XY[1], MAT_TOP), _pot_boxes(), mass=POT_KG, color=STAINLESS)
+kit.part("stockpot", (POT_XY[0], POT_XY[1], MAT_TOP), _pot_boxes(), mass=POT_KG, color=STAINLESS, solver_position_iterations=16)
 
 # Commercial rapid cooling ice paddle (starts upright in storage stand)
-kit.part("ice_paddle", PADDLE_START_POS, _paddle_boxes(), mass=PADDLE_KG, color=ICE_PADDLE_CYAN)
+kit.part("ice_paddle", PADDLE_START_POS, _paddle_boxes(), mass=PADDLE_KG, color=ICE_PADDLE_CYAN, solver_position_iterations=16)
 
 FIXTURES = [
     Box(
@@ -387,13 +387,19 @@ def _step_rules(objects) -> None:
     if revs >= AGITATION_FULL_REVS - 1e-4 and inside_pot and float(pad_tip[2]) >= BROTH_SURFACE_Z - 0.005:
         mk.MEMORY["drain_steps"] = mk.MEMORY.get("drain_steps", 0) + 1
 
-    # 5. Rim bracket hang check:
+    # 5. Rim bracket hang check (only triggers cheat_bypass if actually placed/released without stirring):
     on_bracket = paddle_hook_on_bracket(objects)
-    if on_bracket:
+    if on_bracket and (mk.released(pad_st) or pad_st.resting()):
         if revs < AGITATION_MIN_REVS - 1e-4:
             mk.MEMORY["cheat_bypass"] = True
         else:
             mk.MEMORY["rim_latched"] = True
+
+    # Periodic execution logging in sim
+    if step_id % 50 == 0 or step_id in (1, 10, 20, 30, 40, 50, 530, 533):
+        pad_z = float(pad_tip[2])
+        active_faults = [k for k in ("pot_fault", "drop_fault", "splash_fault", "cheat_bypass", "invalid_state") if mk.MEMORY.get(k)]
+        print(f"[STEP {step_id:04d}] score={score(objects):.2f} pad_tip_z={pad_z:.4f} revs={revs:.2f} faults={active_faults}", flush=True)
 
 
 kit.on_step(_step_rules)
@@ -464,7 +470,7 @@ task_success = success
 
 # -- scripted open-loop demonstration ---------------------------------------------------------------------------
 
-HANDLE_PINCH_OPEN = FINGER_CLOSED
+HANDLE_PINCH = FINGER_CLOSED
 POT_HANDLE_PINCH = FINGER_CLOSED
 
 LEFT_PARK = (0.180, 0.260, 0.920)
@@ -473,8 +479,8 @@ RIGHT_PARK = (0.180, -0.260, 0.920)
 
 def demo():
     """Bimanual open-loop demo (~26.6 s, 533 steps at 20 Hz):
-    1. Left arm descends to paddle stand at (0.220, 0.220), grasps paddle handle at Z = 0.8545 m, lifts vertically
-       out of the cradle, and carries it above the stockpot at (0.260, 0.080).
+    1. Left arm descends to paddle stand at (0.220, 0.220), grasps paddle handle at Z = 0.8645 m with yaw=pi/2,
+       lifts vertically out of the cradle, and carries it above the stockpot at (0.260, 0.080).
     2. Concurrently, right arm moves to the right stockpot loop handle at (0.260, -0.045, 0.8025) and grasps it firmly
        to steady the pot against hydrodynamic agitation forces.
     3. Left arm lowers paddle blade into the hot broth simulant (depth ~28 mm).
@@ -511,27 +517,29 @@ def demo():
     pad_drain_z = (BROTH_SURFACE_Z + 0.006) + PADDLE_BLADE_L + PADDLE_GRIP_Z_LOCAL
     bracket_seat_z = (BRACKET_SEAT_Z + 0.004) + PADDLE_GRIP_Z_LOCAL
 
+    yaw_grip = 0.0
+
     # Right arm: grasp stockpot loop handle to steady the pot
-    add("right", 1.5, (hx, hy, POT_HANDLE_Z + 0.050), FINGER_OPEN, "above pot handle")
-    add("right", 1.0, (hx, hy, POT_HANDLE_Z), FINGER_OPEN, "descend to pot handle")
-    add("right", 0.6, (hx, hy, POT_HANDLE_Z), POT_HANDLE_PINCH, "pinch pot handle")
+    add("right", 1.5, (hx, hy, POT_HANDLE_Z + 0.050), FINGER_OPEN, "above pot handle", 0.0)
+    add("right", 1.0, (hx, hy, POT_HANDLE_Z), FINGER_OPEN, "descend to pot handle", 0.0)
+    add("right", 0.6, (hx, hy, POT_HANDLE_Z), POT_HANDLE_PINCH, "pinch pot handle", 0.0)
 
     # Left arm: approach paddle stand, grasp handle, lift clear
-    add("left", 1.5, (sx, sy, pad_grasp_z + 0.035), FINGER_OPEN, "above paddle handle")
-    add("left", 1.0, (sx, sy, pad_grasp_z), FINGER_OPEN, "descend to handle")
-    add("left", 0.6, (sx, sy, pad_grasp_z), HANDLE_PINCH_OPEN, "grasp handle")
-    add("left", 1.0, (sx, sy, pad_carry_z), HANDLE_PINCH_OPEN, "lift paddle vertically")
-    add("left", 1.5, (px, py, pad_carry_z), HANDLE_PINCH_OPEN, "carry above stockpot")
+    add("left", 1.5, (sx, sy, pad_grasp_z + 0.035), FINGER_OPEN, "above paddle handle", yaw_grip)
+    add("left", 1.0, (sx, sy, pad_grasp_z), FINGER_OPEN, "descend to handle", yaw_grip)
+    add("left", 0.6, (sx, sy, pad_grasp_z), HANDLE_PINCH, "grasp handle", yaw_grip)
+    add("left", 1.0, (sx, sy, pad_carry_z), HANDLE_PINCH, "lift paddle vertically", yaw_grip)
+    add("left", 1.5, (px, py, pad_carry_z), HANDLE_PINCH, "carry above stockpot", yaw_grip)
 
     if variant == "no_submerge":
-        add("left", 1.5, LEFT_PARK, FINGER_OPEN, "park left")
+        add("left", 1.5, LEFT_PARK, FINGER_OPEN, "park left", 0.0)
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
         return plans
 
     # Lower into hot broth
-    add("left", 1.0, (px, py, pad_submerge_z), HANDLE_PINCH_OPEN, "submerge paddle into broth")
+    add("left", 1.0, (px, py, pad_submerge_z), HANDLE_PINCH, "submerge paddle into broth", yaw_grip)
 
     # Circular agitation revolutions
     n_revs = 0 if variant == "no_agitation" else 5
@@ -540,30 +548,30 @@ def demo():
     for rev in range(n_revs):
         for angle_deg in [0, 90, 180, 270]:
             th = math.radians(angle_deg)
-            add("left", t_step, (px + R * math.cos(th), py + R * math.sin(th), pad_submerge_z), HANDLE_PINCH_OPEN, f"stir rev {rev}")
-    add("left", t_step, (px + R, py, pad_submerge_z), HANDLE_PINCH_OPEN, "stir finish")
+            add("left", t_step, (px + R * math.cos(th), py + R * math.sin(th), pad_submerge_z), HANDLE_PINCH, f"stir rev {rev}", yaw_grip)
+    add("left", t_step, (px + R, py, pad_submerge_z), HANDLE_PINCH, "stir finish", yaw_grip)
 
     if variant == "no_drain":
         pass
     else:
         # Lift to drain height above liquid surface
-        add("left", 1.0, (px, py, pad_drain_z), HANDLE_PINCH_OPEN, "lift to drain height")
-        add("left", 1.2, (px, py, pad_drain_z), HANDLE_PINCH_OPEN, "drain broth dwell")
+        add("left", 1.0, (px, py, pad_drain_z), HANDLE_PINCH, "lift to drain height", yaw_grip)
+        add("left", 1.2, (px, py, pad_drain_z), HANDLE_PINCH, "drain broth dwell", yaw_grip)
 
     # Move paddle towards rim hanging bracket
     bracket_approach_z = bracket_seat_z + 0.030
 
-    add("left", 1.2, (bx, by - 0.015, bracket_approach_z), HANDLE_PINCH_OPEN, "approach rim bracket")
-    add("left", 0.8, (bx, by - 0.015, bracket_seat_z), HANDLE_PINCH_OPEN, "lower hook onto bracket")
-    add("left", 0.6, (bx, by - 0.015, bracket_seat_z), FINGER_OPEN, "release hook")
-    add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
+    add("left", 1.2, (bx, by - 0.015, bracket_approach_z), HANDLE_PINCH, "approach rim bracket", yaw_grip)
+    add("left", 0.8, (bx, by - 0.015, bracket_seat_z), HANDLE_PINCH, "lower hook onto bracket", yaw_grip)
+    add("left", 0.6, (bx, by - 0.015, bracket_seat_z), FINGER_OPEN, "release hook", yaw_grip)
+    add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm", 0.0)
 
     t_left_hung = clock["left"]
     wait_until("right", t_left_hung - 1.8, "steady pot through hang")
 
     # Right arm: release pot handle and park
-    add("right", 0.6, (hx, hy, POT_HANDLE_Z), FINGER_OPEN, "release pot handle")
-    add("right", 1.5, RIGHT_PARK, FINGER_OPEN, "park right arm")
+    add("right", 0.6, (hx, hy, POT_HANDLE_Z), FINGER_OPEN, "release pot handle", 0.0)
+    add("right", 1.5, RIGHT_PARK, FINGER_OPEN, "park right arm", 0.0)
 
     end_t = max(clock.values()) + 2.2
     for arm in ("left", "right"):
