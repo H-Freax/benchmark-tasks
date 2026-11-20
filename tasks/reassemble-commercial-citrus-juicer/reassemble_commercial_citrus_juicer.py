@@ -132,7 +132,7 @@ kit.part(
     mass=0.450,
 )
 
-# Revolute hinge joint for press lever with spring return to +45 deg rest position
+# Revolute hinge joint for press lever with spring return to +50 deg rest position
 kit.hinge(
     name="lever_pivot",
     parent="juicer_base",
@@ -140,11 +140,11 @@ kit.hinge(
     anchor=tuple(LEVER_ANCHOR),
     axis=(0.0, -1.0, 0.0),
     lower_deg=-5.0,
-    upper_deg=50.0,
-    start_deg=45.0,
-    rest_deg=45.0,
-    stiffness=1.5,
-    damping=0.3,
+    upper_deg=55.0,
+    start_deg=50.0,
+    rest_deg=50.0,
+    stiffness=3.5,
+    damping=0.4,
 )
 
 # -- 3. Stainless Juice Collector Funnel Bowl ----------------------------------
@@ -455,7 +455,7 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Left arm: waits for bowl to be placed, then picks strainer cone and seats it
-    # Uses front approach trajectory (+X) to completely bypass the upright press lever
+    # Carry directly along Y axis into the collar, then drop flush onto internal shelf
     left = [
         # Wait while right arm installs bowl (t = 8.6 s)
         Waypoint(8.6, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_wait"),
@@ -463,10 +463,11 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.2, (c_x, c_y, CONE_CARRY_Z), FINGER_OPEN, "cone_approach"),
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
-        # Front swing path to bypass juicer lever column
-        Waypoint(0.8, (0.300, 0.140, CONE_CARRY_Z), FINGER_CLOSED, "cone_front_1"),
-        Waypoint(0.8, (0.300, 0.000, CONE_CARRY_Z), FINGER_CLOSED, "cone_front_center"),
-        Waypoint(0.8, (0.260, 0.000, TOP + 0.135), FINGER_CLOSED, "cone_entry"),
+        # Smooth direct Y approach into juicer collar
+        Waypoint(0.8, (c_x, c_y - 0.035, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_1"),
+        Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_2"),
+        Waypoint(0.8, (c_x, c_y - 0.105, CONE_CARRY_Z), FINGER_CLOSED, "cone_carry_3"),
+        Waypoint(0.8, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_CLOSED, "cone_align"),
         Waypoint(1.0, (COLLAR_X, COLLAR_Y, TOP + 0.126), FINGER_CLOSED, "cone_seat"),
     ]
 
@@ -479,8 +480,8 @@ def demo() -> dict[str, list[Waypoint]]:
 
     left += [
         Waypoint(0.8, (COLLAR_X, COLLAR_Y, TOP + 0.126), FINGER_OPEN, "cone_release"),
-        Waypoint(0.8, (0.260, 0.000, TOP + 0.135), FINGER_OPEN, "cone_exit"),
-        Waypoint(0.8, (0.300, 0.000, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
+        Waypoint(1.0, (COLLAR_X, COLLAR_Y, CONE_CARRY_Z), FINGER_OPEN, "cone_clear"),
+        Waypoint(0.8, (c_x, c_y - 0.070, CONE_CARRY_Z), FINGER_OPEN, "cone_exit_side"),
     ]
 
     if cheat == "cone_seated":
@@ -491,12 +492,12 @@ def demo() -> dict[str, list[Waypoint]]:
         return {"left": left, "right": right}
 
     # Mechanical test stroke: Left arm depresses press lever and releases
-    # Knob starts at (0.221, 0.000, 0.980) at +45 deg rest; strokes down to (0.245, 0.000, 0.895)
+    # Knob starts at (0.218, 0.000, 0.985) at rest; strokes down to (0.245, 0.000, 0.895)
     left += [
-        Waypoint(1.0, (0.221, 0.000, 0.985), FINGER_OPEN, "lever_approach"),
-        Waypoint(0.8, (0.221, 0.000, 0.980), FINGER_CLOSED, "lever_grasp"),
+        Waypoint(1.0, (0.218, 0.000, 0.990), FINGER_OPEN, "lever_approach"),
+        Waypoint(0.8, (0.218, 0.000, 0.982), FINGER_CLOSED, "lever_grasp"),
         Waypoint(1.2, (0.245, 0.000, 0.895), FINGER_CLOSED, "lever_stroke"),
-        Waypoint(0.8, (0.221, 0.000, 0.980), FINGER_OPEN, "lever_release"),
+        Waypoint(0.8, (0.218, 0.000, 0.982), FINGER_OPEN, "lever_release"),
         Waypoint(1.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_retract"),
         Waypoint(6.0, (0.180, 0.200, BOWL_CARRY_Z), FINGER_OPEN, "left_park"),
     ]
