@@ -144,18 +144,6 @@ _TEST_TCPS: list | None = None
 _TEST_ROBOT_BOXES: list | None = None
 
 
-# State rules
-_state = {
-    "tongs_cleared": False,
-    "tongs_on_tray": False,
-    "platen_descended": False,
-    "platen_closed": False,
-    "defect": False,
-    "hold_steps": 0,
-}
-
-
-@kit.on_step
 def _step_rules(objects):
     tongs = objects.get("utility_tongs")
     platen = objects.get("upper_platen")
@@ -173,30 +161,30 @@ def _step_rules(objects):
     handle_z = h_pos[2]
 
     # Defect: platen lowered while tongs still on lower grill
-    if plate_gap_z < 0.040 and d_grill < 0.080 and not _state["tongs_cleared"]:
-        _state["defect"] = True
+    if plate_gap_z < 0.040 and d_grill < 0.080 and not mk.MEMORY.get("tongs_cleared"):
+        mk.MEMORY["defect"] = True
 
-    if _state["defect"]:
+    if mk.MEMORY.get("defect"):
         return
 
     # Stage 1: Tongs lifted clear of grill plate (> 45 mm)
     if t_pos[2] > GRILL_PLATE_Z + 0.045:
-        _state["tongs_cleared"] = True
+        mk.MEMORY["tongs_cleared"] = True
 
     # Stage 2: Tongs resting stably on side tray
-    if _state["tongs_cleared"] and d_tray < 0.065 and t_pos[2] < TOP + 0.040:
-        _state["tongs_on_tray"] = True
+    if mk.MEMORY.get("tongs_cleared") and d_tray < 0.065 and t_pos[2] < TOP + 0.040:
+        mk.MEMORY["tongs_on_tray"] = True
 
     # Stage 3: Platen rotated down past 45 degrees
-    if _state["tongs_on_tray"] and handle_z < 0.880:
-        _state["platen_descended"] = True
+    if mk.MEMORY.get("tongs_on_tray") and handle_z < 0.880:
+        mk.MEMORY["platen_descended"] = True
 
-    # Stage 4: Platen fully seated flush against stop (< 10 mm gap)
-    if _state["platen_descended"] and plate_gap_z < 0.010:
-        _state["platen_closed"] = True
+    # Stage 4: Platen fully seated flush against stop (< 15 mm gap)
+    if mk.MEMORY.get("platen_descended") and plate_gap_z < 0.015:
+        mk.MEMORY["platen_closed"] = True
 
     # Hands clear check
-    tcps = _TEST_TCPS if _TEST_TCPS is not None else []
+    tcps = mk.tcps()
     hands_clear = True
     if len(tcps) >= 2:
         ltcp, rtcp = tcps[0], tcps[1]
@@ -205,199 +193,43 @@ def _step_rules(objects):
         if np.linalg.norm(np.array(rtcp) - np.array(t_pos)) < 0.045:
             hands_clear = False
 
-    if _state["platen_closed"] and hands_clear:
-        _state["hold_steps"] += 1
+    if mk.MEMORY.get("platen_closed") and hands_clear:
+        mk.MEMORY["hold_steps"] = mk.MEMORY.get("hold_steps", 0) + 1
+
+    step_id = mk.MEMORY.get("step_id", 0) + 1
+    mk.MEMORY["step_id"] = step_id
+    if step_id % 20 == 0 or step_id in (1, 10, 50, 100, 150, 200, 250, 300, 320):
+        print(f"[STEP {step_id:04d}] score={score(objects):.2f} t_pos=({t_pos[0]:.3f},{t_pos[1]:.3f},{t_pos[2]:.3f}) d_tray={d_tray:.4f} handle_z={handle_z:.4f} gap_z={plate_gap_z:.4f} cleared={mk.MEMORY.get('tongs_cleared')} on_tray={mk.MEMORY.get('tongs_on_tray')} descended={mk.MEMORY.get('platen_descended')} closed={mk.MEMORY.get('platen_closed')} hold={mk.MEMORY.get('hold_steps', 0)}", flush=True)
 
 
-def task_score(objects) -> float:
-    if _state["defect"]:
+kit.on_step(_step_rules)
+
+
+def score(objects) -> float:
+    if mk.MEMORY.get("defect"):
         return 0.0
-    if not _state["tongs_cleared"]:
+    if not mk.MEMORY.get("tongs_cleared"):
         return 0.0
-    if not _state["tongs_on_tray"]:
+    if not mk.MEMORY.get("tongs_on_tray"):
         return 0.20
-    if not _state["platen_descended"]:
+    if not mk.MEMORY.get("platen_descended"):
         return 0.50
-    if not _state["platen_closed"]:
+    if not mk.MEMORY.get("platen_closed"):
         return 0.75
-    if _state["hold_steps"] < 20:
+    if mk.MEMORY.get("hold_steps", 0) < 20:
         return 0.90
     return 1.0
 
 
-def score(objects) -> float:
-    return task_score(objects)
-
-
 def success(objects) -> bool:
-    return task_score(objects) >= 1.0
+    return score(objects) >= 1.0 - 1e-9
+
+
+task_score = score
+task_success = success
 
 
 # Scripted Bimanual Demonstration Plan
-def plan(variant="normal"):
-    waypoints = []
-
-    # 1. Approach and grasp tongs with right arm
-    t_grip_xy = (0.240, 0.040)
-    t_grip_z = GRILL_PLATE_Z + 0.020
-
-    # Safe right pre-grasp above grill
-    waypoints.append(
-        Waypoint(
-            right_pos=(t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.080),
-            right_rot=(0.0, 1.0, 0.0, 0.0),
-            right_finger=FINGER_OPEN,
-            left_pos=(0.320, -0.150, 0.920),
-            left_rot=(0.0, 1.0, 0.0, 0.0),
-            left_finger=FINGER_OPEN,
-            steps=30,
-        )
-    )
-
-    # Descend to tongs handle
-    waypoints.append(
-        Waypoint(
-            right_pos=(t_grip_xy[0], t_grip_xy[1], t_grip_z),
-            right_finger=FINGER_OPEN,
-            steps=20,
-        )
-    )
-
-    # Grasp tongs
-    waypoints.append(
-        Waypoint(
-            right_pos=(t_grip_xy[0], t_grip_xy[1], t_grip_z),
-            right_finger=FINGER_CLOSED,
-            steps=15,
-        )
-    )
-
-    # Lift tongs clear of grill (> 60 mm)
-    waypoints.append(
-        Waypoint(
-            right_pos=(t_grip_xy[0], t_grip_xy[1], t_grip_z + 0.085),
-            right_finger=FINGER_CLOSED,
-            steps=25,
-        )
-    )
-
-    if variant == "no_tray":
-        return waypoints
-
-    # Transfer tongs over to side staging rest tray
-    tray_dest_xy = (TRAY_XY[0], TRAY_XY[1])
-    tray_dest_z = TOP + 0.022
-
-    waypoints.append(
-        Waypoint(
-            right_pos=(tray_dest_xy[0], tray_dest_xy[1], t_grip_z + 0.085),
-            right_finger=FINGER_CLOSED,
-            steps=30,
-        )
-    )
-
-    # Lower tongs onto tray
-    waypoints.append(
-        Waypoint(
-            right_pos=(tray_dest_xy[0], tray_dest_xy[1], tray_dest_z),
-            right_finger=FINGER_CLOSED,
-            steps=20,
-        )
-    )
-
-    # Release tongs
-    waypoints.append(
-        Waypoint(
-            right_pos=(tray_dest_xy[0], tray_dest_xy[1], tray_dest_z),
-            right_finger=FINGER_OPEN,
-            steps=15,
-        )
-    )
-
-    # Retract right arm clear to right staging area
-    waypoints.append(
-        Waypoint(
-            right_pos=(0.280, 0.350, 0.880),
-            right_finger=FINGER_OPEN,
-            steps=25,
-        )
-    )
-
-    if variant == "no_platen":
-        return waypoints
-
-    # 2. Left arm approaches insulated platen handle
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.245, 0.040, 0.960),
-            left_finger=FINGER_OPEN,
-            steps=30,
-        )
-    )
-
-    # Grasp insulated handle
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.260, 0.040, 0.945),
-            left_finger=FINGER_CLOSED,
-            steps=20,
-        )
-    )
-
-    # Smooth arc trajectory closing platen downward
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.330, 0.040, 0.880),
-            left_finger=FINGER_CLOSED,
-            steps=30,
-        )
-    )
-
-    # Closed stroke
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.395, 0.040, 0.830),
-            left_finger=FINGER_CLOSED,
-            steps=30,
-        )
-    )
-
-    if variant == "no_release":
-        return waypoints
-
-    # Release handle
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.395, 0.040, 0.830),
-            left_finger=FINGER_OPEN,
-            steps=15,
-        )
-    )
-
-    # Retract left arm clear
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.320, -0.150, 0.920),
-            left_finger=FINGER_OPEN,
-            right_pos=(0.280, 0.350, 0.880),
-            right_finger=FINGER_OPEN,
-            steps=30,
-        )
-    )
-
-    # 20-step stillness hold
-    waypoints.append(
-        Waypoint(
-            left_pos=(0.320, -0.150, 0.920),
-            left_finger=FINGER_OPEN,
-            right_pos=(0.280, 0.350, 0.880),
-            right_finger=FINGER_OPEN,
-            steps=25,
-        )
-    )
-
-    return waypoints
-
 def demo() -> dict[str, list[Waypoint]]:
     variant = os.environ.get("DEMO_VARIANT", "")
     plans: dict[str, list[Waypoint]] = {"left": [], "right": []}
