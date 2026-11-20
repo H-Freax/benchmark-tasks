@@ -157,11 +157,11 @@ kit.part(
         mk.box((0.080, 0.006, 0.045), at=(0.000, -0.037, 0.000), color=STAINLESS_BRIGHT),
         mk.box((0.006, 0.080, 0.045), at=(0.037, 0.000, 0.000), color=STAINLESS_BRIGHT),
         mk.box((0.006, 0.080, 0.045), at=(-0.037, 0.000, 0.000), color=STAINLESS_BRIGHT),
-        # Bottom drainage spout nozzle walls (40 mm outer width, 32 mm inner opening, 16 mm high)
-        mk.box((0.040, 0.004, 0.016), at=(0.000, 0.018, -0.020), color=STAINLESS_BRIGHT),
-        mk.box((0.040, 0.004, 0.016), at=(0.000, -0.018, -0.020), color=STAINLESS_BRIGHT),
-        mk.box((0.004, 0.040, 0.016), at=(0.018, 0.000, -0.020), color=STAINLESS_BRIGHT),
-        mk.box((0.004, 0.040, 0.016), at=(-0.018, 0.000, -0.020), color=STAINLESS_BRIGHT),
+        # Bottom drainage spout nozzle walls (44 mm outer width, 38 mm inner opening, 16 mm high)
+        mk.box((0.044, 0.003, 0.016), at=(0.000, 0.0205, -0.020), color=STAINLESS_BRIGHT),
+        mk.box((0.044, 0.003, 0.016), at=(0.000, -0.0205, -0.020), color=STAINLESS_BRIGHT),
+        mk.box((0.003, 0.044, 0.016), at=(0.0205, 0.000, -0.020), color=STAINLESS_BRIGHT),
+        mk.box((0.003, 0.044, 0.016), at=(-0.0205, 0.000, -0.020), color=STAINLESS_BRIGHT),
         # Low-profile connector strut through collar notch
         mk.box((0.012, 0.045, 0.008), at=(0.000, -0.065, 0.012), color=STAINLESS_BRIGHT),
         # Elongated rectangular grip post (28 mm wide x 18 mm thick) for high-torque twist lock
@@ -185,8 +185,8 @@ kit.part(
     name="strainer_cone",
     pos=(CONE_INIT_POS[0], CONE_INIT_POS[1], CONE_INIT_POS[2]),
     boxes=[
-        # Perforated strainer basket (34 mm wide x 20 mm high, hangs down into bowl cup)
-        mk.box((0.034, 0.034, 0.020), at=(0.000, 0.000, -0.014), color=STAINLESS_MATTE),
+        # Perforated strainer basket (32 mm wide x 10 mm high, sits cleanly inside upper funnel cup)
+        mk.box((0.032, 0.032, 0.010), at=(0.000, 0.000, -0.008), color=STAINLESS_MATTE),
         # Outer seating flange lip (48 mm wide, rests flush on 54 mm internal shelf)
         mk.box((0.048, 0.048, 0.008), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
         # Central grasp handle knob post (28 mm wide x 18 mm thick x 52 mm high) in 100% open clear air
@@ -235,7 +235,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     cone_seated = bool(
         M.get("bowl_locked")
         and dr_cone <= 0.020
-        and dz_cone <= 0.018
+        and dz_cone <= 0.022
     )
     if cone_seated:
         M["cone_seated"] = True
@@ -466,7 +466,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Seating and releasing at 0.850 m keeps fingertips 13 mm above the bowl rim (0.8255 m),
     # completely avoiding any contact between fingers and the inner cup walls.
     # Aligning yaw to -25.0 deg matches the locked bowl orientation (-21.5 deg) for maximum concentric clearance.
-    cone_seat_z = TOP + 0.102  # 0.850 m
+    cone_seat_z = TOP + 0.096  # 0.844 m
     right += [
         Waypoint(0.8, (c_x, c_y, c_z), FINGER_CLOSED, "cone_grasp"),
         Waypoint(1.0, (c_x, c_y, CONE_CARRY_Z), FINGER_CLOSED, "cone_lift"),
