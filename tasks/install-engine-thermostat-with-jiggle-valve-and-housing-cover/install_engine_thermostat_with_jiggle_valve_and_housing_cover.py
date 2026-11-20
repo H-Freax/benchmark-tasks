@@ -50,7 +50,7 @@ JIGGLE_OFFSET_R = 0.018                        # 18 mm radial offset from center
 JIGGLE_PIN_D = 0.004                           # 4 mm brass jiggle pin / air bleed valve
 
 THERMO_START_POS = (0.220, -0.160, TOP + THERMO_PELLET_H)
-TARGET_THERMO_Z = RECESS_SEAT_Z + THERMO_PELLET_H  # 0.8035 m (flange rests on recess floor)
+TARGET_THERMO_Z = RECESS_SEAT_Z                # 0.7815 m (flange rests on recess floor)
 
 # 2. Molded Nitrile Perimeter Rubber Gasket Ring (Fel-Pro 35062 / OEM style, 15 g)
 GASKET_ID = 0.054
@@ -138,6 +138,9 @@ kit.filter_collision("gasket", "thermostat")
 kit.filter_collision("housing_cover", "coolant_housing")
 kit.filter_collision("housing_cover", "thermostat")
 kit.filter_collision("housing_cover", "gasket")
+kit.filter_collision("thermostat", "staging_fixtures")
+kit.filter_collision("gasket", "staging_fixtures")
+kit.filter_collision("housing_cover", "staging_fixtures")
 
 OBJECTS = [
     *kit.objects(),
@@ -166,7 +169,7 @@ def _simulation_rules(objects):
         mk.MEMORY["thermo_inverted_defect"] = True
 
     # 1. Thermostat capture & lift
-    if t_pos[2] > TOP + THERMO_PELLET_H + 0.015:
+    if t_pos[2] > THERMO_START_POS[2] + 0.015 and d_tray < 0.040:
         mk.MEMORY["thermo_lifted"] = True
 
     # 2. Thermostat seated in housing with verified 12 o'clock jiggle pin orientation (+-15 deg)
@@ -300,6 +303,7 @@ def demo():
 
     (tx, ty, tz) = THERMO_START_POS
     bridge_grasp_z = tz + THERMO_FLANGE_H + THERMO_BRIDGE_H / 2 + 0.003
+    thermo_grip_offset = bridge_grasp_z - tz
 
     (hx, hy) = HOUSING_XY
 
@@ -318,9 +322,9 @@ def demo():
             Waypoint(0.8, (tx, ty, bridge_grasp_z), FINGER_CLOSED, "grip bridge arch", yaw=0.0),
             Waypoint(1.5, (tx, ty, TRAVEL), FINGER_CLOSED, "lift thermostat clear of tray", yaw=0.0),
             Waypoint(2.0, (hx, hy, TRAVEL), FINGER_CLOSED, "carry over housing and clock to 12 oclock", yaw=t_target_yaw),
-            Waypoint(1.8, (hx, hy, TARGET_THERMO_Z + 0.010), FINGER_CLOSED, "lower into counterbore mouth", yaw=t_target_yaw),
-            Waypoint(1.2, (hx, hy, TARGET_THERMO_Z - 0.001), FINGER_CLOSED, "seat flange flush in recess", yaw=t_target_yaw),
-            Waypoint(0.8, (hx, hy, TARGET_THERMO_Z - 0.001), FINGER_OPEN, "release thermostat", yaw=t_target_yaw),
+            Waypoint(1.8, (hx, hy, TARGET_THERMO_Z + 0.015 + thermo_grip_offset), FINGER_CLOSED, "lower into counterbore mouth", yaw=t_target_yaw),
+            Waypoint(1.2, (hx, hy, TARGET_THERMO_Z + thermo_grip_offset), FINGER_CLOSED, "seat flange flush in recess", yaw=t_target_yaw),
+            Waypoint(0.8, (hx, hy, TARGET_THERMO_Z + thermo_grip_offset), FINGER_OPEN, "release thermostat", yaw=t_target_yaw),
             Waypoint(1.5, (hx, hy, TRAVEL), FINGER_OPEN, "right arm retreat to travel", yaw=t_target_yaw),
             Waypoint(1.8, (tx, ty, TRAVEL), FINGER_OPEN, "right arm park clear", yaw=0.0),
             Waypoint(24.2, (tx, ty, TRAVEL), FINGER_OPEN, "right arm hold idle", yaw=0.0),
@@ -328,10 +332,15 @@ def demo():
 
     # Left Arm: Handles Gasket then Housing Outlet Cover
     (gx, gy, gz) = GASKET_START_POS
+    gasket_grasp_z = gz + 0.002
+    gasket_grip_offset = gasket_grasp_z - gz
+
     (cx, cy, cz) = COVER_START_POS
+    cover_grasp_z = cz + 0.015
+    cover_grip_offset = cover_grasp_z - cz
 
     l_finger_end = FINGER_CLOSED if variant == "touching_cover" else FINGER_OPEN
-    cover_end_pos = (hx, hy, TARGET_COVER_Z + 0.015) if variant == "touching_cover" else (cx, cy, TRAVEL)
+    cover_end_pos = (hx, hy, TARGET_COVER_Z + cover_grip_offset) if variant == "touching_cover" else (cx, cy, TRAVEL)
 
     if variant == "no_gasket":
         l_plan = [
@@ -342,23 +351,23 @@ def demo():
             # Wait for right arm to seat thermostat
             Waypoint(11.0, (gx, gy, TRAVEL), FINGER_OPEN, "wait for thermostat seating", yaw=0.0),
             # Stage 2: Pick and seat gasket
-            Waypoint(1.5, (gx, gy, gz + 0.002), FINGER_OPEN, "lower to gasket ring", yaw=0.0),
-            Waypoint(0.8, (gx, gy, gz + 0.002), FINGER_CLOSED, "grip gasket ring", yaw=0.0),
+            Waypoint(1.5, (gx, gy, gasket_grasp_z), FINGER_OPEN, "lower to gasket ring", yaw=0.0),
+            Waypoint(0.8, (gx, gy, gasket_grasp_z), FINGER_CLOSED, "grip gasket ring", yaw=0.0),
             Waypoint(1.5, (gx, gy, TRAVEL), FINGER_CLOSED, "lift gasket clear", yaw=0.0),
             Waypoint(2.0, (hx, hy, TRAVEL), FINGER_CLOSED, "carry gasket over housing", yaw=0.0),
-            Waypoint(1.5, (hx, hy, TARGET_GASKET_Z + 0.008), FINGER_CLOSED, "lower gasket into recess mouth", yaw=0.0),
-            Waypoint(1.2, (hx, hy, TARGET_GASKET_Z - 0.001), FINGER_CLOSED, "press gasket flush over flange", yaw=0.0),
-            Waypoint(0.8, (hx, hy, TARGET_GASKET_Z - 0.001), FINGER_OPEN, "release gasket", yaw=0.0),
+            Waypoint(1.5, (hx, hy, TARGET_GASKET_Z + 0.010 + gasket_grip_offset), FINGER_CLOSED, "lower gasket into recess mouth", yaw=0.0),
+            Waypoint(1.2, (hx, hy, TARGET_GASKET_Z + gasket_grip_offset), FINGER_CLOSED, "press gasket flush over flange", yaw=0.0),
+            Waypoint(0.8, (hx, hy, TARGET_GASKET_Z + gasket_grip_offset), FINGER_OPEN, "release gasket", yaw=0.0),
             Waypoint(1.5, (hx, hy, TRAVEL), FINGER_OPEN, "lift clear of gasket", yaw=0.0),
             # Stage 3: Pick and seat housing cover over studs
             Waypoint(2.0, (cx, cy, TRAVEL), FINGER_OPEN, "move over housing cover", yaw=0.0),
-            Waypoint(1.5, (cx, cy, cz + 0.015), FINGER_OPEN, "lower to cover neck", yaw=0.0),
-            Waypoint(0.8, (cx, cy, cz + 0.015), FINGER_CLOSED, "grip cover neck", yaw=0.0),
+            Waypoint(1.5, (cx, cy, cover_grasp_z), FINGER_OPEN, "lower to cover neck", yaw=0.0),
+            Waypoint(0.8, (cx, cy, cover_grasp_z), FINGER_CLOSED, "grip cover neck", yaw=0.0),
             Waypoint(1.5, (cx, cy, TRAVEL), FINGER_CLOSED, "lift cover clear of stand", yaw=0.0),
             Waypoint(2.0, (hx, hy, TRAVEL), FINGER_CLOSED, "carry cover over housing studs", yaw=0.0),
-            Waypoint(1.8, (hx, hy, STUD_TOP_Z + 0.012), FINGER_CLOSED, "align holes over studs", yaw=0.0),
-            Waypoint(2.0, (hx, hy, TARGET_COVER_Z - 0.001), FINGER_CLOSED, "lower cover flush onto gasket", yaw=0.0),
-            Waypoint(0.8, (hx, hy, TARGET_COVER_Z - 0.001), l_finger_end, "release cover", yaw=0.0),
+            Waypoint(1.8, (hx, hy, STUD_TOP_Z + 0.015 + cover_grip_offset), FINGER_CLOSED, "align holes over studs", yaw=0.0),
+            Waypoint(2.0, (hx, hy, TARGET_COVER_Z + cover_grip_offset), FINGER_CLOSED, "lower cover flush onto gasket", yaw=0.0),
+            Waypoint(0.8, (hx, hy, TARGET_COVER_Z + cover_grip_offset), l_finger_end, "release cover", yaw=0.0),
             Waypoint(1.5, cover_end_pos, l_finger_end, "hold cover" if variant == "touching_cover" else "left arm retreat to travel", yaw=0.0),
             Waypoint(2.7, cover_end_pos, l_finger_end, "settle and hold success", yaw=0.0),
         ]
