@@ -152,22 +152,22 @@ kit.part(
     name="collector_bowl",
     pos=(BOWL_INIT_POS[0], BOWL_INIT_POS[1], BOWL_INIT_POS[2]),
     boxes=[
-        # Funnel cup walls (85 mm outer width, 45 mm high)
-        mk.box((0.085, 0.012, 0.045), at=(0.000, 0.035, 0.000), color=STAINLESS_BRIGHT),
-        mk.box((0.085, 0.012, 0.045), at=(0.000, -0.035, 0.000), color=STAINLESS_BRIGHT),
-        mk.box((0.012, 0.085, 0.045), at=(0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
-        mk.box((0.012, 0.085, 0.045), at=(-0.035, 0.000, 0.000), color=STAINLESS_BRIGHT),
+        # Funnel cup walls (96 mm outer width, 76 mm inner opening, 45 mm high)
+        mk.box((0.096, 0.010, 0.045), at=(0.000, 0.043, 0.000), color=STAINLESS_BRIGHT),
+        mk.box((0.096, 0.010, 0.045), at=(0.000, -0.043, 0.000), color=STAINLESS_BRIGHT),
+        mk.box((0.010, 0.096, 0.045), at=(0.043, 0.000, 0.000), color=STAINLESS_BRIGHT),
+        mk.box((0.010, 0.096, 0.045), at=(-0.043, 0.000, 0.000), color=STAINLESS_BRIGHT),
         # Bottom drainage spout
         mk.box((0.040, 0.040, 0.015), at=(0.000, 0.000, -0.020), color=STAINLESS_BRIGHT),
         # Low-profile connector strut through collar notch
         mk.box((0.012, 0.045, 0.008), at=(0.000, -0.065, 0.012), color=STAINLESS_BRIGHT),
-        # Vertical cylindrical grip post with flat parallel faces for firm gripper clamp
-        mk.box((0.022, 0.022, 0.045), at=(0.000, -0.090, 0.035), color=CAST_BLACK),
+        # Elongated rectangular grip post (28 mm wide x 18 mm thick) for high-torque twist lock
+        mk.box((0.028, 0.018, 0.045), at=(0.000, -0.090, 0.035), color=CAST_BLACK),
         # Bayonet locking tabs on rim
-        mk.box((0.012, 0.010, 0.008), at=(0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
-        mk.box((0.012, 0.010, 0.008), at=(-0.045, 0.010, 0.018), color=STAINLESS_BRIGHT),
+        mk.box((0.012, 0.010, 0.008), at=(0.048, 0.010, 0.018), color=STAINLESS_BRIGHT),
+        mk.box((0.012, 0.010, 0.008), at=(-0.048, 0.010, 0.018), color=STAINLESS_BRIGHT),
         # Internal support shelf for strainer cone
-        mk.box((0.070, 0.070, 0.008), at=(0.000, 0.000, -0.005), color=STAINLESS_BRIGHT),
+        mk.box((0.074, 0.074, 0.008), at=(0.000, 0.000, -0.016), color=STAINLESS_BRIGHT),
     ],
     mass=0.045,
     contact_offset=0.0005,
@@ -179,12 +179,12 @@ kit.part(
     name="strainer_cone",
     pos=(CONE_INIT_POS[0], CONE_INIT_POS[1], CONE_INIT_POS[2]),
     boxes=[
-        # Conical reamer body
-        mk.box((0.065, 0.065, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
-        # Outer seating flange lip
-        mk.box((0.075, 0.075, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
+        # Conical reamer body (55 mm wide, drops inside 76 mm funnel cup opening)
+        mk.box((0.055, 0.055, 0.030), at=(0.000, 0.000, 0.000), color=STAINLESS_MATTE),
+        # Outer seating flange lip (72 mm wide, rests flush on 74 mm internal shelf)
+        mk.box((0.072, 0.072, 0.008), at=(0.000, 0.000, -0.012), color=STAINLESS_MATTE),
         # Central apex grasp knob stem with smooth parallel planar grip faces
-        mk.box((0.022, 0.022, 0.035), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
+        mk.box((0.024, 0.018, 0.035), at=(0.000, 0.000, 0.025), color=STAINLESS_BRIGHT),
     ],
     mass=0.035,
     contact_offset=0.0005,
