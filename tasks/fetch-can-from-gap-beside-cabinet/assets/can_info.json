@@ -1,0 +1,66 @@
+{
+  "registry_name": "tomato_soup_can_ycb_robolab",
+  "source_sha256": "15af4c13ead2a71c89cb5264c4689919166aacadc8800ab4cf966e34be51c10f",
+  "native_size_m": [
+    0.06785399466753006,
+    0.0677499994635582,
+    0.10203700512647629
+  ],
+  "native_bounds_m": [
+    [
+      -0.03392699733376503,
+      -0.0338749997317791,
+      -0.051018502563238144
+    ],
+    [
+      0.03392699733376503,
+      0.0338749997317791,
+      0.051018502563238144
+    ]
+  ],
+  "extent_m": 0.066,
+  "scale": 0.9726767056734945,
+  "size_m": [
+    0.066,
+    0.0658988462875948,
+    0.09924901800321043
+  ],
+  "resting_center_above_table_m": 0.04962450900160521,
+  "native_mesh_volume_m3": 0.00031917303019889185,
+  "native_uniform_mesh_com_m": [
+    -0.00013622754669567535,
+    0.00026308841243466707,
+    -0.00102156263149696
+  ],
+  "scaled_uniform_mesh_com_m": [
+    -0.00013250536134193166,
+    0.0002558999703078216,
+    -0.000993650175043609
+  ],
+  "density_estimate_kg_m3": 1409.8935232674726,
+  "mass_kg": 0.4141122216012984,
+  "source_mass_kg": 0.44999998807907104,
+  "com_note": "Uniform filled-mesh geometric estimate from signed tetrahedra. Built-in library asset keeps its automatic PhysX mass properties; not a measured physical soup distribution.",
+  "license": "CC BY 4.0",
+  "citation": "B. Calli et al., The YCB Object and Model Set: Towards Common Benchmarks for Manipulation Research, ICAR 2015.",
+  "grasp_band_height_m": 0.03,
+  "transverse_finger_width_m": 0.06799921899999997,
+  "selected": {
+    "arm": "right",
+    "can_xy_m": [
+      0.14,
+      -0.08
+    ],
+    "goal_xy_m": [
+      0.14,
+      -0.22
+    ],
+    "yaw_rad": 1.5707963267948966,
+    "wall_extra_m": 0.015,
+    "gap_extra_m": 0.004,
+    "panel_length_m": 0.24,
+    "panel_thickness_m": 0.018,
+    "tcp_pick_above_table_m": 0.065,
+    "release_gap_m": 0.004
+  }
+}

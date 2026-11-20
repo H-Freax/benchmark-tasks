@@ -1,175 +1,177 @@
-# Fetch a soup can from the gap beside a cabinet — feasibility stop
+# Retrieve a soup can from the gap beside a cabinet
 
-**Status: STOP. Gate 3 failed before task implementation. This folder is an engineering report, not a runnable benchmark or submission.** No task.py, task.json, or test_task.py was created. The mandatory task tests were not replaced by diagnostic tests. No GPU simulation, Dream-1 run, media upload, or pull request was made.
+Retrieve the upright soup can directly with the robot's own hand and leave it standing inside the marked landing area. Keep it upright and avoid scraping the two fixed panels. The scene is a cabinet side beside a wall, with the table as its floor; neither panel represents an appliance. One arm performs the retrieval on the bimanual YAM station.
 
-The intended instruction is: “Please get the soup can out from between the cabinet side and the wall, and leave it standing in the marked area in front of you. Keep the can upright and avoid scraping either panel.” The scene uses two wooden/plaster panel surrogates, not an appliance. Its category would be Societal relatability.
+**CPU feasibility passed; GPU physics and demonstration score remain pending.** The full scan contains 4,032 groups and 1,728 passing groups. The selected group has the smallest scanned nominal per-side margin, 2 mm, and a certified minimum robot-to-panel SAT margin of 4.493 mm. This establishes a feasible commanded geometric path, not a demonstrated successful PhysX grasp.
 
-The intended distinction is direct retrieval with the robot's own fingers and hand inside the restricted space, without a cord or tool. The measurements show that the hand can descend into one candidate gap; they do **not** establish a feasible complete retrieval, and the two open panel ends do not establish that a vertical approach is necessary.
+## Scene and measured grasp
 
-## Three gates
+The real Arena `tomato_soup_can_ycb_robolab` mesh has native bounds 67.854 × 67.750 × 102.037 mm. `Asset(extent=0.066)` scales it uniformly to 66.000 × 65.899 × 99.249 mm. Its actual 30 mm grasp band is narrower than 85 mm and taller than 15 mm. The can is grasped at a TCP height of 65 mm, with the fingers pointing down and closing along the gap's length.
 
-| Gate | Real evidence | Result |
-| --- | --- | --- |
-| Graspable part narrower than 85 mm and at least 15 mm high | Official tomato_soup_can_ycb_robolab USD: 8,404 vertices; native bounds 67.854 × 67.750 × 102.037 mm. Asset(extent=0.066) would uniformly scale this to 66.000 × 65.899 × 99.249 mm. A 30 mm band on the actual can mesh spans at most 64.318 × 63.773 mm horizontally. | Pass |
-| Allowed demo actions | Proposed Waypoint sequence uses downward orientation, translation, yaw, and finger opening/closing only. No tool, tipping, scooping, or rotation about a horizontal axis. | Pass for the proposed motion vocabulary; no successful demo claim |
-| Every path frame reachable and robot clear of panels | Real yam_arena.demo.ArmPlan.action7(t), 20 Hz, 307 frames, 15.3 s. Every robot collision hull was checked against both panels, for both arms including the inactive right arm and both pairs of fingers. | **Fail** |
+Dimensions, standing bounds, volume, estimated uniform-mesh centre of mass and density are measured by the external build script and stored in `assets/can_info.json`. `task.py` reads that file. The estimated filled density is 1,409.9 kg/m³; preserving it after scaling gives a mass of 414.1 g. The native library mass is 450 g. The geometric centre-of-mass estimate is not a measured distribution of soup; the built-in library's automatic PhysX mass properties remain in use. No custom USD or replacement can primitive is distributed.
 
-The failed path is one concrete candidate, not a proof that every possible layout or path is impossible. No layout relaxation or task implementation followed the failure, in accordance with the stop gate.
-
-## Measured hand and candidate geometry
-
-Values come from yam_arm.urdf, its referenced collision STL hulls, the actual can mesh, and station.BASES. All measurements and source hashes are in preflight_measurements.json. Dimensions are collision dimensions unless stated otherwise.
-
-| Measurement | Result |
+| Selected parameter | Value |
 | --- | --- |
-| Distal pad thickness along closing axis, left / right | 6.333 / 6.339 mm; this is the distal band used by the framework's own constants test, not a constant thickness of the entire finger |
-| Actual pad aperture at joint7 = joint8 = −33 mm | 66.063 mm |
-| Pad pair outer width at that aperture | 78.734 mm |
-| Entire moving finger pair outer width along closing axis | 113.547 mm, including the wider proximal parts |
-| Entire moving finger pair transverse width / vertical height | 67.999 / 93.843 mm |
-| Entire moving finger pair outer width fully open | 141.447 mm; pad aperture 93.963 mm |
-| Gripper housing closing-axis / transverse / vertical span | 102.000 / 65.000 / 73.999 mm |
-| Candidate can centre | x = 0.200 m, y = +0.200 m, on the left arm's own side |
-| Two fixed panels | Each 240 mm long along x, 18 mm thick, 195 mm high; x spans 0.080–0.320 m |
-| Gap and orientation | 74 mm between the inner faces; yaw = π/2 puts finger closing along the gap's x length |
-| Nominal transverse hand clearance | (74 − 67.999)/2 = 3.000 mm per side; raw can clearance about 4 mm per side |
-| Wall height basis | 195 mm > 93.843 mm finger height + 99.249 mm scaled can height = 193.092 mm |
-| Candidate TCP grasp / hover | 65 / 210 mm above the station tabletop (table z = 0.7475 m) |
+| Can centre, x / y | 0.140 / −0.080 m, on the right arm's side |
+| Landing centre, x / y | 0.140 / −0.220 m |
+| Panel length / thickness | 240 / 18 mm |
+| Panel height | 114.249 mm = measured scaled can height +15 mm |
+| Gap width | 71.999 mm = measured transverse hand envelope +4 mm |
+| Nominal hand margin per side | 2 mm |
+| Grasp yaw | +90°, closing along the gap length |
+| Grasp TCP above table | 65 mm |
+| Travel TCP above table | 183.249 mm; can bottom clears panel tops by 4 mm |
+| Release TCP above table | 69 mm; nominal can-bottom release gap 4 mm |
+| Full demo duration / sampled frames | 10.3 s / 207 at 20 Hz |
+| Worst full-demo IK position / angle error | 0.082102 mm / 0.013817° |
+| Minimum joint-limit margin | 5.510° |
+| Minimum robot/panel SAT margin | 4.493454 mm, active right fingertip at 3.0 s |
+| Reserve test, every waypoint 10 mm higher | 0.080332 mm / 0.012612° worst IK error |
 
-At the grasp pose, clipping convex hulls against the full table-to-panel-top slab gives the following bounds. Clipping includes edge/plane intersections, not just vertices already in the slab. Full world spans are pose dependent and are not cylinder diameters.
+Measured at a nominal 66 mm pad aperture, the distal pad thicknesses are 6.333 and 6.339 mm; the distal pads' outer span is 78.734 mm. The complete moving finger pair spans 113.547 mm along the opening direction and 67.999 mm transversely. The latter is the gap-normal dimension after yaw; the former lies along the 240 mm panel length. The gripper housing spans 102 × 65 × 74 mm. The scan never substitutes the can's diameter for the hand envelope.
 
-| Part | Full x × y × z span (mm) | Lowest point above table (mm) | Portion inside the 0–195 mm panel-height slab |
-| --- | --- | --- | --- |
-| Gripper housing | 102.001 × 65.000 × 73.999 | 135.524 | 102.001 × 65.000 × 59.476 mm |
-| Wrist link5 | 73.187 × 64.113 × 69.102 | 199.022 | None; 4.022 mm above panel top at this pose |
-| Wrist link4 | 133.594 × 119.318 × 119.797 | 206.299 | None; 11.299 mm above panel top at this pose |
-| Forearm link3 | 304.124 × 209.563 × 169.419 | 280.137 | None; 85.137 mm above panel top at this pose |
+At the selected grasp pose, the housing bottom is 135.531 mm above the table, the wrist-link bottom 199.029 mm, and the next forearm-link bottom 206.303 mm. None intersects the 114.249 mm panel-height slab. Their measured world spans and exact slab-clipped bounds are recorded in `selected_path_checks.json`; a null clipped section means the link stays above the slab. The measured can grasp band is 64.318 × 63.773 mm across and 30 mm high.
 
-This explains why inspecting the can alone is insufficient: at the proposed near-end exit, TCP x = 35 mm leaves the can in front of the panel ends at x = 80 mm, while the wider hand still overlaps their longitudinal range. The failed IK also changes the actual hand orientation and increases the collision risk.
+The selected wall height follows the revised scan range, can height +{5,15,25,40} mm. It is lower than the earlier rejected 195 mm wall, whose full path had 12.877 mm / 48.241° IK errors and −21.746 mm minimum geometric clearance. The fingers enter the restricted space, but the wider housing, wrist and forearm mostly stay above its top. This task does not claim that the full forearm passes between the panels. The measured path still constrains actual finger clearance to a few millimetres. Both panel ends remain open; a different approach from an end may be possible and is a known construct-validity risk.
 
-## Full-path failure
+## Complete parameter scan
 
-| Segment | Worst IK position (mm) | Worst IK angle (degrees) | Minimum robot/panel SAT margin (mm) |
-| --- | ---: | ---: | ---: |
-| Initial hover | 0.075 | 0.011 | +6.104 |
-| Vertical descent | 0.082 | 0.009 | +2.988 |
-| Close | 0.023 | 0.003 | +2.998 |
-| Small vertical lift | 0.075 | 0.008 | +2.989 |
-| Move towards near open end | 12.822 | 32.769 | −11.909 |
-| Turn outside panels | 12.877 | 48.217 | **−21.746** |
-| Move over target | 9.048 | 48.241 | +4.258 |
-| Lower | 3.030 | 20.551 | +12.758 |
-| Release command | 3.030 | 20.551 | +8.046 |
-| Retreat | 3.030 | 20.551 | +7.861 |
+`parameter_scan.csv` is the full per-group table. It includes x, y, arm, yaw, wall height, gap width, nominal per-side margin, worst IK position and orientation residuals, minimum SAT margin, joint margin, frame count and the limiting link, wall, time and segment. `scan_summary.json` records counts, environment, method, grid and the selected group. `selected_path_checks.json` contains the detailed selected trajectory check. `preflight_measurements.json` is retained historical evidence for the rejected 195 mm-wall/near-end-exit path; it does not describe the delivered demo.
 
-Overall worst errors are **12.877 mm / 48.241°**. At least one joint reaches its limit (minimum margin 0°). The minimum collision margin occurs at t = 9.05 s, left tip_right against the panel on the lower-y side. The 21.746 mm value is penetration in the convex geometry model, not a measured PhysX contact depth. Later release and retreat entries describe failed commanded waypoints, not demonstrated physical actions.
+Grid: x = 0.14 to 0.26 m in 0.02 m increments, |y| = 0.08 to 0.24 m in 0.02 m increments, both arms on their own side, yaw ±90°, four wall offsets and four gap offsets: 7 × 9 × 2 × 2 × 4 × 4 = 4,032 groups. Four gap widths share the same robot motion, so 1,008 unique trajectories are evaluated; every row still represents all 207 `ArmPlan.action7(t)` calls. There is no early exit after an IK failure.
 
-The collision test uses complete convex-hull/box separating axes: both shapes' face normals and every hull-edge × box-edge axis. Positive values are certified separating-axis margins, which can be lower bounds on Euclidean distance; negative values mean the modeled shapes intersect. It does not rely on ObjectState.low/high as actual geometry or on vertex inclusion alone.
+The full path moves to a hover above the can, descends vertically, closes, lifts vertically until the can bottom clears the wall, carries sideways to the landing area, lowers, opens, and retreats. There is no extraction around the near panel end. All object handling uses downward orientation, translation, yaw and opening/closing.
 
-Before the final candidate, short four-second hover/descent probes were evaluated at (0.16, 0.20) and (0.20, 0.20), with yaw 0 and π/2. The (0.16, 0.20), π/2 probe reached a limit and reported 0.668 mm / 3.012°. The other three probes reported about 0.08 mm / 0.014° or less. These endpoint probes did not establish a full path or collision clearance and were superseded by the complete candidate's failure.
+All 315 shipped convex robot collision hulls are checked against both panels for both arms at every 20 Hz frame, including the inactive arm. AABB separation is used only to safely prune distant hulls. Narrow checks use the complete convex separating-axis set: both shapes' face normals and hull-edge × box-edge axes. Projections are shared across widths, not omitted. A positive SAT margin is a certified lower bound on Euclidean separation; negative means convex-model intersection. Values at 20 mm are censored lower bounds (at least 20 mm), since this already exceeds the passing threshold. This is a geometric CPU test, not a PhysX contact-force measurement.
 
-## Independent scorer blocker
+An initial whole-link AABB screen was deliberately replaced by the complete scan: it rejected safe short-wall paths because it included wide finger parts above the wall. An independent SciPy convex-hull edge reconstruction in `test_task.py` checks the selected demo against **all fixed structures**, including the marking strips, rather than trusting the scan CSV or its counters alone.
 
-The inspected framework calls object_states(env, task.names), then success(states), distance(states), and score(states). With only a can and two panels declared, these hooks receive exactly those three objects. ObjectState provides only pos, quat_xyzw, lin_vel, ang_vel, low, and high. It exposes no finger opening, robot link pose, contact force, grasp state, or release event.
+The required pass criteria are strict position error <1 mm, angle error <1°, minimum SAT margin ≥3 mm and nominal per-side margin ≤10 mm. The selected nominal 2 mm is the minimum possible in this grid: smaller values were not requested. There are ties at this margin; this chosen right-arm path also keeps the limiting close clearance at the fingers rather than the fixed arm base. No global claim over continuous x/y values or untested paths is made.
 
-A can standing in the target while still gently clamped and the same can after release can have identical values for all six allowed fields throughout the entire final second. Therefore a scorer restricted to these inputs cannot reliably reject “holding without release” while accepting the released case. Stillness, tabletop height, a 1 s hold, or a timed assumption about the demo does not supply this missing observation. The diagnostic test constructs the two identical real ObjectState records to document the information limit; it is not a physical simulation test. Adding scene objects as pretend robot markers or reading private simulator/robot state would change the authorized contract and was not done.
+## Run and score
 
-This is a separate blocker even if a future path passes the geometric gate. No partial-credit or success functions were authored. The proposed 0.25/0.5/0.75/1.0 tiers, tilt latch, reset detection, terminal recheck, stillness window, and TASK_DEBUG cadence remain unimplemented and unverified.
-
-## Development thresholds
-
-All candidate values and numerical tolerances below are **开发估计 (development estimates)**, not validated physical acceptance thresholds.
-
-| Quantity | Candidate threshold | Physical or implementation basis |
-| --- | --- | --- |
-| Grasp width / band height | <85 mm / ≥15 mm | User's gripper design envelope; actual mesh measurement above |
-| Gap | 74 mm | 67.999 mm transverse hand envelope plus 3 mm nominal clearance per side |
-| Panel height | 195 mm | Exceeds measured scaled can + finger height by 1.908 mm |
-| Minimum modeled robot/panel margin | ≥2 mm | Leaves about 1 mm of the nominal 3 mm for model/path variation; no physical validation |
-| IK position / orientation residual | <0.5 mm / <0.1° | Tolerances used by the real framework's example demo test; sensible compared with 3 mm gap clearance |
-| Sampling | 20 Hz, every frame calls action7 | Required control rate; the ArmPlan error counters update only on action7 |
-| Release command height | 69 mm TCP above table | 65 mm grasp height + 4 mm nominal bottom-to-table release gap; failed IK means actual release is not verified |
-| Stillness and success hold | Intended 10 frames within 2 mm; intended success hold 1 s | Requested scoring design only; no scorer exists |
-
-The 10 mm reserve below each position's reach ceiling was not certified for all path points. Short endpoint reach data cannot substitute for this certification. The candidate is already rejected by the much larger IK and collision failures.
-
-## Validation and reproducibility
-
-Environment: local Apple Silicon macOS 26.6, arm64, CPython 3.12.14, NumPy 2.3.5, real yam_arena source commit bd62771e60320433893bd1d2df0fc79b5ddcd6d1. USD was read with usd-core 26.11; tests used pytest 9.2.0. Isaac Sim, GPU physics, and Dream-1 were not used. Source hashes, exact dimensions, segments, and audit counts are in preflight_measurements.json.
-
-The independent diagnostic audit produced **15 passed, 0 failed, 0 skipped**. Reverse checks actually substituted three deliberately incorrect diagnostic implementations and reran the same tests:
-
-| Incorrect implementation | Expected failing tests observed |
-| --- | --- |
-| Check only whether hull vertices enter a box; miss crossing edges | 1 failed, 14 passed; crossed slender solids were incorrectly reported as separated |
-| Ignore the IK residuals when judging a path | 2 failed, 13 passed; excessive position and angle errors were independently caught |
-| Use only the can's width when judging the gap | 2 failed, 13 passed; the hand envelope and wrong-yaw rejection were both lost |
-
-These reverse tests validate the measurement/diagnostic logic, not nonexistent task scoring. **Task tests: 0 executed, no pytest skips.** All required task-level checks remain unrun: constructor binding, each scoring tier, irreversible violation and later restoration, direct jump to terminal state, knockdown/launch, slow restoration, holding without release, wrong starting layout, score-boundary checks, yaw-180 tilt check, score/distance purity, reset, spawn overlap, TASK_DEBUG cadence, and a complete feasible demo's IK, limits, release, hand clearance, and run limit. The diagnostic checks both arms against the two panels; it does not certify self-collision, arm-to-arm clearance, robot/table clearance, camera clearance, or contact dynamics.
-
-The measurement script and its diagnostic tests are stored outside the repository in the designated reference-tools directory, named fetch_can_preflight.py and test_fetch_can_preflight.py. Set REFS_TOOLS to that directory, YAM_SOURCE to the actual yam_arena checkout, and CAN_USD to the downloaded official USD. Use a Python 3.12 environment containing NumPy, usd-core and pytest:
+Use the existing approved `yam_env` interpreter, referenced below as `YAM_PYTHON`; do not create another Python environment. Run commands from this checkout's root. The CPU checks need real `yam_arena`, NumPy, SciPy and pytest, but no Isaac Sim import or GPU.
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$YAM_SOURCE" \
-  python "$REFS_TOOLS/fetch_can_preflight.py" --asset "$CAN_USD" \
-  --output tasks/fetch-can-from-gap-beside-cabinet/preflight-rerun.json
-
-CAN_PREFLIGHT_DATA=tasks/fetch-can-from-gap-beside-cabinet/preflight_measurements.json \
-  PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$REFS_TOOLS:$YAM_SOURCE" \
-  python -m pytest -q -p no:cacheprovider "$REFS_TOOLS/test_fetch_can_preflight.py"
+PYTHONDONTWRITEBYTECODE=1 "$YAM_PYTHON" -m pytest -q -p no:cacheprovider \
+  tasks/fetch-can-from-gap-beside-cabinet/test_task.py
 ```
 
-The script is a diagnostic experiment, not a task file. Its rerun output contains the core measurements; the committed JSON also records source provenance, opening measurements, and audit outcomes collected separately. Keep any rerun output within this task folder inside the worktree.
-
-## GPU handoff: blocked
-
-There is no runnable task file to send to a GPU. The following are **future command templates only**. Their guard intentionally exits on this report-only branch. A feasible reviewed path, an authorized way to observe release, task.py, and all required CPU task tests are prerequisites. Do not proceed from smoke to full demo after any failed check.
+On a GPU host with the existing Arena/YAM/Inspect Robots setup, first run **200 steps** with fixed reset and the scripted policy, never Dream-1:
 
 ```bash
-TASK_FILE=tasks/fetch-can-from-gap-beside-cabinet/task.py
-test -f "$TASK_FILE" || { printf '%s\n' 'Blocked: feasibility report only; task.py does not exist.'; exit 1; }
-
 TASK_DEBUG=1 inspect-robots run --embodiment yam_arena --policy yam_scripted \
-  -E task="$TASK_FILE" -E scene=station -E object_jitter=0 -E control_hz=20 \
+  -E task=tasks/fetch-can-from-gap-beside-cabinet/task.py \
+  -E scene=station -E object_jitter=0 -E control_hz=20 \
   -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 200 \
-  --instruction 'Please retrieve the soup can and leave it standing in the marked area without scraping the panels.' \
+  --instruction 'Retrieve the soup can and leave it standing in the marked area. Keep it upright and avoid scraping the panels.' \
   --store-frames --log-dir /tmp/can-gap-smoke
+```
 
-# Only after all smoke checks pass; 600 is a provisional diagnostic budget, not a validated task run_limit.
+Check the smoke before running the complete demo:
+
+- Spawn: can dimensions 66.000 × 65.899 × 99.249 mm, bottom gap 1.000 mm, no overlap; panels 114.249 mm tall with a 71.999 mm gap. The first `task_progress` must show `armed=true`, no violation and score 0.
+- Path: worst CPU IK 0.082102 mm / 0.013817°; the rejection limits are 1 mm / 1°. No joint exceeds its URDF limit. CPU minimum model margin is 4.493454 mm; investigate any contact or observed scrape. A CPU certificate does not guarantee the simulated joint tracking stays within that clearance.
+- Can: tilt stays below 5°; its bottom clears the wall top by about 4 mm during the carry; the nominal release gap is 4 mm. Reject a fall, bounce, throw, tip or can penetration even if a partial score appears.
+- Final: can bottom within 3 mm above the table, centre within 15 mm of the mark along x and y, positions within 2 mm over the 10-frame window, and the framework's success conditions held for 1 s. Check the video for an **open** gripper with at least **30 mm** clearance from the can; inspect the actual termination frame, since success can terminate a rollout before all waypoints are consumed.
+- Debug cadence: `task_progress` appears only on steps 1, 20, 40, …, 200, or until earlier termination. Score tops out at 0.75; the framework alone promotes held success to 1.0.
+
+Then run the complete 400-step trial (20 s budget; the 10.3 s plan plus the default 3 s policy hold fits):
+
+```bash
 TASK_DEBUG=1 inspect-robots run --embodiment yam_arena --policy yam_scripted \
-  -E task="$TASK_FILE" -E scene=station -E object_jitter=0 -E control_hz=20 \
-  -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 600 \
-  --instruction 'Please retrieve the soup can and leave it standing in the marked area without scraping the panels.' \
+  -E task=tasks/fetch-can-from-gap-beside-cabinet/task.py \
+  -E scene=station -E object_jitter=0 -E control_hz=20 \
+  -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 400 \
+  --instruction 'Retrieve the soup can and leave it standing in the marked area. Keep it upright and avoid scraping the panels.' \
   --store-frames --log-dir /tmp/can-gap-demo
 ```
 
-Future smoke instrumentation must show: ≤0.5 mm / ≤0.1° IK error at every 20 Hz action, no joint outside its URDF limit, at least 2 mm modeled hand/wrist/forearm clearance from both panels, 1 mm initial can-bottom gap, about 99.249 mm can height at the declared 66 mm extent, 4 mm actual release gap, and task_progress only at steps 1, 20, 40, …, 200. Stillness must use the position history and success must hold for 1 s. Release needs an actual observable signal, not a zero velocity inference. The failed candidate's t=9.05 s collision occurs within a 200-step smoke and must reject that candidate. These quantities require instrumentation that has not been implemented.
+Both commands are handoff instructions and were **not** run locally. Local `yam_env` does not contain `inspect_robots` or its CLI. No GPU physics, video or achieved full score is claimed. Nominal layout is fixed (`object_jitter=0`), with no random task seed. Runtime is 20 simulated seconds maximum; wall-clock GPU runtime is unmeasured.
 
-## Closest accepted tasks and review risk
+## Scoring and thresholds
 
-Comparison source: pr-crawl snapshot-20261119T072321Z, including pull_requests.json, accepted_abilities.json, and pr_analysis.json. All three were marked accepted and merged in that snapshot.
+`SCORE_OVER = "end"`. Return the highest satisfied tier, without summing. `score()` and `distance()` are read-only; `success()` updates the step history once per control frame. The framework calls success before score and distance, and requires its true return for 1 s to award 1.0.
 
-| Existing PR | Difference sought here |
+| Tier | Progress |
 | --- | --- |
-| [#182, Fish a charger out from behind a box by its cord](https://github.com/robocurve/benchmark-tasks/pull/182) | Uses an exposed cord to retrieve an obscured charger and constrains box movement. This proposal instead puts the robot's own hand into the gap to directly grasp an upright rigid can; no cord is available. |
-| [#1957, Replace the cabin air filter behind a car's glove box](https://github.com/robocurve/benchmark-tasks/pull/1957) | Requires accessing a filter through a released glove-box assembly and seating its replacement. This proposal concerns tight hand-envelope clearance during direct vertical retrieval between two panels, with no access mechanism or replacement part. |
-| [#2376, Pick up litter with a reacher-grabber and drop it in the bin](https://github.com/robocurve/benchmark-tasks/pull/2376) | Requires an actuated long tool and prohibits direct robot-gripper contact with litter. This proposal requires direct contact and provides no tool. |
+| 0 | Not initialized in the nominal layout, still in the gap, or any latched violation |
+| 0.25 | The whole upright can is outside the finite gap prism, including a vertical lift wholly above its top |
+| 0.5 | Also supported on the table; not necessarily at the mark or still |
+| 0.75 | Also in the marked goal region and still |
+| 1.0 | The 0.75 conditions continuously hold for the framework's 1 s success hold |
 
-Likely rejection reasons if submitted now: infeasible demonstrated path; no full-score physics demonstration or media; release is unobservable with the authorized scoring inputs; open ends may admit a horizontal shortcut that defeats the claimed vertical-access requirement; and the remaining distinction from ordinary constrained pick-and-place may be judged insufficiently important. A close precedent is #1957's initial rejection: its side access bypassed the intended access mechanism and its scorer did not require that mechanism. That PR was accepted only after revisions; its review history directly warns against claiming a geometry-enforced action without checking bypasses.
+Tipping anywhere, including inside the gap, latches zero: a tipped can on the gap floor defeats the intended direct upright retrieval. Leaving the table, a malformed state, an invalid initial layout, changed fixed layout, or an unexplained one-step can jump over 100 mm also latches zero. Violations are checked in success and current validity is rechecked at the final score. Slowly restoring the can cannot erase a latch. An episode reset is recognized only when a >100 mm one-step jump also returns every task object to its nominal layout; an ordinary slow return is not a reset. A fresh imported module starts an independent episode state.
 
-The live task board returned its sign-in page, so new pending/accepted tasks after the snapshot were not checked. No complete live duplicate-clearance claim is made.
+Every threshold here is **开发估计 (development estimate)** unless it is a directly measured dimension. No physical trial calibration has been performed.
 
-## Assumptions, failures, and assets
+| Threshold | Value | Basis |
+| --- | --- | --- |
+| Grasp width / height design limits | <85 / ≥15 mm | Given YAM grasp envelope; real 30 mm mesh band measured |
+| Gap / wall offset | transverse hand width +4 mm / can height +15 mm | Minimum scanned nominal side-margin tier with a verified direct vertical path |
+| Model clearance requirement | ≥3 mm | Requested guard against hand/panel scraping; selected margin 4.493 mm |
+| IK limits | <1 mm / <1° | Requested scan acceptance; actual residuals much smaller |
+| Upright | tilt <5° | Can base stability; yaw is ignored, including 180° yaw |
+| Table support | bottom −2 to +3 mm; vertical history spread ≤2 mm; before the window fills, vertical speed ≤30 mm/s | Small contact/mesh tolerance and vertical position stability; avoids frozen velocity readings after sleep |
+| Landing centre | within 15 mm on x and y | Keeps the roughly 66 mm can fully inside the 96 mm inner marking span |
+| Stillness | all position pairs within 2 mm over latest 10 frames | 0.5 s sample window at 20 Hz; avoids stale sleeping-body velocity readings |
+| Incomplete stillness window | speed <10 mm/s, spin <0.2 rad/s | Explicit fallback passed to `resting(max_speed=..., max_spin=...)` |
+| Success hold | 1.0 s | Framework's consecutive-success hold, separate from score |
+| Nominal start tolerance | 5 mm from spawn centre | Allows the 1 mm gravity settle without accepting a different layout |
+| Fixed layout tolerance | centre displacement ≤1 mm, orientation ≤0.5° | Fixed structures must remain in their reproducible layout |
+| Reset/discontinuity | one-step jump >100 mm | Much larger than adjacent 20 Hz demo targets; reset additionally needs nominal layout |
+| Off-table | any AABB beyond table edges, or bottom >10 mm below table | Detects a launched/fallen object; world bounds are the station table's |
+| Release gap / final hand clearance | 4 mm / ≥30 mm | Close placement and the required observable open-hand finish |
 
-- The official registry USD was obtained from the configured public 6.2 staging asset mirror. An earlier attempted 6.1 URL returned 404. The GPU's actual asset-root version is unknown; matching the committed SHA-256 is required before transferring these dimensions to another environment.
-- The source-only real yam_arena was imported through PYTHONPATH. The default system Python 3.9 had no NumPy, pytest, USD reader, or installed yam_arena. A bundled Python 3.12 runtime and temporary usd-core/pytest packages resolved CPU diagnostics, not Isaac Sim availability.
-- Initial sandbox Git/network writes were restricted; authorized fetch and worktree creation succeeded with the permitted escalation mechanism. No original working-tree edits were made. Broad initial discovery hit absent migrated directories and protected macOS cache paths; these were not evidence about host installations. A process-status probe was sandbox-denied and was not needed for the final measurements.
-- The USD reader emitted ARCH_CACHE_LINE_SIZE != Arch_ObtainCacheLineSize() on this arm64 host. It still read the complete mesh; the warning is preserved here as an unvalidated runtime caveat.
-- Finger closure was modeled as blocked at the conservative 66 mm nominal aperture; no can/finger forces, friction, slip, compliance, robot tracking lag, restitution, can tipping, or actual release was simulated. The scoring observability counterexample does not claim a simulated successful held pose.
-- Only the native standing mesh bounds and candidate scaling were measured. A stable resting pose under gravity, mesh inertial tensor/true material density, collision decomposition of the can, physical centre of mass, and contact stability were not verified. The official USD centreOfMass is the automatic (-inf, -inf, -inf) sentinel rather than a measured finite centre. No custom can model was created and no substitute primitive was used.
-- The external USD references textures/obj_000004.png; that texture was not fetched or included. No third-party asset bytes, images, or assets/ directory are committed. Therefore the requested asset-file path/EXIF/XMP/caBX metadata scan has an empty committed scope; it was not represented as a scan of texture pixels or of the undownloaded texture.
-- No media exists, all task scores remain pending in concept, and no reproducibility/feasibility claim suitable for submission is made. A marked target, exact materials/friction, irreversible-tilt policy, score thresholds, reset behavior, and run_limit are not finalized.
+`ObjectState.low/high` are treated as world AABBs for conservative extent checks, not as unrotated geometry. Uprightness is computed from the can's local vertical axis using `quat_xyzw`. Collision verification uses real robot hulls, not object AABBs. The frame history contains only copies of the can position. Read-only final-frame checks also compare the supplied current position against the stored window and previous position, so a fresh displacement or unexplained jump cannot borrow stale stillness.
 
-Asset provenance for the measured external model: YCB tomato soup can, CC BY 4.0, cited as B. Calli et al., “The YCB Object and Model Set: Towards Common Benchmarks for Manipulation Research,” ICAR 2015; [YCB project](https://www.ycbbenchmarks.com/). YAM robot meshes are the framework's I2RT assets under the bundled MIT license; those bytes also remain external. Panel shapes were only analytic boxes in the diagnostic. No third-party model is distributed by this report.
+## Validation and reverse tests
 
-Branch: fetch-can-from-gap-beside-cabinet. Base: origin/main at 573e3868db43cb69b9cb0b446ddf8c7de7045518. The final commit hash and exact diff stat are supplied in the delivery report; a report cannot embed its own final commit hash without changing that hash.
+Final CPU environment: existing `yam_env`, macOS 26.6 arm64, CPython 3.12.16, NumPy 2.5.4, pytest 9.2.0, real yam_arena commit bd62771e60320433893bd1d2df0fc79b5ddcd6d1. Arena library source: release/0.3.1 at c7edf3a9d5d8276565208f72422f8f8a0806d6cf. The completed scan and final test report use this environment. Preliminary runs in another interpreter were stopped when the approved interpreter was specified and are not used as final scan evidence.
+
+Tests: 50 passed, 0 failed, 0 skipped. They cover every constructor signature through the real framework, all score tiers and hold semantics, every latch and later restoration, direct terminal jumps, tipping/launching, slow restoration, initial-layout failures, both sides of thresholds, yaw 180°, score/distance purity, reset detection, spawn overlap, debug cadence, complete-frame IK/limits, clearance of both arms against **all** task structures, release height, actual open-gripper final waypoint and fingertip clearance, run limit and asset metadata. The holding-without-release case explicitly demonstrates the documented simulation limit rather than falsely claiming a rejection.
+
+The following wrong implementations were actually substituted into the task source during tests, with no framework monkeypatch or private robot access:
+
+| Deliberate error | Observed expected test failure |
+| --- | --- |
+| Forget the tilt latch after restoration | 2 failures |
+| Sum partial-credit tiers | 1 failure |
+| Treat 180° yaw as tilt | 1 failure |
+| Mutate position history inside score | 3 failures after strengthening the test's nonidentical history |
+| Print debug every step | 1 failure |
+| Clear latches on a slow nominal return | 1 failure |
+| Omit opening in the release waypoint | 1 failure |
+| Infer stillness only from frozen zero velocity | 1 failure |
+| Move demo hover 400 mm higher | 1 failure from independently recomputed per-frame IK |
+| Shrink the gap to 20 mm | 1 failure from full robot/structure geometry checks |
+
+`validation_report.json` records final counts, reverse tests, elapsed time and limitations. The external scripts are `make_can_gap_info.py`, `scan_can_gap.py` (conservative screen), `scan_can_gap_exact.py` (final complete scan) and `refine_can_gap.py`, in the designated reference-tools directory, outside this repository. Their source hashes identify the measurement workflow. The mesh, density and centre-of-mass arithmetic were rerun with the approved interpreter. No custom asset builder enters the submission.
+
+## Known limits and review risks
+
+- **Release observability:** simulation scoring cannot distinguish a can still clamped motionless against the table from a released can with identical ObjectState fields. The real-trial requirement is: **the gripper is open and at least 30 mm from the can at the end, judged from the trial video**. This supplements simulation scoring. The demo test asserts opening and a final fingertip clearance over 30 mm, but real release/contact and the actual final video frame remain GPU checks.
+- GPU PhysX execution, friction, grip force, slip, tracking lag, stable standing rest pose, contact compliance, camera visibility, real finish time and achieved score are unverified. CPU target clearance is not a guarantee of tracking clearance. No Dream-1 or other model run has been made; `scores` remains `pending` and `media` remains `{}`.
+- The stock framework uses static/dynamic grasp friction 1.2/1.0 and a 5 mm can contact offset with zero rest offset. Other colliders keep their framework offsets. Contacts may be generated before geometric surfaces touch; the scan does not model these envelopes or resulting forces. The 4.493 mm geometric clearance therefore requires a GPU contact check, especially in this narrow gap. During geometric checks, finger closure is blocked at a conservative nominal 66 mm aperture; a successful grasp is assumed for carrying the can, rather than simulated. No contact settings were changed through private interfaces.
+- The short walls constrain the fingers but do not force the wrist/forearm fully into the gap. Both ends are open, so an end approach could bypass the demonstrated vertical route. Reviewers could judge this insufficiently distinct from ordinary constrained pick-and-place, or reject the construction for allowing an easier strategy. The scan establishes the requested path's feasibility, not necessity or uniqueness.
+- Can mass uses the official USD's nominal mass scaled at constant estimated filled density; actual contents, mesh watertightness, label thickness, inertia and physical centre of mass were not independently measured. The native USD COM is an automatic sentinel. The uniform-mesh estimate is stored in JSON, not claimed as a true soup distribution. Library collision decomposition and automatic mass properties were not GPU-inspected.
+- The official external USD was obtained from the public 6.2 staging mirror at the registry path; a previously tried 6.1 URL returned 404. Its SHA-256 is in `assets/can_info.json`. A GPU with a different asset root must verify the same source bytes/dimensions. The referenced texture remains external and was not copied or metadata-modified. The USD reader emitted an arm64 cache-line assumption warning while still reading all vertices.
+- The sweep is a 20 mm spatial grid with one full direct-retrieval path family, not an exhaustive continuous motion search. SAT checking is discrete at 20 Hz; continuous swept-volume clearance, self-collision and arm-to-arm clearance were not certified. The selected path's 10 mm higher copy passed IK as a reach reserve test.
+- Final source imports no Isaac Sim, reads no robot state and modifies no framework code. Episode state relies on the documented success-before-score callback order at 20 Hz. A reset without a >100 mm observed jump cannot be distinguished from slow physical restoration with this API and deliberately cannot clear a latch.
+- The live task board required sign-in, so pending tasks newer than the saved snapshot were not checked. No duplicate-clearance claim against the live board is made. The local environment lacks the Inspect Robots CLI, so GPU smoke/full-demo commands were not executed. Submission feasibility, media and review acceptance remain pending.
+- Scan implementation issues corrected during development: a NumPy boolean initially prevented JSON summary serialization; conversion to builtin bool fixed it. An earlier score-purity mutation escaped an all-identical history fixture; the strengthened test catches it. A naive all-vertex-pair SAT edge set was too slow; equivalent convex-hull edges made the independent full check practical. A support-window fixture initially expected landing support immediately after descent; it was corrected to wait for the required window. A later audit added read-only current-position and discontinuity checks at the final frame. The staged whitespace check also rejected CSV CRLF line endings; they were normalized to LF with every parsed cell checked unchanged. These issues did not alter the final acceptance thresholds.
+- Stopping the superseded interpreter's process pool needed explicit termination of that scan's process tree. An optional process-inspection package was absent, so standard process listing was used instead; no environment or package was installed. The source-only local environment has no Inspect Robots entry point. Historical preflight data remain labeled as such.
+
+## Comparison and third-party assets
+
+Based on pr-crawl snapshot-20261119T072321Z; all three comparators were accepted and merged there:
+
+| PR | Difference |
+| --- | --- |
+| [#182: Fish a charger out from behind a box by its cord](https://github.com/robocurve/benchmark-tasks/pull/182) | Uses an exposed flexible cord to recover an obscured charger while limiting box movement. This task directly grasps the can with the robot hand inside the gap, without a cord. |
+| [#1957: Replace the cabin air filter behind a car's glove box](https://github.com/robocurve/benchmark-tasks/pull/1957) | Releases a glove-box access mechanism and exchanges a filter. This task has fixed panels and directly retrieves an upright can with a few millimetres of hand clearance, with no access mechanism or replacement step. |
+| [#2376: Pick up litter with a reacher-grabber and drop it in the bin](https://github.com/robocurve/benchmark-tasks/pull/2376) | Uses an actuated long tool and prohibits direct gripper/litter contact. Here direct contact is required and no tool is supplied. |
+
+The #1957 review initially rejected side access that bypassed its intended mechanism. The open-end shortcut risk here is therefore material, even though the demonstrated path passes the requested scan.
+
+Third-party assets: YCB tomato soup can, **CC BY 4.0**; B. Calli et al., “The YCB Object and Model Set: Towards Common Benchmarks for Manipulation Research,” ICAR 2015; [YCB project](https://www.ycbbenchmarks.com/). It remains an external Arena asset; only measured JSON is distributed here. The robot geometry used for verification is the framework's I2RT YAM model under its bundled **MIT** license; no robot mesh is copied. Panels and marks are original analytic fixed boxes. `assets/` contains only JSON, with no images or texture bytes; its identity-path/metadata scan is covered by tests. No CC0 model is used.

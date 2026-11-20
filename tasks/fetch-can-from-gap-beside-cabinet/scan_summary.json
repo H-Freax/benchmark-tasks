@@ -1,0 +1,102 @@
+{
+  "complete": true,
+  "groups": 4032,
+  "paths": 1008,
+  "elapsed_s": 1375.5080008329824,
+  "passing_groups": 1728,
+  "minimum_nominal_side_margin_mm": 2.0,
+  "selected": {
+    "x_m": 0.14,
+    "y_m": -0.08,
+    "arm": "right",
+    "yaw_deg": 90,
+    "wall_extra_mm": 15,
+    "wall_height_mm": 114.24901800321042,
+    "gap_extra_mm": 4,
+    "gap_width_mm": 71.99921899999998,
+    "side_margin_mm": 2.0,
+    "ik_mm": 0.08210227128176188,
+    "ik_deg": 0.013817282954377622,
+    "min_sat_gap_mm": 4.493454049810841,
+    "joint_margin_deg": 5.51031804640078,
+    "frames": 207,
+    "duration_s": 10.3,
+    "pass": true,
+    "limiting_arm": "right",
+    "limiting_link": "tip_right",
+    "limiting_wall": 1,
+    "limiting_time_s": 3.0,
+    "limiting_segment": "close",
+    "narrow_batches": 209
+  },
+  "method": "Every 20 Hz ArmPlan.action7 frame; all 315 convex collision hulls of both robots versus both panels. Complete convex SAT axes (faces and edge-cross-edge), shared across widths; AABB used only for mathematically safe pruning. Positive SAT margin is a conservative Euclidean distance lower bound; minimum of per-hull SAT margins is reported.",
+  "gap_definition": "Measured 67.999219 mm transverse hand envelope after yaw + 4/6/8/10 mm. 113.546986 mm closing-axis outer span lies along panel length, not the normal.",
+  "script_sha256": "7afb891aaba06211645ff08bb7d2c978f89db197a78ae18dc15d9668d7391483",
+  "urdf_sha256": "d6cc3fca8d6848aad36c0d2bb8798de391fcf5ef8f41180fe7618eda141f0bef",
+  "hz": 20,
+  "grid": {
+    "x_m": [
+      0.14,
+      0.16,
+      0.18,
+      0.2,
+      0.22,
+      0.24,
+      0.26
+    ],
+    "abs_y_m": [
+      0.08,
+      0.1,
+      0.12,
+      0.14,
+      0.16,
+      0.18,
+      0.2,
+      0.22,
+      0.24
+    ],
+    "arms": [
+      "left",
+      "right"
+    ],
+    "yaw_deg": [
+      90,
+      -90
+    ],
+    "wall_extra_mm": [
+      5,
+      15,
+      25,
+      40
+    ],
+    "gap_extra_mm": [
+      4,
+      6,
+      8,
+      10
+    ]
+  },
+  "limits": {
+    "ik_mm_lt": 1,
+    "ik_deg_lt": 1,
+    "min_sat_gap_mm_ge": 3,
+    "side_margin_mm_le": 10
+  },
+  "environment": {
+    "name": "existing approved yam_env",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "python": "3.12.16",
+    "numpy": "2.5.4",
+    "pytest": "9.2.0",
+    "yam_source_commit": "bd62771e60320433893bd1d2df0fc79b5ddcd6d1",
+    "arena_source_commit": "c7edf3a9d5d8276565208f72422f8f8a0806d6cf",
+    "isaac_sim_used": false,
+    "gpu_used": false
+  },
+  "scan_table_sha256": "98e1e923a8339e8ef93dcd14d11b94c31b598f9c701cf90b2aedd022f4fc9772",
+  "selected_reason": "Tied minimum nominal side margin of 2 mm; selected direct vertical right-arm path is finger-clearance-limited, not fixed-arm-base-limited.",
+  "geometric_contact_assumption": "Finger closure is blocked at a conservative 66 mm nominal aperture during grasp. Grip, slip, physical tracking and collision contact offsets are not simulated.",
+  "censoring": "Values of 20 mm are certified lower bounds of at least 20 mm.",
+  "scan_table_original_sha256": "56d34880afc7710543fcf5bdc086f6a055f243737415b572bbfabb04f3dc9f69",
+  "table_normalization": "CRLF normalized to LF for repository whitespace checks; every parsed CSV cell verified identical."
+}
