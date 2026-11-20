@@ -5,7 +5,7 @@ On the commercial kitchen prep counter stands an 8 qt heavy-gauge stainless stee
 The stockpot contains hot broth simulant (liquid depth 40 mm, surface at Z = 0.7935 m, 34 mm headspace to the rim).
 The front-left rim of the pot features a welded stainless paddle hanging bracket with a horizontal resting saddle
 at (0.240, 0.170, Z = 0.8275 m). The right side of the pot features a heavy welded tubular loop handle at (0.260, -0.045, Z = 0.7925 m).
-To the robot's left stands a sanitary stainless paddle stand (100 x 100 x 30 mm, 500 g) at (0.220, 0.220) holding an upright
+To the robot's left stands a sanitary stainless paddle stand (80 x 80 x 30 mm, 400 g) at (0.200, 0.260) holding an upright
 commercial rapid cooling paddle (San Jamar Rapi-Kool style: 120 g hollow HDPE shell, 65 mm finned cooling blade, 18 mm collar with
 radial hanging hook extending 25 mm, and 45 mm cylindrical grip handle).
 
@@ -85,12 +85,12 @@ POT_HANDLE_XY = (0.260, -0.045)
 POT_HANDLE_Z = TOP + 0.045        # Z = 0.7925 m
 
 # Paddle sanitary stand (weighted stainless cradle with vertical socket)
-STAND_XY = (0.220, 0.220)
-STAND_SIZE = (0.100, 0.100, 0.030)
+STAND_XY = (0.200, 0.260)
+STAND_SIZE = (0.080, 0.080, 0.030)
 STAND_TOP = TOP + STAND_SIZE[2]   # Z = 0.7775 m
 STAND_SOCKET_DEPTH = 0.018
 STAND_FLOOR_Z = STAND_TOP - STAND_SOCKET_DEPTH  # Z = 0.7595 m
-STAND_KG = 0.50
+STAND_KG = 0.40
 
 # Ice cooling paddle (San Jamar Rapi-Kool style wand)
 # Frame origin at collar/hook center: blade hangs downwards (-z), handle extends upwards (+z)
@@ -192,7 +192,7 @@ def _pot_boxes() -> list[mk.BoxSpec]:
 def _stand_boxes() -> list[mk.BoxSpec]:
     """Sanitary stainless paddle stand with square base and vertical hollow receiving socket."""
     base_w, base_d, base_h = STAND_SIZE
-    wall_t = 0.010
+    wall_t = 0.008
     return [
         # Solid weighted base bottom
         mk.box((base_w, base_d, base_h - STAND_SOCKET_DEPTH), at=(0.0, 0.0, (base_h - STAND_SOCKET_DEPTH) / 2), color=STAND_STEEL),
@@ -459,13 +459,13 @@ task_success = success
 HANDLE_PINCH = FINGER_CLOSED
 POT_HANDLE_PINCH = FINGER_CLOSED
 
-LEFT_PARK = (0.180, 0.260, 0.920)
+LEFT_PARK = (0.160, 0.280, 0.920)
 RIGHT_PARK = (0.180, -0.260, 0.920)
 
 
 def demo():
     """Bimanual open-loop demo (~26.6 s, 533 steps at 20 Hz):
-    1. Left arm descends to paddle stand at (0.220, 0.220), grasps paddle handle at Z = 0.8645 m with yaw=pi/2,
+    1. Left arm descends to paddle stand at (0.200, 0.260), grasps paddle handle at Z = 0.8655 m with yaw=0,
        lifts vertically out of the cradle, and carries it above the stockpot at (0.260, 0.080).
     2. Concurrently, right arm moves to the right stockpot loop handle at (0.260, -0.045, 0.8025) and grasps it firmly
        to steady the pot against hydrodynamic agitation forces.
@@ -610,9 +610,9 @@ def self_test() -> int:
 
     drain_steps = [_build_state(paddle_pos=(POT_XY[0], POT_XY[1], (BROTH_SURFACE_Z + 0.008) + PADDLE_BLADE_L)) for _ in range(18)]
 
-    tcps_clear = [(0.180, 0.260, 0.920), (0.180, -0.260, 0.920)]
+    tcps_clear = [(0.160, 0.280, 0.920), (0.180, -0.260, 0.920)]
     rboxes_clear = [
-        ((0.14, 0.22, 0.88), (0.22, 0.30, 0.96)),
+        ((0.12, 0.24, 0.88), (0.20, 0.32, 0.96)),
         ((0.14, -0.30, 0.88), (0.22, -0.22, 0.96)),
     ]
 
