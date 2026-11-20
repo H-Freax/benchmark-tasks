@@ -212,6 +212,10 @@ def _step_rules(objects) -> None:
     if mk.MEMORY.get("locked"):
         mk.MEMORY["proof_steps"] = mk.MEMORY.get("proof_steps", 0) + 1
 
+    if step_id % 20 == 0 or step_id in (1, 10, 50, 100, 150, 200, 250, 300, 320):
+        faults = [k for k in ("invalid_state", "jar_fault", "drop_fault") if mk.MEMORY.get(k)]
+        print(f"[STEP {step_id:04d}] score={score(objects):.2f} pz={pz:.4f} ppos=({px:.3f},{py:.3f},{pz:.3f}) jpos=({jx:.3f},{jy:.3f},{jz:.3f}) r_xy={r_xy:.4f} gap_z={gap_z:.4f} lifted={mk.MEMORY.get('lifted')} entered={mk.MEMORY.get('entered')} seated={mk.MEMORY.get('seated')} locked={mk.MEMORY.get('locked')} faults={faults}", flush=True)
+
 
 kit.on_step(_step_rules)
 
