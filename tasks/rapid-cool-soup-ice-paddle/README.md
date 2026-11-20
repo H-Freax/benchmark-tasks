@@ -1,11 +1,11 @@
 # Submerge an ice cooling paddle into a commercial stockpot of hot soup, agitate to chill, and hang the paddle on the rim bracket
 
-Instruction given to the policy: `Pick up the frozen cooling paddle from the stand, immerse it into the hot soup stockpot, agitate in circular revolutions to chill the broth, lift to drain, and hang the paddle securely on the rim bracket. Move both hands clear.`
+Instruction given to the policy: `Steady the stockpot handle, pick up the frozen cooling paddle from the stand, immerse it into the hot soup, agitate in circular revolutions to chill the broth, lift to drain, and hang the paddle securely on the rim bracket. Move both hands clear.`
 
 The instruction specifies the cooling, agitation, and storage hanging goals. Unstated occupational requirements scored by the benchmark under FDA Food Code 3-501.14:
 1. The frozen cooling paddle (San Jamar Rapi-Kool style rapid chill cooling wand) must be lifted vertically clear of the sanitary countertop stand without knocking or dropping it onto the table.
-2. The right arm must steady the stockpot by its welded tubular side loop handle to prevent tipping or sliding against fluid shear forces during agitation.
-3. The paddle blade must be submerged deep into the hot broth simulant (depth >= 45 mm) without contacting the pot bottom.
+2. The right arm must steady the stockpot by its welded side loop handle to prevent tipping or sliding against fluid shear forces during agitation.
+3. The paddle blade must be submerged into the hot broth simulant (depth >= 20 mm) without contacting the pot bottom.
 4. Active fluid agitation must be conducted in steady circular revolutions around the pot axis (>= 3 revolutions for partial credit 0.60; >= 5 revolutions for full credit 0.80). Excessive linear velocity (> 0.45 m/s) or acceleration (> 4.0 m/s^2) while submerged causes liquid splashing and latches a permanent scalding splash fault (0.0).
 5. The paddle must be raised above the liquid level inside the pot for a drainage dwell (>= 0.8 s) so excess broth drips back into the pot.
 6. The molded collar hook of the paddle must be securely seated onto the stockpot rim hanging bracket, both robot hands retracted clear (TCPs >= 30 mm, link collision hulls >= 5 mm), and the suspended paddle must remain stable for >= 1.0 s.
@@ -13,10 +13,10 @@ The instruction specifies the cooling, agitation, and storage hanging goals. Uns
 ## The rig
 
 In layout (all coordinates in metres from arm-base line midpoint):
-- 16 qt Commercial Stainless Stockpot (Vollrath / Winco style): outer diameter 260 mm across flats, inner diameter 240 mm across flats, height 130 mm, total mass 2.80 kg. Sits on a 290 x 290 x 5 mm heat-resistant charcoal silicone prep mat at (0.260, 0.080) m. Pot floor at Z = 0.7585 m, rim top at Z = 0.8825 m. Contains 8 L of hot broth simulant (depth 70 mm, liquid surface at Z = 0.8285 m, 54 mm clear headspace to rim).
-- Stockpot Fixtures: welded front-left stainless rim bracket with an 18 mm horizontal resting saddle at (0.240, 0.180, Z = 0.8825 m). Right side welded tubular loop handle at (0.260, -0.060, Z = 0.8205 m).
-- Sanitary Stand: weighted stainless steel stand (120 x 120 x 50 mm, 600 g) at (0.220, 0.220) m with a 40 mm deep vertical socket. Stand floor at Z = 0.7575 m.
-- Commercial Ice Paddle (San Jamar Rapi-Kool style): 650 g food-grade polyethylene wand filled with frozen core water. Finned blade (110 mm long, 60 mm wide, 32 mm thick, 3 pairs of heat-dissipating cooling ribs), 25 mm collar with radial hanging hook projecting 30 mm along +Y with a 14 mm downward retaining lip, and 65 mm cylindrical grip handle (diameter 28 mm). Starts standing upright in the stand cradle (blade bottom at Z = 0.7575 m, handle grip centre at Z = 0.9175 m).
+- 8 qt Commercial Stainless Stockpot (Vollrath / Winco style): outer diameter 220 mm across flats, inner diameter 204 mm across flats, height 90 mm, total mass 2.40 kg. Sits on a 280 x 280 x 5 mm heat-resistant charcoal silicone prep mat at (0.260, 0.080) m. Pot floor at Z = 0.7585 m, rim top at Z = 0.8425 m. Contains hot broth simulant (depth 45 mm, liquid surface at Z = 0.8035 m, 39 mm clear headspace to rim).
+- Stockpot Fixtures: welded front-left stainless rim bracket with a horizontal resting saddle at (0.240, 0.170, Z = 0.8425 m). Right side welded tubular loop handle at (0.260, -0.045, Z = 0.8025 m).
+- Sanitary Stand: weighted stainless steel stand (100 x 100 x 30 mm, 500 g) at (0.220, 0.220) m with an 18 mm deep vertical socket. Stand floor at Z = 0.7595 m.
+- Commercial Ice Paddle (San Jamar Rapi-Kool style): 450 g food-grade polyethylene wand filled with frozen core water. Finned blade (65 mm long, 55 mm wide, 26 mm thick, heat-dissipating cooling ribs), 18 mm collar with radial hanging hook projecting 25 mm along +Y with a 10 mm downward retaining lip, and 45 mm cylindrical grip handle (diameter 24 mm). Starts standing upright in the stand cradle (blade bottom at Z = 0.7595 m, handle grip centre at Z = 0.8545 m).
 
 ## Environment
 
@@ -34,7 +34,7 @@ From the root of this repository:
 ~/IsaacLab-Arena/.venv/bin/python tasks/rapid-cool-soup-ice-paddle/rapid_cool_soup_ice_paddle.py
 ```
 
-Asserts all 10 scoring self-test cases (including stand lift, broth immersion, agitation revolutions, broth drainage, rim hang, splash velocity violation, pot tipping, and premature hang bypass) and verifies the bimanual demonstration trajectory through inverse kinematics (both arms worst IK error < 0.088 mm, worst orientation error < 0.014 deg, all joints inside limits).
+Asserts all 10 scoring self-test cases (including stand lift, broth immersion, agitation revolutions, broth drainage, rim hang, splash velocity violation, pot tipping, and premature hang bypass) and verifies the bimanual demonstration trajectory through inverse kinematics (both arms worst IK error < 0.085 mm, worst orientation error < 0.013 deg, all joints inside limits).
 
 ## Model and demo evaluation
 
@@ -45,7 +45,7 @@ Run with `inspect-robots`:
 inspect-robots run --embodiment yam_arena --policy yam_scripted \
   -E task=tasks/rapid-cool-soup-ice-paddle/rapid_cool_soup_ice_paddle.py \
   -E object_jitter=0 -E control_hz=20 -E cam_width=640 -E cam_height=352 \
-  --instruction "Pick up the frozen cooling paddle from the stand, immerse it into the hot soup stockpot, agitate in circular revolutions to chill the broth, lift to drain, and hang the paddle securely on the rim bracket. Move both hands clear." \
+  --instruction "Steady the stockpot handle, pick up the frozen cooling paddle from the stand, immerse it into the hot soup, agitate in circular revolutions to chill the broth, lift to drain, and hang the paddle securely on the rim bracket. Move both hands clear." \
   --scorer task_score --max-steps 1600 --seed 0 --no-prompt --store-frames \
   --log-dir evidence/demo
 
@@ -53,7 +53,7 @@ inspect-robots run --embodiment yam_arena --policy yam_scripted \
 inspect-robots run --embodiment yam_arena --policy dream \
   -E task=tasks/rapid-cool-soup-ice-paddle/rapid_cool_soup_ice_paddle.py \
   -E object_jitter=0 -E control_hz=20 -E cam_width=640 -E cam_height=352 \
-  --instruction "Pick up the frozen cooling paddle from the stand, immerse it into the hot soup stockpot, agitate in circular revolutions to chill the broth, lift to drain, and hang the paddle securely on the rim bracket. Move both hands clear." \
+  --instruction "Steady the stockpot handle, pick up the frozen cooling paddle from the stand, immerse it into the hot soup, agitate in circular revolutions to chill the broth, lift to drain, and hang the paddle securely on the rim bracket. Move both hands clear." \
   --scorer task_score --max-steps 1600 --seed 0 --no-prompt --store-frames \
   --log-dir evidence/dream
 ```
@@ -61,10 +61,10 @@ inspect-robots run --embodiment yam_arena --policy dream \
 ## Real-World Trial Protocol, Sourcing and Shared-Rig Protection
 
 ### Sourcing & Equipment Cost
-- **Stockpot**: Standard commercial 16 qt heavy-duty stainless steel stockpot / brazier ($45-$65 from webstaurantstore / Winco). Standard stainless rim hook bracket ($12).
-- **Cooling Wand**: San Jamar Rapi-Kool 64 oz / 128 oz rapid chill cooling wand ($38-$55). Food-grade durable HDPE filled with tap water and frozen overnight in standard freezer.
-- **Stand & Heat Mat**: Commercial stainless utensil / wand stand ($18); 290 x 290 mm silicone heat-resistant counter mat ($6).
-- Total fixture hardware cost is ~$120-$150, well within benchmark constraints.
+- **Stockpot**: Standard commercial 8 qt heavy-duty stainless steel stockpot / brazier ($35-$50 from WebstaurantStore / Winco). Standard stainless rim hook bracket ($12).
+- **Cooling Wand**: San Jamar Rapi-Kool 64 oz rapid chill cooling wand ($35-$45). Food-grade durable HDPE filled with tap water and frozen overnight in standard freezer.
+- **Stand & Heat Mat**: Commercial stainless utensil / wand stand ($18); 280 x 280 mm silicone heat-resistant counter mat ($6).
+- Total fixture hardware cost is ~$110-$130, well within benchmark constraints.
 
 ### Broth Simulant & Shared-Rig Protection
 - **Repeatable Simulant**: Water tinted with food-grade vegetable broth coloring and thickened with 0.4% carboxymethylcellulose (CMC) to match commercial chicken/vegetable broth viscosity (~10-15 cP at 65°C). Non-staining, non-toxic, and wipes completely clean with warm water.
@@ -74,10 +74,10 @@ inspect-robots run --embodiment yam_arena --policy dream \
 Real-world scoring uses standard kitchen tools without simulator-only instrumentation:
 1. **Fluid Immersion & Agitation**: A digital immersion thermocouple and wireless logging probe track fluid convection. Manual/video inspection verifies >= 5 full circular revolutions without rim splashing.
 2. **Splash Containment**: A pre-weighed perimeter absorbent liner around the pot detects spills. Liquid displacement > 20 mL over the rim registers a splash failure (0.0).
-3. **Rim Bracket Hang**: Evaluator confirms the paddle collar hook is seated in the bracket saddle and applies a 10 N downward retention test; the paddle remains securely suspended without slipping or contacting the broth floor.
+3. **Rim Bracket Hang**: Evaluator confirms the paddle collar hook is seated in the bracket saddle and applies a downward retention test; the paddle remains securely suspended without slipping or contacting the broth floor.
 
 ## Third-Party Assets and Licensing
 All collision and visual geometry are synthesized procedurally in Python using standard geometric primitives (boxes, cylinders) via `mechkit.py` and `yam_arena`. No proprietary or third-party 3D meshes are used. All authored code and assets are licensed under Apache 2.0.
 
 ## Run limit, runtime and seeds
-Run limit is 1,600 steps (80 seconds at 20 Hz). The scripted demonstration finishes in ~27 seconds (540 steps).
+Run limit is 1,600 steps (80 seconds at 20 Hz). The scripted demonstration finishes in ~26.7 seconds (533 steps).
