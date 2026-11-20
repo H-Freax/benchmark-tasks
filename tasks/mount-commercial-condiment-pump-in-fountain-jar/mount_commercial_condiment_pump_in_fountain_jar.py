@@ -23,6 +23,9 @@ import sys
 
 import numpy as np
 
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import mechkit as mk
 from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN
 from yam_arena.demo import Waypoint
