@@ -26,6 +26,8 @@ class TestDisconnectScoring(unittest.TestCase):
         tray_pos: tuple[float, float, float] = task.TRAY_POS,
         clamp_lifted: bool = False,
         clamp_grounded: bool = False,
+        fuse_extracted: bool = False,
+        fuse_in_tray: bool = False,
         ungrounded_hazard_tripped: bool = False,
         hold_timer: int = 0,
     ):
@@ -37,6 +39,8 @@ class TestDisconnectScoring(unittest.TestCase):
         }
         mk.MEMORY["clamp_lifted"] = clamp_lifted
         mk.MEMORY["clamp_grounded"] = clamp_grounded
+        mk.MEMORY["fuse_extracted"] = fuse_extracted
+        mk.MEMORY["fuse_in_tray"] = fuse_in_tray
         mk.MEMORY["ungrounded_hazard_tripped"] = ungrounded_hazard_tripped
         mk.MEMORY["hold_timer"] = hold_timer
         return task.kit.fake_states(moved=moved)
@@ -51,14 +55,14 @@ class TestDisconnectScoring(unittest.TestCase):
             clamp_pos=(task.CLAMP_INIT_POS[0], task.CLAMP_INIT_POS[1], task.CLAMP_INIT_POS[2] + 0.050),
             clamp_lifted=True,
         )
-        self.assertEqual(task.score(objs), 0.25)
+        self.assertEqual(task.score(objs), 0.20)
         self.assertFalse(task.success(objs))
 
     def test_clamp_grounded_stage(self):
-        # Clamp jaw attached to copper busbar tab
         busbar_clamp_p = (task.BUSBAR_POS[0] - 0.018, task.BUSBAR_POS[1], task.BUSBAR_POS[2])
         objs = self.make_state(
             clamp_pos=busbar_clamp_p,
+            clamp_lifted=True,
             clamp_grounded=True,
         )
         self.assertEqual(task.score(objs), 0.50)
@@ -69,7 +73,9 @@ class TestDisconnectScoring(unittest.TestCase):
         objs = self.make_state(
             clamp_pos=busbar_clamp_p,
             fuse_pos=(task.FUSE_SEATED_POS[0], task.FUSE_SEATED_POS[1], task.FUSE_SEATED_POS[2] + 0.080),
+            clamp_lifted=True,
             clamp_grounded=True,
+            fuse_extracted=True,
         )
         self.assertEqual(task.score(objs), 0.75)
         self.assertFalse(task.success(objs))
@@ -80,14 +86,16 @@ class TestDisconnectScoring(unittest.TestCase):
         objs = self.make_state(
             clamp_pos=busbar_clamp_p,
             fuse_pos=tray_fuse_p,
+            clamp_lifted=True,
             clamp_grounded=True,
-            hold_timer=21,
+            fuse_extracted=True,
+            fuse_in_tray=True,
+            hold_timer=16,
         )
         self.assertEqual(task.score(objs), 1.0)
         self.assertTrue(task.success(objs))
 
     def test_hazard_ungrounded_pull_fails(self):
-        # Pulling fuse without grounding trips interlock -> 0.0
         objs = self.make_state(
             fuse_pos=(task.FUSE_SEATED_POS[0], task.FUSE_SEATED_POS[1], task.FUSE_SEATED_POS[2] + 0.080),
             ungrounded_hazard_tripped=True,
@@ -97,14 +105,14 @@ class TestDisconnectScoring(unittest.TestCase):
 
     def test_dropped_clamp_fails(self):
         objs = self.make_state(
-            clamp_pos=(task.CLAMP_INIT_POS[0], task.CLAMP_INIT_POS[1], task.TOP - 0.050),
+            clamp_pos=(task.CLAMP_INIT_POS[0], task.CLAMP_INIT_POS[1], task.TOP - 0.060),
         )
         self.assertTrue(task.failed(objs))
         self.assertEqual(task.score(objs), 0.0)
 
     def test_dropped_fuse_fails(self):
         objs = self.make_state(
-            fuse_pos=(task.FUSE_SEATED_POS[0], task.FUSE_SEATED_POS[1], task.TOP - 0.050),
+            fuse_pos=(task.FUSE_SEATED_POS[0], task.FUSE_SEATED_POS[1], task.TOP - 0.060),
         )
         self.assertTrue(task.failed(objs))
         self.assertEqual(task.score(objs), 0.0)
