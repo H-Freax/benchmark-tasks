@@ -1,13 +1,19 @@
-"""On the bar's back counter stands a sixtel beer keg (only its top is modelled: the 230 mm stainless top with its
-chime ring and the Sankey D valve in the middle). A Sankey D coupler (about 0.9 kg) stands on a drip tray beside it,
-handle up, its beer outlet on top and its gas inlet on the side; a beer line runs from the outlet to a tap tower
-and a gas line from the inlet to a CO2 regulator, both connected throughout.
+"""On the bar's back counter stands a full sixtel beer keg (5.16 US gal, about 58 lb = 26.3 kg full; only its top is
+modelled: the 230 mm stainless top with its chime ring and the Sankey D valve in the middle). It is not held down:
+it stands loose on the wet counter on its bottom chime, under its own weight (friction 0.1), and it slides, spins
+or tips if it is pushed hard enough. A Sankey D coupler (about 0.9 kg) stands on a drip tray beside it, handle up,
+its beer outlet on top and its gas inlet on the side; a beer line runs from the outlet to a tap tower and a gas
+line from the inlet to a CO2 regulator, both connected throughout.
 
 Tapping the keg: lower the coupler over the valve neck with its bayonet ears lined up with the valve's lugs, turn
 it a quarter turn clockwise (seen from above) to its stop, then pull the handle down past its over-centre point,
-which drives the probe 11.5 mm down into the valve and holds it there. Pressing the handle before the coupler is
-turned home drives the probe into a coupler that is not locked to the keg (on a real keg it blows the coupler off
-or sprays beer), so that latches the score to 0.
+which drives the probe 11.5 mm down into the valve and holds it there. Turning the coupler under the lugs takes
+0.92 N*m, and the same torque acts on the keg through the bayonet. The full keg's weight on its chime resists
+about 2.7 N*m of turning (0.1 x 26.3 kg x 9.81 m/s2 x 0.105 m) and about 26 N of sideways push, so it takes the
+turn without being held; nothing else keeps it in place. The turn is measured against the keg, so a keg that goes
+round with the coupler earns no turn. Pressing the handle before the coupler is turned home drives the probe into
+a coupler that is not locked to the keg (on a real keg it blows the coupler off or sprays beer), so that latches
+the score to 0.
 
 Mechanism parts come from mechkit.py (in this folder), which adds joints to the stock runtime in memory.
 
@@ -40,28 +46,40 @@ DARK = (0.12, 0.12, 0.13)
 ORANGE = (0.95, 0.45, 0.08)
 BLACK = (0.08, 0.08, 0.09)
 
-# -- keg top (sixtel: 9.25 in = 235 mm across; 26 kg full) -----------------------------------------------------------
+# -- keg top (sixtel: 9.25 in = 235 mm across, 5.16 US gal; about 15 lb empty, 58 lb = 26.3 kg full) -----------------
+# A free body: nothing holds it but its weight and its friction on the counter (stainless on a wet stainless top).
 KEG_XY = (0.280, 0.000)
 KEG_D = 0.230
-KEG_KG = 26.0
+KEG_KG = 26.3  # a full sixtel
+KEG_MU = 0.10  # keg on the counter, static and sliding: the slippery end for wet steel on steel
+FOOT_R, FOOT_H = 0.105, 0.002  # the bottom chime ring it stands on
 DOME = TOP + 0.012  # the top plate inside the chime
 CHIME_TOP = TOP + 0.040
 VALVE_H = 0.016  # valve neck above the top plate
 VALVE_W = 0.034  # across flats (octagon)
 VTOP = DOME + VALVE_H
+VALVE_MU = 0.1  # the coupler's steel base on the wet steel neck
+LUG_YAW = math.radians(45.0)  # the lugs' line, turned this far counter-clockwise (seen from above) from left-right
 
-_keg_boxes = [mk.box((KEG_D, KEG_D * math.tan(math.pi / 12), DOME - TOP), at=(0, 0, (DOME - TOP) / 2),
-                     yaw=k * math.pi / 6) for k in range(6)]  # six strips make the 12-sided plate
+_keg_boxes = [mk.box((KEG_D, KEG_D * math.tan(math.pi / 12), DOME - TOP - FOOT_H),
+                     at=(0, 0, FOOT_H + (DOME - TOP - FOOT_H) / 2), yaw=k * math.pi / 6)
+              for k in range(6)]  # six strips make the 12-sided plate
+# what the keg stands on: its bottom chime, a ring (twelve flats) of radius FOOT_R, the only part on the counter
+_keg_boxes += [mk.box((0.008, 2 * FOOT_R * math.tan(math.pi / 12), FOOT_H), yaw=k * math.pi / 6, friction=KEG_MU,
+                      at=(FOOT_R * math.cos(k * math.pi / 6), FOOT_R * math.sin(k * math.pi / 6), FOOT_H / 2))
+               for k in range(12)]
 _side = KEG_D * math.tan(math.pi / 12) + 0.002
 for _k in range(12):
     _a = _k * math.pi / 6
     _r = KEG_D / 2 - 0.002
     _keg_boxes.append(mk.box((0.004, _side, CHIME_TOP - DOME),
                              at=(_r * math.cos(_a), _r * math.sin(_a), DOME - TOP + (CHIME_TOP - DOME) / 2), yaw=_a))
-_keg_boxes += [mk.box((VALVE_W, VALVE_W, VALVE_H), at=(0, 0, DOME - TOP + VALVE_H / 2), yaw=y, color=CHROME)
-               for y in (0.0, math.pi / 4)]
-# the valve's two bayonet lugs (left and right of the neck)
-_keg_boxes += [mk.box((0.010, 0.003, 0.006), at=(0, s * 0.0185, VTOP - TOP - 0.006), color=DARK) for s in (1, -1)]
+_keg_boxes += [mk.box((VALVE_W, VALVE_W, VALVE_H), at=(0, 0, DOME - TOP + VALVE_H / 2), yaw=y, color=CHROME,
+                      friction=VALVE_MU) for y in (0.0, math.pi / 4)]
+# the valve's two bayonet lugs, on opposite faces of the neck (the keg stands turned LUG_YAW)
+_keg_boxes += [mk.box((0.010, 0.003, 0.006), color=DARK, yaw=LUG_YAW,
+                      at=(-s * 0.0185 * math.sin(LUG_YAW), s * 0.0185 * math.cos(LUG_YAW), VTOP - TOP - 0.006))
+               for s in (1, -1)]
 
 kit = mk.Kit()
 kit.part("keg", (KEG_XY[0], KEG_XY[1], TOP), _keg_boxes, mass=KEG_KG, color=STEEL)
@@ -182,22 +200,26 @@ _anchors = [
 ]
 
 # The bayonet: seated over the neck with its ears on the lugs, the coupler turns clockwise (seen from above) a
-# quarter turn to its stop under the lugs. A revolute catch, armed once the coupler sits on the valve.
-# The lugs' ramps: the coupler stays where it is turned (lug friction, a spring that follows it) and is drawn
-# home to the stop over the last 15 deg.
-BAYONET_K, BAYONET_DRAW = 2.0, 75.0
+# quarter turn to its stop under the lugs. A revolute catch between the coupler and the keg, armed once the coupler
+# sits on the valve, so whatever turns the coupler turns the keg the other way through it.
+# The lugs' ramps and the seal: turning takes BAYONET_TORQUE (Coulomb friction: a spring whose rest point trails
+# the coupler by BAYONET_STICK once it has slipped that far, so the coupler stays where it is left), and over the
+# last 15 deg the ramps draw the coupler home to the stop with BAYONET_PULL.
+BAYONET_TORQUE, BAYONET_STICK, BAYONET_PULL, BAYONET_DRAW = 0.92, 10.0, 0.4, 75.0  # N*m, deg, N*m, deg
+BAYONET_K = BAYONET_TORQUE / math.radians(BAYONET_STICK)  # N*m/rad
 _KEG_REF = kit.parts["keg"].ref.copy()
-_SEAT_T = mk._T(None, SEAT)
+_SEAT_T = mk._T(mk.axis_angle((0, 0, 1), LUG_YAW), SEAT)  # ears on the lugs: the handle points near-right
 kit.hinge_catch("bayonet", "coupler", _SEAT_T, anchor=(KEG_XY[0], KEG_XY[1], VTOP), axis=(0, 0, -1),
-                lower_deg=-2.0, upper_deg=90.0, parent="keg", parent_T=_KEG_REF, damping=0.05, stiffness=BAYONET_K)
+                lower_deg=-2.0, upper_deg=90.0, parent="keg", parent_T=_KEG_REF, damping=0.1, stiffness=BAYONET_K)
 
 FIXTURES = [Box("drip_tray", pos=(TRAY_XY[0], TRAY_XY[1], TOP + TRAY[2] / 2), size=TRAY, color=BLACK), *_anchors]
 OBJECTS = [*kit.objects(), *FIXTURES]
 
 DT = 0.05  # one control step at 20 Hz
-ENGAGE_XY, ENGAGE_Z, ENGAGE_TILT, ENGAGE_YAW = 0.005, 0.003, 5.0, 10.0
+ENGAGE_XY, ENGAGE_Z, ENGAGE_TILT, ENGAGE_YAW = 0.011, 0.003, 5.0, 10.0  # XY: the skirt's play round the neck
 TURNED, FORCED_TURN, FORCED_HANDLE = 85.0, 80.0, 30.0
-KEG_MOVE, KEG_TILT, DROP_TILT = 0.010, 5.0, 30.0
+FORCED_S = 0.25  # the handle that far down for this long: pushed, not a flick as the coupler drops onto the neck
+KEG_TILT, KEG_DROP, DROP_TILT = 20.0, 0.020, 30.0
 STILL_S = 1.0
 
 
@@ -226,9 +248,22 @@ def probe_m(objects) -> float:
     return kit.q(objects, "probe")
 
 
-def keg_disturbed(objects) -> bool:
+def keg_turn_deg(objects) -> float:
+    """How far the keg itself has turned on the counter, clockwise seen from above (not scored: reported)."""
     t = kit._pose_T(objects, "keg")
-    return bool(np.linalg.norm(t[:3, 3] - _KEG_REF[:3, 3]) > KEG_MOVE or _tilt_T(t) > KEG_TILT)
+    return -math.degrees(math.atan2(float(t[1, 0]), float(t[0, 0])))
+
+
+def keg_slide_m(objects) -> float:
+    """How far the keg's centre is from where it was set down (not scored: reported)."""
+    t = kit._pose_T(objects, "keg")
+    return float(np.linalg.norm(t[:2, 3] - np.array(KEG_XY)))
+
+
+def keg_tipped(objects) -> bool:
+    """Tipped over or off the counter. Sliding or spinning on the counter is not a failure."""
+    t = kit._pose_T(objects, "keg")
+    return bool(_tilt_T(t) > KEG_TILT or float(t[2, 3]) < TOP - KEG_DROP)
 
 
 def coupler_dropped(objects) -> bool:
@@ -250,7 +285,8 @@ def _released(st, margin=0.020) -> bool:
 
 
 def let_go_and_still(objects) -> bool:
-    return all(_released(objects[p]) and objects[p].resting() for p in ("coupler", "handle"))
+    return bool(all(_released(objects[p]) and objects[p].resting() for p in ("coupler", "handle"))
+                and objects["keg"].resting())
 
 
 def _rules(objects):
@@ -260,30 +296,44 @@ def _rules(objects):
         m["engaged"] = True
     if m.get("engaged"):
         tn = turn_deg(objects)
-        kit.drive_catch("bayonet", 90.0 if tn >= BAYONET_DRAW else tn)
+        if tn >= BAYONET_DRAW:  # on the ramps: pulled home (and held against the stop) with BAYONET_PULL
+            m["lug_ref"] = tn
+            kit.drive_catch("bayonet", tn + BAYONET_STICK * BAYONET_PULL / BAYONET_TORQUE)
+        else:  # lug and seal friction: the rest point trails the coupler by at most BAYONET_STICK
+            m["lug_ref"] = min(max(m.get("lug_ref", 0.0), tn - BAYONET_STICK), tn + BAYONET_STICK)
+            kit.drive_catch("bayonet", m["lug_ref"])
     h = handle_deg(objects)
     kit.drive("handle", HANDLE_MAX + 15.0 if h > OVER_CENTRE else -10.0)  # the toggle's spring, over centre or not
     frac = min(1.0, max(0.0, h / PROBE_FULL_AT))
     kit.drive("probe", -0.003 + frac * (PROBE_TRAVEL + 0.005))  # the handle's cam drives the probe
-    if h > FORCED_HANDLE and turn_deg(objects) < FORCED_TURN:
+    m["forced_steps"] = m.get("forced_steps", 0) + 1 if h > FORCED_HANDLE and turn_deg(objects) < FORCED_TURN else 0
+    m["forced_longest"] = max(m.get("forced_longest", 0), m["forced_steps"])
+    if m["forced_steps"] * DT >= FORCED_S - 1e-9:
         m["forced"] = True
-    if keg_disturbed(objects):
-        m["keg_moved"] = True
+    if keg_tipped(objects):
+        m["keg_tipped"] = True
     if coupler_dropped(objects):
         m["dropped"] = True
     if any(kit.tie_off(objects, f"{ln}_end") for ln in LINES):
         m["line_off"] = True
     m["still_steps"] = m.get("still_steps", 0) + 1 if let_go_and_still(objects) else 0
     m["n"] = m.get("n", 0) + 1
+    # the most the keg has slid and turned on the counter so far (not scored)
+    m["keg_slide"] = max(m.get("keg_slide", 0.0), keg_slide_m(objects))
+    m["keg_turn"] = max(m.get("keg_turn", 0.0), abs(keg_turn_deg(objects)))
+    m["handle_peak"] = max(m.get("handle_peak", 0.0), h)  # since the last debug line
     if os.environ.get("KEG_DEBUG") and m["n"] % 20 == 0:
         d = seat_offset(objects)
-        print(f"[keg] t={m['n'] * DT:.0f}s eng={m.get('engaged')} off={np.round(d[:3, 3] * 1000, 1)} "
-              f"tilt={_tilt_T(d):.1f} turn={turn_deg(objects):.1f} handle={h:.1f} probe={probe_m(objects) * 1000:.1f}"
-              f" cpl={np.round(kit.pose(objects, 'coupler')[0] * 1000, 1)} tcp={[np.round(t * 1000, 1) for t in mk.tcps()]}"
-              f" flags={[k for k in ('forced', 'keg_moved', 'dropped', 'line_off') if m.get(k)]} still={m['still_steps']}"
-              f" lines={[round(1000 * float(np.linalg.norm(kit.point(objects, LINE_PARTS[ln][-1], (SEG, 0, 0)) - kit.tie_point(f'{ln}_end'))), 1) for ln in LINES]}"
-              f" mid={[np.round(kit.pose(objects, LINE_PARTS[ln][4])[0] * 1000, 0) for ln in LINES]}",
-              flush=True)
+        print(f"[keg] t={m['n'] * DT:.2f}s caught={bool(m.get('engaged'))} off={np.round(d[:3, 3] * 1000, 1)} "
+              f"tilt={_tilt_T(d):.1f} turn={turn_deg(objects):.1f} handle={h:.1f} (peak {m['handle_peak']:.1f}) "
+              f"probe={probe_m(objects) * 1000:.1f} "
+              f"keg: slid {keg_slide_m(objects) * 1000:.1f} mm (most {m['keg_slide'] * 1000:.1f}), turned "
+              f"{keg_turn_deg(objects):.1f} deg (most {m['keg_turn']:.1f}), tilt "
+              f"{_tilt_T(kit._pose_T(objects, 'keg')):.1f} "
+              f"flags={[k for k in ('forced', 'keg_tipped', 'dropped', 'line_off') if m.get(k)]} "
+              f"handle early for {m['forced_longest'] * DT:.2f} s at most, still={m['still_steps']} "
+              f"score={score(objects)}", flush=True)
+        m["handle_peak"] = 0.0
 
 
 kit.on_step(_rules)
@@ -294,16 +344,19 @@ SCORE_OVER = "end"
 
 def failed(objects) -> bool:
     m = mk.MEMORY
-    return bool(m.get("forced") or m.get("keg_moved") or m.get("dropped") or m.get("line_off") or keg_disturbed(objects)
+    return bool(m.get("forced") or m.get("keg_tipped") or m.get("dropped") or m.get("line_off") or keg_tipped(objects)
                 or coupler_dropped(objects))
 
 
 def score(objects) -> float:
-    """0 (latched) if the handle went past 30 deg while the coupler was turned less than 80 deg, if the keg moved
-    more than 10 mm or tilted more than 5 deg, if the coupler was knocked over or put down on the bare counter, or
-    if the beer or gas line was pulled off its fitting; also 0 unless the coupler caught on the valve. Otherwise
-    the sum of: caught 0.1; turned 85 deg or more 0.25; handle locked over centre (52 deg or more) 0.35; probe 90%
-    or more of its travel into the valve 0.2; turned home and the coupler and handle let go and still for 1 s 0.1."""
+    """0 (latched) if the handle was past 30 deg for 0.25 s while the coupler was turned less than 80 deg on the
+    keg, if the keg was tipped over (more than 20 deg) or went off the counter, if the coupler was knocked over or
+    put down on the bare counter, or if the beer or gas line was pulled off its fitting; also 0 unless the coupler
+    caught on the valve. The keg sliding or spinning on the counter costs nothing by itself, but the turn is the
+    coupler's angle on the keg's valve, so a keg that spins with the coupler earns no turn. Otherwise the sum of: caught
+    0.1; turned 85 deg or more on the keg 0.25; handle locked over centre (52 deg or more) 0.35; probe 90% or more
+    of its travel into the valve 0.2; turned home, the coupler and handle let go, and they and the keg still for
+    1 s 0.1."""
     if failed(objects) or not mk.MEMORY.get("engaged"):
         return 0.0
     turned = turn_deg(objects) >= TURNED
@@ -325,9 +378,11 @@ def distance(objects) -> float:
 
 
 # -- the scripted demo ------------------------------------------------------------------------------------------
-# Right arm: grips the coupler's body (fingers close along y), lifts it over the chime, lowers it over the valve
-# neck with its ears on the lugs and lets go once it sits. Left arm: closed fingers come down beside the handle
-# near its root and sweep it a quarter turn clockwise; then they ride the handle's top face down past over centre.
+# Right arm: grips the coupler's body, carries it over the chime turned so its ears are over the lugs, lowers it
+# onto the valve neck with a light push and works it round in a small spiral until it drops on and catches; then,
+# still holding the body, twists it a quarter turn clockwise (a couple about the valve's axis, so little shoves
+# the keg sideways), lets go and clears. Nothing touches the keg itself: its weight holds it against the turn.
+# The left arm then rides the handle's top face down past over centre with closed fingers.
 
 TIP = 0.013
 TRAVEL = TOP + 0.140
@@ -335,86 +390,107 @@ GRIP = 0.040  # TCP above the coupler's seat face when holding it (pad tips 27 m
 PARK_R = (0.200, -0.220, TRAVEL)
 PARK_L = (0.200, 0.220, TRAVEL)
 PIVOT_Z = SEAT[2] + PIVOT[2]
+BODY_OPEN = FINGER_OPEN * 0.75  # fingers 70 mm apart, round the 46 mm body
+AIM = (-0.016, 0.036)  # the loaded arm sags toward its base: aim this far off the valve
+SEAT_PRESS = 0.004  # the grip is commanded this far below the seated height: a light push down
+WIGGLE_R, WIGGLE_TURNS = 0.022, 3  # the spiral that works the coupler onto the neck
+TWIST = math.radians(100.0)  # commanded turn of the grip: the wrist trails it under the lug friction
+TWIST_S = 8.0
 
 
 def _place():
+    """Carry the coupler to the valve turned LUG_YAW, lower it pressing lightly and spiral until it catches."""
     cx, cy, cz = C0
-    # the arm, loaded with the 0.9 kg coupler, sags about 20 mm toward its base: aim that much beyond the valve
-    kx, ky = KEG_XY[0] + 0.021, KEG_XY[1] + 0.025  # (the lines tip it back ~10 mm too)
-    o = FINGER_OPEN * 0.75
+    ax, ay = KEG_XY[0] + AIM[0], KEG_XY[1] + AIM[1]
+    o, c, yaw = BODY_OPEN, FINGER_CLOSED, LUG_YAW
     carry = VTOP + 0.060 + GRIP  # clear of the chime with the lines hanging off it
-    push = SEAT[2] + 0.075 + TIP - 0.003  # closed fingertips 3 mm into the beer outlet's top
-    return [
+    down = SEAT[2] + GRIP - SEAT_PRESS
+    plan = [
         Waypoint(2.0, (cx, cy, TRAVEL), o, "over the coupler", 0.0),
         Waypoint(1.5, (cx, cy, cz + GRIP), o, "down round its body", 0.0),
         Waypoint(0.5, (cx, cy, cz + GRIP), o, "settle", 0.0),
-        Waypoint(1.0, (cx, cy, cz + GRIP), FINGER_CLOSED, "grip it", 0.0),
-        Waypoint(1.5, (cx, cy, carry), FINGER_CLOSED, "lift it", 0.0),
-        Waypoint(2.5, (kx, ky, carry), FINGER_CLOSED, "over the valve, ears on the lugs", 0.0),
-        Waypoint(1.0, (kx, ky, carry), FINGER_CLOSED, "settle", 0.0),
-        Waypoint(2.0, (kx, ky, VTOP - 0.003 + GRIP), FINGER_CLOSED, "down over the neck", 0.0),
-        Waypoint(1.0, (kx, ky, VTOP - 0.003 + GRIP), FINGER_CLOSED, "seat it", 0.0),
-        Waypoint(0.8, (kx, ky, VTOP - 0.003 + GRIP), o, "let go", 0.0),
-        Waypoint(1.0, (kx, ky, push + 0.030), o, "up off it", 0.0),
-        Waypoint(0.6, (KEG_XY[0], KEG_XY[1], push + 0.030), FINGER_CLOSED, "close over the outlet", 0.0),
-        Waypoint(1.0, (KEG_XY[0], KEG_XY[1], push), FINGER_CLOSED, "press it down flat on the valve", 0.0),
-        Waypoint(0.5, (KEG_XY[0], KEG_XY[1], push), FINGER_CLOSED, "hold", 0.0),
-        Waypoint(1.0, (KEG_XY[0], KEG_XY[1], TRAVEL), FINGER_CLOSED, "up", 0.0),
-        Waypoint(1.5, PARK_R, o, "clear", 0.0),
+        Waypoint(1.0, (cx, cy, cz + GRIP), c, "grip it", 0.0),
+        Waypoint(1.5, (cx, cy, carry), c, "lift it", 0.0),
+        Waypoint(3.0, (ax, ay, carry), c, "over the valve, ears over the lugs", yaw),
+        Waypoint(1.0, (ax, ay, carry), c, "settle", yaw),
+        Waypoint(2.0, (ax, ay, down), c, "down onto the neck", yaw),
+    ]
+    n = 8 * WIGGLE_TURNS
+    for k in range(1, n + 1):
+        a, r = 2 * math.pi * k / 8, WIGGLE_R * k / n
+        plan.append(Waypoint(0.25, (ax + r * math.cos(a), ay + r * math.sin(a), down), c,
+                             "work it round until it drops on and catches", yaw))
+    plan.append(Waypoint(0.6, (ax, ay, down), c, "back over the valve", yaw))
+    return plan
+
+
+def _twist():
+    """Still holding the seated coupler's body: turn the grip a quarter turn clockwise."""
+    at = (KEG_XY[0] + AIM[0], KEG_XY[1] + AIM[1], SEAT[2] + GRIP - SEAT_PRESS)
+    return [
+        Waypoint(TWIST_S, at, FINGER_CLOSED, "turn the coupler a quarter turn clockwise", LUG_YAW - TWIST),
+        Waypoint(1.2, at, FINGER_CLOSED, "against the stop", LUG_YAW - TWIST),
     ]
 
 
-def _sweep(start=-10, stop=100, step=10):
-    """Closed fingers beside the handle's root, 55 mm from the axis, on its trailing side, and turn it clockwise."""
-    (kx, ky), r, off = KEG_XY, 0.055, 0.016
-    z = PIVOT_Z + (r + PIVOT[0]) * math.tan(math.radians(HANDLE_UP)) - 0.002 + TIP
-
-    def at(deg):
-        a = math.radians(deg)
-        return (kx - r * math.cos(a) - off * math.sin(a), ky + r * math.sin(a) - off * math.cos(a))
-
-    plan = [Waypoint(2.0, (*at(start), TRAVEL), FINGER_CLOSED, "over the handle's root", 0.0),
-            Waypoint(1.5, (*at(start), z), FINGER_CLOSED, "down beside it", 0.0)]
-    plan += [Waypoint(0.8, (*at(d), z), FINGER_CLOSED, f"turn the coupler to {d} deg", 0.0)
-             for d in range(start + step, stop + 1, step)]
-    plan.append(Waypoint(0.8, (*at(stop), z), FINGER_CLOSED, "against the stop", 0.0))
-    return plan + [Waypoint(1.0, (*at(stop - 15), TRAVEL), FINGER_CLOSED, "up off it", 0.0)]
+def _let_go(yaw):
+    at = (KEG_XY[0] + AIM[0], KEG_XY[1] + AIM[1], SEAT[2] + GRIP - SEAT_PRESS)
+    return [
+        Waypoint(0.8, at, BODY_OPEN, "let go", yaw),
+        Waypoint(1.0, (at[0], at[1], TRAVEL), BODY_OPEN, "up off it", yaw),
+        Waypoint(1.5, PARK_R, BODY_OPEN, "clear", 0.0),
+    ]
 
 
-def _press(turned=True, lp=0.050):
-    """Pad tips on the handle's top face, lp from the pivot, riding it down through over centre to the stop."""
+def _press(toward_deg, park, lp=0.050):
+    """Pad tips on the handle's top face, lp from the pivot, riding it down through over centre to the stop.
+    toward_deg: where the handle points, round the keg from +x toward +y."""
     kx, ky = KEG_XY
     r0 = -PIVOT[0]
+    ca, sa = math.cos(math.radians(toward_deg)), math.sin(math.radians(toward_deg))
+    yaw = math.radians((toward_deg - 90.0 + 90.0) % 180.0 - 90.0)  # fingers closed along the handle
 
     def at(theta):  # theta: the bar's angle above horizontal
         t = math.radians(theta)
         rad = r0 + lp * math.cos(t) - 0.004 * math.sin(t)
         z = PIVOT_Z + lp * math.sin(t) + 0.004 * math.cos(t) + TIP
-        return ((kx, ky + rad, z) if turned else (kx - rad, ky, z))
+        return (kx + rad * ca, ky + rad * sa, z)
 
-    plan = [Waypoint(2.0, (*at(HANDLE_UP)[:2], TRAVEL), FINGER_CLOSED, "over the handle", 0.0),
-            Waypoint(1.5, tuple(np.add(at(HANDLE_UP), (0, 0, 0.004))), FINGER_CLOSED, "onto it", 0.0)]
-    plan += [Waypoint(0.8, at(th), FINGER_CLOSED, f"press the handle to {th} deg", 0.0)
+    plan = [Waypoint(2.0, (*at(HANDLE_UP)[:2], TRAVEL), FINGER_CLOSED, "over the handle", yaw),
+            Waypoint(1.5, tuple(np.add(at(HANDLE_UP), (0, 0, 0.004))), FINGER_CLOSED, "onto it", yaw)]
+    plan += [Waypoint(0.8, at(th), FINGER_CLOSED, f"press the handle to {th} deg", yaw)
              for th in range(int(HANDLE_UP) - 10, -31, -10)]
-    plan.append(Waypoint(1.0, at(-30), FINGER_CLOSED, "hold it at the stop", 0.0))
-    return plan + [Waypoint(1.0, tuple(np.add(at(-30), (0, 0, 0.040))), FINGER_CLOSED, "up off it", 0.0),
-                   Waypoint(1.5, PARK_L, FINGER_CLOSED, "clear", 0.0)]
+    plan.append(Waypoint(1.0, at(-30), FINGER_CLOSED, "hold it at the stop", yaw))
+    return plan + [Waypoint(1.0, tuple(np.add(at(-30), (0, 0, 0.040))), FINGER_CLOSED, "up off it", yaw),
+                   Waypoint(1.5, park, FINGER_CLOSED, "clear", 0.0)]
 
 
 def _dur(plan):
     return sum(w.duration for w in plan)
 
 
+VARIANTS = ("full", "no_turn", "no_handle", "idle")
+
+
 def demo():
-    """KEG_DEMO=no_turn: the degenerate variant (seat the coupler, press the handle without turning it)."""
+    """KEG_DEMO picks a wrong path instead of the full demo. no_turn: the right arm seats the coupler, lets go and
+    presses the handle without turning it. no_handle: seated and turned home, but the handle is never pressed.
+    idle: neither arm touches anything."""
     variant = os.environ.get("KEG_DEMO", "full")
+    if variant not in VARIANTS:
+        raise ValueError(f"KEG_DEMO must be one of {VARIANTS}, got {variant!r}")
+    if variant == "idle":
+        return {"left": [Waypoint(3.0, PARK_L, FINGER_CLOSED, "wait", 0.0)],
+                "right": [Waypoint(3.0, PARK_R, BODY_OPEN, "wait", 0.0)]}
     right = _place()
-    placed = _dur(right[:-2])
-    left = [Waypoint(placed, PARK_L, FINGER_CLOSED, "wait for the coupler to be seated", 0.0)]
-    if variant != "no_turn":
-        left += _sweep()
-    left += _press(turned=variant != "no_turn")
-    return {"left": left, "right": right}
+    if variant == "no_turn":
+        right += _let_go(LUG_YAW)[:2] + _press(180.0 + math.degrees(LUG_YAW), PARK_R)
+        return {"left": [Waypoint(_dur(right), PARK_L, FINGER_CLOSED, "wait", 0.0)], "right": right}
+    right += _twist() + _let_go(LUG_YAW - TWIST)
+    wait = [Waypoint(_dur(right) - 1.5, PARK_L, FINGER_CLOSED, "wait until the right hand is up off the coupler", 0.0)]
+    if variant == "no_handle":
+        return {"left": wait, "right": right}
+    return {"left": wait + _press(90.0 + math.degrees(LUG_YAW), PARK_L), "right": right}
 
 
 # -- offline self-test ------------------------------------------------------------------------------------------
@@ -423,13 +499,19 @@ def demo():
 def self_test():
     seat_T = _SEAT_T
 
-    def coupler_at(turn=0.0, dz=0.0, dx=0.0):
-        t = mk._T(mk.axis_angle((0, 0, -1), math.radians(turn)), (SEAT[0] + dx, SEAT[1], SEAT[2] + dz))
+    def keg_at(dx=0.0, dy=0.0, spin=0.0, tilt=0.0):
+        """The keg slid (dx, dy), spun ``spin`` deg clockwise seen from above, tipped ``tilt`` deg."""
+        rot = mk.axis_angle((0, 0, -1), math.radians(spin)) @ mk.axis_angle((1, 0, 0), math.radians(tilt))
+        return mk._T(rot, (KEG_XY[0] + dx, KEG_XY[1] + dy, TOP))
+
+    def pose(t):
         return (t[:3, 3], mk.mat_to_quat(t[:3, :3]))
 
-    def st(turn=90.0, handle=0.0, probe=0.0, **kw):
-        moved = {"coupler": coupler_at(turn)}
-        moved.update(kw)
+    def st(turn=90.0, handle=0.0, probe=0.0, keg=None, dz=0.0, dx=0.0):
+        """The coupler turned ``turn`` deg on the valve of a keg posed ``keg`` (4x4; None: where it spawns)."""
+        keg = _KEG_REF if keg is None else keg
+        on_valve = mk._T(mk.axis_angle((0, 0, 1), LUG_YAW - math.radians(turn)), (SEAT[0] + dx, SEAT[1], SEAT[2] + dz))
+        moved = {"keg": pose(keg), "coupler": pose(keg @ mk._inv(_KEG_REF) @ on_valve)}
         return kit.fake_states(q={"handle": handle, "probe": probe}, deg=True, moved=moved)
 
     full = dict(turn=90.0, handle=60.0, probe=PROBE_TRAVEL)
@@ -449,8 +531,14 @@ def self_test():
         "locked but probe short": (st(turn=90, handle=60, probe=0.008), S, 0.8),
         "a line pulled off its fitting": (st(**full), {**S, "line_off": True}, 0.0),
         "handle forced before the turn": (st(**full), {**S, "forced": True}, 0.0),
-        "keg shoved 15 mm": (st(**full, keg=(np.array([KEG_XY[0] + 0.015, KEG_XY[1], TOP]), np.array([0, 0, 0, 1.0]))),
-                             S, 0.0),
+        # the keg is loose: sliding and spinning cost nothing, and the turn is measured on the keg
+        "keg slid 30 mm and spun 25 deg, coupler home on it": (st(**full, keg=keg_at(0.030, -0.010, 25.0)), S, 1.0),
+        "keg spun 90 deg with the coupler (no turn on the keg)": (st(turn=0.0, keg=keg_at(spin=90.0)), S, 0.1),
+        "keg spun 60 deg, coupler 90 deg in the room (30 on the keg)": (st(turn=30.0, keg=keg_at(spin=60.0)), S,
+                                                                        0.1),
+        "keg tipped over": (st(**full, keg=keg_at(tilt=25.0)), S, 0.0),
+        "keg tipped earlier, stood back up": (st(**full), {**S, "keg_tipped": True}, 0.0),
+        "keg tilted 10 deg": (st(**full, keg=keg_at(tilt=10.0)), S, 1.0),
         "coupler dropped earlier": (st(**full), {**S, "dropped": True}, 0.0),
         "coupler knocked over": (kit.fake_states(moved={"coupler": tipped}), E, 0.0),
     }
@@ -462,7 +550,10 @@ def self_test():
             assert abs(got - want) < 1e-9, (name, got, want)
         mk.new_episode()
         assert abs(turn_deg(st(turn=37.0)) - 37.0) < 1e-6 and seated(st(turn=8.0)) and not seated(st(turn=12.0))
-        assert not seated(kit.fake_states(moved={"coupler": coupler_at(0.0, dx=0.008)}))
+        assert abs(turn_deg(st(turn=37.0, keg=keg_at(0.02, 0.01, 50.0))) - 37.0) < 1e-6
+        assert abs(keg_turn_deg(st(turn=37.0, keg=keg_at(spin=50.0))) - 50.0) < 1e-6
+        assert seated(st(turn=3.0, keg=keg_at(0.02, 0.0, 40.0))) and seated(st(turn=0.0, dx=0.008))
+        assert not seated(st(turn=0.0, dx=0.014)) and not seated(st(turn=0.0, dz=0.005))  # beside / on top of the neck
         assert seat_T is _SEAT_T
     finally:
         mk.new_episode()
@@ -477,7 +568,7 @@ if __name__ == "__main__":
     print(f"scoring: {self_test()} cases pass")
     task = load(__file__)
     hz = 20.0
-    for variant in ("full", "no_turn"):
+    for variant in VARIANTS:
         os.environ["KEG_DEMO"] = variant
         for arm, waypoints in task.demo().items():
             plan = ArmPlan(list(waypoints), station.BASES[arm])
@@ -486,3 +577,4 @@ if __name__ == "__main__":
             assert np.all(q[:, :6] >= ik.LOWER) and np.all(q[:, :6] <= ik.UPPER), arm
             print(f"{variant} {arm}: {plan.duration:.1f} s plan, worst IK {plan.worst_ik_mm:.3f} mm / "
                   f"{plan.worst_ik_deg:.3f} deg")
+    os.environ.pop("KEG_DEMO", None)
