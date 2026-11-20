@@ -554,7 +554,7 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Left arm: operates on +Y (screwdriver rest is at TOOL_REST_POS = (0.22, 0.18, ...))
     # Picks screwdriver, engages M4 screw, tightens, returns screwdriver
-    driver_engage_tcp = (RAIL_X - 0.010, FLUSH_Y, TOP + 0.163)
+    driver_engage_tcp = (RAIL_X - 0.010 - 0.0286, FLUSH_Y - 0.0537, TOP + 0.1281)
     left = [
         # Hover above screwdriver handle
         Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_OPEN, "hover_driver"),
@@ -562,9 +562,9 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.0, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "descend_driver"),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "grip_driver"),
         # Lift screwdriver cleanly from rest
-        Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.200), FINGER_CLOSED, "lift_driver"),
+        Waypoint(1.2, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_CLOSED, "lift_driver"),
         # Transfer above M4 screw on end bracket at yaw=0.0
-        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.200), FINGER_CLOSED, "hover_screw", yaw=0.0),
+        Waypoint(1.5, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.170), FINGER_CLOSED, "hover_screw", yaw=0.0),
         # Engage screw slot at yaw=0.0
         Waypoint(0.8, driver_engage_tcp, FINGER_CLOSED, "engage_screw", yaw=0.0),
     ]
@@ -598,7 +598,7 @@ def demo() -> dict[str, list[Waypoint]]:
 
     # Full completion: disengage screwdriver, return to tool rest, release both hands
     left.extend([
-        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.200), FINGER_CLOSED, "disengage_screw", yaw=-1.40),
+        Waypoint(0.8, (driver_engage_tcp[0], driver_engage_tcp[1], TOP + 0.170), FINGER_CLOSED, "disengage_screw", yaw=-1.40),
         Waypoint(1.5, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.180), FINGER_CLOSED, "carry_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_CLOSED, "lower_to_rest", yaw=0.0),
         Waypoint(0.8, (TOOL_REST_POS[0], TOOL_REST_POS[1], TOP + 0.135), FINGER_OPEN, "release_driver", yaw=0.0),
@@ -608,12 +608,6 @@ def demo() -> dict[str, list[Waypoint]]:
 
     right.extend([
         Waypoint(1.0, (0.260, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
-        Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
-        Waypoint(10.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_right"),
-    ])
-
-    right.extend([
-        Waypoint(1.0, (0.240, FLUSH_Y - 0.040, TOP + 0.080), FINGER_CLOSED, "back_off"),
         Waypoint(1.5, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "clear_right"),
         Waypoint(10.0, (0.20, -0.20, TOP + 0.150), FINGER_OPEN, "proof_hold_right"),
     ])
