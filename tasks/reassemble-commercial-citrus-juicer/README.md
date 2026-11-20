@@ -2,7 +2,7 @@
 
 ## Overview
 
-In commercial kitchens, juice bars, hotel pantries, and high-volume cocktail lounges, heavy-duty commercial manual citrus presses (such as the Hamilton Beach Commercial 932) are the primary equipment for fresh citrus extraction. Under FDA Food Code §4-602.11 and NSF/ANSI sanitation standards, all food-contact parts must be completely disassembled, sanitized, and reassembled between operational shifts to eliminate bacterial accumulation.
+In commercial kitchens, juice bars, hotel pantries, and high-volume cocktail lounges, heavy-duty commercial manual citrus presses (such as the Hamilton Beach Commercial 932) are the primary equipment for fresh citrus extraction. Under FDA Food Code §4-602.11 and NSF/ANSI sanitation standards, all food-contact surfaces in room-temperature continuous juice production must be completely disassembled, sanitized, and reassembled at least every 4 hours per FDA Food Code §4-602.11(C) and NSF/ANSI 8 standards to eliminate bacterial accumulation and cross-contamination.
 
 This task evaluates bimanual robotic manipulation for precision multi-mechanism reassembly of a commercial citrus press:
 1. Alignment and insertion of the stainless steel juice collector funnel into the 88 mm receiver collar, followed by a clockwise rotation to engage the bayonet locking tabs into internal base detents.
@@ -40,7 +40,7 @@ This task evaluates bimanual robotic manipulation for precision multi-mechanism 
 ## Scoring Breakdown
 
 - **0.25**: Collector bowl placed within receiver collar opening (horizontal offset <= 25 mm, vertical offset <= 20 mm).
-- **0.50**: Collector bowl bayonet rotated clockwise into locking detents (yaw <= -15° or >= 165°, dr <= 20 mm, dz <= 15 mm).
+- **0.50**: Collector bowl bayonet rotated clockwise into locking detents (-35° <= yaw <= -15°, dr <= 20 mm, dz <= 15 mm).
 - **0.75**: Strainer cone coaxially nested flush inside collector bowl (radial offset <= 20 mm, vertical gap <= 22 mm).
 - **1.00**: Press lever stroked past 35°, returned to rest stop (>= 55°), both arms cleared >= 25 mm, and held stationary for 1.0 s (20 consecutive control steps at 20 Hz).
 - **0.00 (Fail)**: Base tipped or displaced > 25 mm, or components dropped off bench.

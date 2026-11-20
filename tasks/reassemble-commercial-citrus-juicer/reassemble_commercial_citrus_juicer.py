@@ -217,14 +217,14 @@ def _on_step(objects: dict[str, Any]) -> None:
     if bowl_placed:
         M["bowl_placed"] = True
 
-    # Check bowl bayonet twist angle
+    # Check bowl bayonet twist angle (strictly clockwise locking rotation between -15° and -35°)
     b_mat = mk.quat_to_mat(bq)
     bowl_yaw_deg = math.degrees(math.atan2(b_mat[1, 0], b_mat[0, 0]))
     bowl_locked = bool(
         M.get("bowl_placed")
         and dr_bowl <= 0.020
         and dz_bowl <= 0.015
-        and (bowl_yaw_deg <= -15.0 or bowl_yaw_deg >= 165.0)
+        and -35.0 <= bowl_yaw_deg <= -15.0
     )
     if bowl_locked:
         M["bowl_locked"] = True
@@ -310,7 +310,7 @@ def bowl_locked(objects: dict) -> bool:
     return bool(
         dr <= 0.020
         and dz <= 0.015
-        and (yaw_deg <= -15.0 or yaw_deg >= 165.0)
+        and -35.0 <= yaw_deg <= -15.0
     )
 
 
