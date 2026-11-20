@@ -309,7 +309,7 @@ def score(objects) -> float:
     if plug_is_home and tool_is_parked and coil_is_home and arms_clear:
         return 1.0
 
-    if plug_is_home and (coil_is_home or mk.MEMORY.get("coil_entered")):
+    if plug_is_home and tool_is_clear and (coil_is_home or mk.MEMORY.get("coil_entered")):
         return 0.75
 
     if plug_is_home:
