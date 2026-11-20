@@ -109,8 +109,8 @@ kit.part("thermostat", THERMO_START_POS, thermo_boxes, mass=0.085, color=STEEL, 
 gasket_boxes = [
     # Perimeter square approximation of annular ring
     mk.box((GASKET_OD, GASKET_OD, GASKET_H), at=(0, 0, 0), color=BLACK_RUBBER),
-    # Molded installation alignment grip tab
-    mk.box((0.014, 0.008, 0.024), at=(0, -GASKET_OD / 2, 0.012), color=BLACK_RUBBER),
+    # Central installation tool handle / grasp boss (16x16 mm, 22 mm tall)
+    mk.box((0.016, 0.016, 0.022), at=(0, 0, 0.011), color=BLACK_RUBBER),
 ]
 kit.part("gasket", GASKET_START_POS, gasket_boxes, mass=0.015, color=BLACK_RUBBER, contact_offset=0.0005)
 
@@ -351,12 +351,8 @@ def demo():
 
     # Left Arm: Handles Gasket then Housing Outlet Cover
     (gx, gy, gz) = GASKET_START_POS
-    gx_tab = gx
-    gy_tab = gy - GASKET_OD / 2
-    gasket_grasp_z = gz + 0.016
+    gasket_grasp_z = gz + 0.015
     gasket_grip_offset = gasket_grasp_z - gz
-    hx_gasket = hx
-    hy_gasket = hy - GASKET_OD / 2
 
     (cx, cy, cz) = COVER_START_POS
     cx_neck = cx
@@ -376,16 +372,16 @@ def demo():
     else:
         l_plan = [
             # Wait for right arm to seat thermostat
-            Waypoint(11.0, (gx_tab, gy_tab, TRAVEL), FINGER_OPEN, "wait for thermostat seating", yaw=0.0),
+            Waypoint(11.0, (gx, gy, TRAVEL), FINGER_OPEN, "wait for thermostat seating", yaw=0.0),
             # Stage 2: Pick and seat gasket
-            Waypoint(1.5, (gx_tab, gy_tab, gasket_grasp_z), FINGER_OPEN, "lower to gasket grip tab", yaw=0.0),
-            Waypoint(0.8, (gx_tab, gy_tab, gasket_grasp_z), FINGER_CLOSED, "grip gasket tab", yaw=0.0),
-            Waypoint(1.5, (gx_tab, gy_tab, TRAVEL), FINGER_CLOSED, "lift gasket clear", yaw=0.0),
-            Waypoint(2.0, (hx_gasket, hy_gasket, TRAVEL), FINGER_CLOSED, "carry gasket over housing", yaw=0.0),
-            Waypoint(1.5, (hx_gasket, hy_gasket, TARGET_GASKET_Z + 0.010 + gasket_grip_offset), FINGER_CLOSED, "lower gasket into recess mouth", yaw=0.0),
-            Waypoint(1.2, (hx_gasket, hy_gasket, TARGET_GASKET_Z + gasket_grip_offset), FINGER_CLOSED, "press gasket flush over flange", yaw=0.0),
-            Waypoint(0.8, (hx_gasket, hy_gasket, TARGET_GASKET_Z + gasket_grip_offset), FINGER_OPEN, "release gasket", yaw=0.0),
-            Waypoint(1.5, (hx_gasket, hy_gasket, TRAVEL), FINGER_OPEN, "lift clear of gasket", yaw=0.0),
+            Waypoint(1.5, (gx, gy, gasket_grasp_z), FINGER_OPEN, "lower to gasket grasp boss", yaw=0.0),
+            Waypoint(0.8, (gx, gy, gasket_grasp_z), FINGER_CLOSED, "grip gasket boss", yaw=0.0),
+            Waypoint(1.5, (gx, gy, TRAVEL), FINGER_CLOSED, "lift gasket clear", yaw=0.0),
+            Waypoint(2.0, (hx, hy, TRAVEL), FINGER_CLOSED, "carry gasket over housing", yaw=0.0),
+            Waypoint(1.5, (hx, hy, TARGET_GASKET_Z + 0.010 + gasket_grip_offset), FINGER_CLOSED, "lower gasket into recess mouth", yaw=0.0),
+            Waypoint(1.2, (hx, hy, TARGET_GASKET_Z + gasket_grip_offset), FINGER_CLOSED, "press gasket flush over flange", yaw=0.0),
+            Waypoint(0.8, (hx, hy, TARGET_GASKET_Z + gasket_grip_offset), FINGER_OPEN, "release gasket", yaw=0.0),
+            Waypoint(1.5, (hx, hy, TRAVEL), FINGER_OPEN, "lift clear of gasket", yaw=0.0),
             # Stage 3: Pick and seat housing cover over studs
             Waypoint(2.0, (cx_neck, cy_neck, TRAVEL), FINGER_OPEN, "move over housing cover", yaw=0.0),
             Waypoint(1.5, (cx_neck, cy_neck, cover_grasp_z), FINGER_OPEN, "lower to cover neck", yaw=0.0),
