@@ -5,7 +5,7 @@ BLS SOC 35-2021: Food Preparation Workers
 
 Safety-critical operation on high-temperature commercial panini press (450°F / 232°C).
 A metal utility tong left on the lower cooking surface obstructs platen travel.
-Attempting to lower and clamp the heavy (4.0 kg) propped platen onto metal tongs
+Attempting to lower and clamp the heavy propped platen onto metal tongs
 violently crushes the tong body, bends hinge linkages, causes rapid thermal conduction
 into the stainless tongs, creates an explosive flash-ejection of grease/oil aerosol,
 and permanently ruins the cast-iron grooved platen finish while posing severe burn
@@ -138,10 +138,10 @@ kit.part("panini_base", (GRILL_XY[0], GRILL_XY[1], TOP), _base_boxes(), mass=Non
 kit.part("staging_tray", (TRAY_XY[0], TRAY_XY[1], TOP), _tray_boxes(), mass=None, color=STAINLESS)
 kit.part("utility_tongs", (TONGS_INIT_XY[0], TONGS_INIT_XY[1], TONGS_INIT_Z), _tongs_boxes(), mass=TONGS_KG, color=BRIGHT_STEEL, solver_position_iterations=16)
 
-# Upper platen attached via revolute hinge to panini_base
-kit.part("upper_platen", (HINGE_X, HINGE_Y, HINGE_Z), _platen_boxes(), mass=4.0, color=CHASSIS_STEEL, solver_position_iterations=16)
+# Upper platen counterbalanced by spring hinge mechanism
+kit.part("upper_platen", (HINGE_X, HINGE_Y, HINGE_Z), _platen_boxes(), mass=1.20, color=CHASSIS_STEEL, solver_position_iterations=16)
 kit.hinge("platen_pivot", "panini_base", "upper_platen", anchor=(HINGE_X, HINGE_Y, HINGE_Z), axis=(0, -1, 0),
-          lower_deg=0.0, upper_deg=OPEN_ANGLE_DEG, start_deg=OPEN_ANGLE_DEG, friction=0.5)
+          lower_deg=0.0, upper_deg=OPEN_ANGLE_DEG, start_deg=OPEN_ANGLE_DEG, friction=3.5)
 
 FIXTURES = []
 OBJECTS = kit.objects()
@@ -178,17 +178,13 @@ def _step_rules(objects) -> None:
         return
 
     t_pos = kit.point(objects, "utility_tongs", (0.0, 0.0, 0.008))
-    h_pos = kit.point(objects, "upper_platen", (PLATEN_W_X + 0.022, 0.0, 0.028))
-    p_plate = kit.point(objects, "upper_platen", (0.080, 0.0, 0.012))
-
     d_grill = math.hypot(t_pos[0] - GRILL_XY[0], t_pos[1] - GRILL_XY[1])
     d_tray = math.hypot(t_pos[0] - TRAY_XY[0], t_pos[1] - TRAY_XY[1])
 
-    plate_gap_z = p_plate[2] - (GRILL_PLATE_Z + 0.012)
     hinge_deg = kit.q_deg(objects, "platen_pivot")
 
     # Defect: platen lowered while tongs still on lower grill
-    if hinge_deg < 40.0 and d_grill < 0.080 and not mk.MEMORY.get("tongs_cleared"):
+    if hinge_deg < 45.0 and d_grill < 0.080 and not mk.MEMORY.get("tongs_cleared"):
         mk.MEMORY["defect"] = True
 
     if mk.MEMORY.get("defect"):
@@ -203,7 +199,7 @@ def _step_rules(objects) -> None:
         mk.MEMORY["tongs_on_tray"] = True
 
     # Stage 3: Platen rotated down past 45 degrees
-    if mk.MEMORY.get("tongs_on_tray") and hinge_deg < 40.0:
+    if mk.MEMORY.get("tongs_on_tray") and hinge_deg < 45.0:
         mk.MEMORY["platen_descended"] = True
 
     # Stage 4: Platen fully seated flush against stop (< 8 degrees)
@@ -214,7 +210,7 @@ def _step_rules(objects) -> None:
         mk.MEMORY["hold_steps"] = mk.MEMORY.get("hold_steps", 0) + 1
 
     if step_id % 20 == 0 or step_id in (1, 10, 50, 100, 150, 200, 250, 300, 320):
-        print(f"[STEP {step_id:04d}] score={score(objects):.2f} t_pos=({t_pos[0]:.3f},{t_pos[1]:.3f},{t_pos[2]:.3f}) d_tray={d_tray:.4f} hinge_deg={hinge_deg:.1f} gap_z={plate_gap_z:.4f} cleared={mk.MEMORY.get('tongs_cleared')} on_tray={mk.MEMORY.get('tongs_on_tray')} descended={mk.MEMORY.get('platen_descended')} closed={mk.MEMORY.get('platen_closed')} hold={mk.MEMORY.get('hold_steps', 0)}", flush=True)
+        print(f"[STEP {step_id:04d}] score={score(objects):.2f} t_pos=({t_pos[0]:.3f},{t_pos[1]:.3f},{t_pos[2]:.3f}) d_tray={d_tray:.4f} hinge_deg={hinge_deg:.1f} cleared={mk.MEMORY.get('tongs_cleared')} on_tray={mk.MEMORY.get('tongs_on_tray')} descended={mk.MEMORY.get('platen_descended')} closed={mk.MEMORY.get('platen_closed')} hold={mk.MEMORY.get('hold_steps', 0)}", flush=True)
 
 
 kit.on_step(_step_rules)
@@ -304,33 +300,28 @@ def demo() -> dict[str, list[Waypoint]]:
     # Synchronize: left arm waits until tongs are resting on tray and right arm is clearing
     wait_until("left", clock["right"] - 1.0, "wait for tongs clear")
 
-    # Left arm: approach insulated platen front handle in open position
-    # Open handle: X=0.225, Y=0.000, Z=1.045
-    handle_open_xy = (0.225, 0.000)
-    handle_open_z = 1.045
+    # Left arm: approach insulated platen front handle in open position (75 degrees)
+    add("left", 1.2, (0.225, 0.000, 1.060), FINGER_OPEN, "approach insulated handle above")
+    add("left", 0.6, (0.225, 0.000, 1.020), FINGER_OPEN, "align with handle")
+    add("left", 0.4, (0.225, 0.000, 1.020), FINGER_CLOSED, "grasp insulated handle")
 
-    add("left", 1.2, (handle_open_xy[0], handle_open_xy[1], handle_open_z + 0.040), FINGER_OPEN, "approach insulated handle")
-    add("left", 0.6, (handle_open_xy[0], handle_open_xy[1], handle_open_z), FINGER_OPEN, "align with handle")
-    add("left", 0.4, (handle_open_xy[0], handle_open_xy[1], handle_open_z), FINGER_CLOSED, "grasp insulated handle")
-
-    # Lower platen smoothly along arc
-    # 45 degrees: X = 0.200 + 0.202*cos(45) - 0.028*sin(45) = 0.323, Z = 0.8175 + 0.202*sin(45) + 0.028*cos(45) = 0.980
-    add("left", 1.0, (0.325, 0.000, 0.980), FINGER_CLOSED, "pivot platen down mid")
-    # Bottom stop (0 degrees, closed): X = 0.402, Z = 0.8455
-    handle_closed_xy = (0.402, 0.000)
-    handle_closed_z = 0.8455
-    add("left", 1.0, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_CLOSED, "seat platen flush on stop")
+    # Lower platen smoothly along circular arc
+    add("left", 0.6, (0.277, 0.000, 1.006), FINGER_CLOSED, "pivot platen down 60 deg")
+    add("left", 0.6, (0.323, 0.000, 0.980), FINGER_CLOSED, "pivot platen down 45 deg")
+    add("left", 0.6, (0.361, 0.000, 0.943), FINGER_CLOSED, "pivot platen down 30 deg")
+    add("left", 0.6, (0.388, 0.000, 0.897), FINGER_CLOSED, "pivot platen down 15 deg")
+    add("left", 0.6, (0.402, 0.000, 0.846), FINGER_CLOSED, "seat platen flush on stop 0 deg")
 
     if variant == "no_release":
-        add("left", 2.0, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_CLOSED, "dwell without release")
+        add("left", 2.0, (0.402, 0.000, 0.846), FINGER_CLOSED, "dwell without release")
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
         return plans
 
     # Release insulated handle and retract clear
-    add("left", 0.5, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z), FINGER_OPEN, "release handle")
-    add("left", 0.8, (handle_closed_xy[0], handle_closed_xy[1], handle_closed_z + 0.080), FINGER_OPEN, "lift left arm")
+    add("left", 0.4, (0.402, 0.000, 0.846), FINGER_OPEN, "release handle")
+    add("left", 0.8, (0.402, 0.000, 0.930), FINGER_OPEN, "lift left arm")
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
 
     # Ensure right arm remains parked clear
