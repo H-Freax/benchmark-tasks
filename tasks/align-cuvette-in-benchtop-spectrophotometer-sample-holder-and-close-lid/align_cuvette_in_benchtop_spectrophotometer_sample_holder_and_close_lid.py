@@ -212,8 +212,9 @@ def _update_mechanics(objects: dict):
     dist_xy = float(np.linalg.norm(cuvette_p[:2] - np.array([HOLDER_X, HOLDER_Y])))
     cuvette_seated = bool(dist_xy < 0.020 and abs(cuvette_p[2] - CUVETTE_SEATED_Z) < 0.020)
 
-    # Check cuvette orientation: standing upright (tilt < 25 degrees)
-    tilt_rad = 2.0 * math.acos(min(1.0, max(-1.0, abs(cuvette_q[3]))))
+    # Check cuvette orientation: standing upright (local Z within 25 degrees of world +Z)
+    cos_tilt = 1.0 - 2.0 * (cuvette_q[0] ** 2 + cuvette_q[1] ** 2)
+    tilt_rad = math.acos(min(1.0, max(-1.0, cos_tilt)))
     cuvette_upright = bool(tilt_rad < math.radians(25.0))
 
     # Check optical window alignment: clear optical windows must align with light-path axis (+/- Y)
@@ -291,7 +292,8 @@ def score(objects: dict) -> float:
     dist_rack_xy = float(np.linalg.norm(cuvette_p[:2] - np.array([RACK_X, RACK_Y])))
     cuvette_seated = bool(dist_chamber_xy < 0.020 and abs(cuvette_p[2] - CUVETTE_SEATED_Z) < 0.020)
 
-    tilt_rad = 2.0 * math.acos(min(1.0, max(-1.0, abs(cuvette_q[3]))))
+    cos_tilt = 1.0 - 2.0 * (cuvette_q[0] ** 2 + cuvette_q[1] ** 2)
+    tilt_rad = math.acos(min(1.0, max(-1.0, cos_tilt)))
     cuvette_upright = bool(tilt_rad < math.radians(25.0))
 
     # Check optical window alignment: clear optical windows must align with light-path axis (+/- Y)
@@ -352,11 +354,11 @@ def demo() -> dict[str, list[Waypoint]]:
     # Negative control 2: Lift cuvette but hold in air outside instrument (score 0.25)
     if cheat == "lift_only":
         left = [
-            Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
-            Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
-            Waypoint(16.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "hold_air", yaw=math.pi / 2),
+            Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=-math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=-math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=-math.pi / 2),
+            Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=-math.pi / 2),
+            Waypoint(16.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "hold_air", yaw=-math.pi / 2),
         ]
         right = [Waypoint(20.0, RIGHT_PARK, FINGER_OPEN, "right_park")]
         return {"left": left, "right": right}
@@ -364,16 +366,16 @@ def demo() -> dict[str, list[Waypoint]]:
     # Negative control 3: Seat cuvette in socket, but do not close lid (score 0.50)
     if cheat == "seat_only":
         left = [
-            Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
-            Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
-            Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=math.pi / 2),
-            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
-            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
-            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=math.pi / 2),
-            Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=0.0),
-            Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=0.0),
+            Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=-math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=-math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=-math.pi / 2),
+            Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=-math.pi / 2),
+            Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=-math.pi / 2),
+            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=-math.pi / 2),
+            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=-math.pi / 2),
+            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=-math.pi / 2),
+            Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=-math.pi / 2),
+            Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=-math.pi / 2),
         ]
         right = [Waypoint(20.0, RIGHT_PARK, FINGER_OPEN, "right_park")]
         return {"left": left, "right": right}
@@ -381,16 +383,16 @@ def demo() -> dict[str, list[Waypoint]]:
     # Negative control 4: Seat cuvette and close lid, but keep fingers on lid (no release, score 0.75)
     if cheat == "no_release":
         left = [
-            Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
-            Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
-            Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=math.pi / 2),
-            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
-            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
-            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=math.pi / 2),
-            Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=0.0),
-            Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=0.0),
+            Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=-math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=-math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=-math.pi / 2),
+            Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=-math.pi / 2),
+            Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=-math.pi / 2),
+            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=-math.pi / 2),
+            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=-math.pi / 2),
+            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=-math.pi / 2),
+            Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=-math.pi / 2),
+            Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=-math.pi / 2),
         ]
         right = [
             Waypoint(7.5, RIGHT_PARK, FINGER_OPEN, "right_wait"),
@@ -407,25 +409,25 @@ def demo() -> dict[str, list[Waypoint]]:
     # 3. Both arms dwell in stationary equilibrium for 20 steps (1.0 s)
     left = [
         # Approach staging rack
-        Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
+        Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=-math.pi / 2),
         # Descend around upper frosted sides of cuvette
-        Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
+        Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=-math.pi / 2),
         # Pinch frosted handling ribs firmly
-        Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
+        Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=-math.pi / 2),
         # Lift cuvette vertically clear of staging rack
-        Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
+        Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=-math.pi / 2),
         # Transfer across to spectrophotometer sample chamber
-        Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=math.pi / 2),
+        Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=-math.pi / 2),
         # Lower cuvette into socket with clear windows facing optical beam (+/- Y)
-        Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
+        Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=-math.pi / 2),
         # Release grip onto cuvette
-        Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
+        Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=-math.pi / 2),
         # Retract vertically clear of chamber opening
-        Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=math.pi / 2),
+        Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=-math.pi / 2),
         # Retract left arm to park
-        Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=0.0),
+        Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=-math.pi / 2),
         # Hold parked position
-        Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=0.0),
+        Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=-math.pi / 2),
     ]
 
     right = [
