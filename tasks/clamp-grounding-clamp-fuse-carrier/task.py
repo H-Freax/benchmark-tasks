@@ -1,4 +1,4 @@
-"""Yam arena task file redirect for reassemble-commercial-citrus-juicer."""
+"""Yam arena task file redirect for clamp-grounding-clamp-fuse-carrier."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from reassemble_commercial_citrus_juicer import (
+from clamp_grounding_clamp_fuse_carrier import (
     INSTRUCTION,
     OBJECTS,
     SCENE,
