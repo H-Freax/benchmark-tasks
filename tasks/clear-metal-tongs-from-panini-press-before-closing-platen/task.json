@@ -17,5 +17,6 @@
   "reset_notes": "Prop upper platen open to 75 degree detent, place stainless tongs across lower cooking surface, and clear side tray.",
   "fidelity": "Rigid bodies and composite collision boxes for panini chassis, grooved lower plate, counterbalanced upper platen with insulated tubular handle, stainless utility tongs, and stainless side tray. Revolute hinge joint with Coulomb friction and physical stops. Stage scoring with safety defect interlock.",
   "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete runs, 350 steps each).",
-  "media": "M-8ZEMM5"
+  "media": "M-8ZEMM5",
+  "category": "Safety and alignment"
 }
