@@ -149,8 +149,8 @@ kit.hinge(
     anchor=(LID_HINGE_X, LID_HINGE_Y, LID_HINGE_Z),
     axis=(0, 1, 0),
     lower_deg=0.0,
-    upper_deg=75.0,
-    start_deg=65.0,
+    upper_deg=90.0,
+    start_deg=85.0,
     stiffness=0.0,
     damping=0.5,
     friction=0.05,
@@ -396,8 +396,8 @@ def demo() -> dict[str, list[Waypoint]]:
         ]
         right = [
             Waypoint(7.5, RIGHT_PARK, FINGER_OPEN, "right_wait"),
-            Waypoint(1.2, (0.228, -0.040, 0.925), FINGER_CLOSED, "lid_hover"),
-            Waypoint(0.8, (0.228, -0.040, 0.890), FINGER_CLOSED, "lid_contact"),
+            Waypoint(1.2, (0.250, -0.040, 0.925), FINGER_CLOSED, "lid_hover"),
+            Waypoint(0.8, (0.250, -0.040, 0.890), FINGER_CLOSED, "lid_contact"),
             Waypoint(1.5, (0.185, -0.040, 0.830), FINGER_CLOSED, "lid_press_close"),
             Waypoint(10.0, (0.185, -0.040, 0.830), FINGER_CLOSED, "hold_unreleased"),
         ]
@@ -434,9 +434,9 @@ def demo() -> dict[str, list[Waypoint]]:
         # Wait for left arm to insert cuvette and clear chamber (t = 7.5 s)
         Waypoint(7.5, RIGHT_PARK, FINGER_OPEN, "right_wait"),
         # Approach hinged lid handle lip
-        Waypoint(1.2, (0.228, -0.040, 0.925), FINGER_CLOSED, "lid_hover"),
+        Waypoint(1.2, (0.250, -0.040, 0.925), FINGER_CLOSED, "lid_hover"),
         # Make contact with lid front lip
-        Waypoint(0.8, (0.228, -0.040, 0.890), FINGER_CLOSED, "lid_contact"),
+        Waypoint(0.8, (0.250, -0.040, 0.890), FINGER_CLOSED, "lid_contact"),
         # Press lid closed flush over chamber (angle <= 8 deg)
         Waypoint(1.5, (0.185, -0.040, 0.830), FINGER_CLOSED, "lid_press_close"),
         # Back off vertically from lid
