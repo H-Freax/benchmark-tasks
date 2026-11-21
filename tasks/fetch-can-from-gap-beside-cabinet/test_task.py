@@ -1,57 +1,74 @@
-"""Real yam_arena CPU contract, scorer and complete 20 Hz demo verification."""
-from __future__ import annotations
+"""Real yam_arena CPU checks; scorer inputs and gripper observations are synthetic.
 
-import ast
+TASK_MUTATION substitutes task-owned source only. No framework patch is used.
+"""
+from __future__ import annotations
 import copy
+import importlib.util
 import inspect
 import json
 import math
 import os
 from pathlib import Path
+import sys
 import types
-from itertools import product
 
+import fcl
 import numpy as np
 import pytest
 from yam_arena import YAM_URDF, ik
-from yam_arena.analysis import link_hulls
-from yam_arena.constants import ARM_JOINTS, FINGER_OPEN, READY, TCP_OFFSET
-from yam_arena.demo import ArmPlan
+from yam_arena.constants import ARM_JOINTS, FINGER_OPEN, FINGER_CLOSED, READY
+from yam_arena.demo import ArmPlan, Waypoint, grip_rotation
 from yam_arena.station import BASES
 from yam_arena.task_file import Asset, Box, ObjectState, load
-from yam_arena.urdf import forward_kinematics, quat_xyzw_to_matrix
+from yam_arena.urdf import forward_kinematics, quat_xyzw_to_matrix, rotation_angle_deg
 
-ROOT = Path(__file__).resolve().parent
-SOURCE = (ROOT/'task.py').read_text()
-MUTATIONS = {
-    'forget_tilt_latch':("if _tilt(s)>=MAX_TILT_DEG:\n            _violation=_violation or 'tipped'", "if False:\n            _violation=_violation or 'tipped'"),
-    'sum_tiers':('return .75','return .25+.5+.75'),
-    'yaw_is_tilt':('q[0]*q[0]+q[1]*q[1]','q[0]*q[0]+q[1]*q[1]+q[2]*q[2]'),
-    'score_mutates':('def score(objects):\n    return _view(objects)','def score(objects):\n    _history.append(np.asarray(objects["soup_can"].pos).copy())\n    return _view(objects)'),
-    'debug_every_step':('(_step==1 or _step%20==0)','True'),
-    'slow_reset':('reset=jumped and _nominal(objects)','reset=_nominal(objects)'),
-    'unreachable_hover':("travel=TABLE_Z+WALL_HEIGHT+P['tcp_pick_above_table_m']+P['release_gap_m']", "travel=TABLE_Z+WALL_HEIGHT+P['tcp_pick_above_table_m']+P['release_gap_m']+.4"),
-    'panel_collision':("GAP_WIDTH = CAN['transverse_finger_width_m'] + P['gap_extra_m']", "GAP_WIDTH = .020"),
-    'velocity_only_rest':("return bool(max(np.max(np.linalg.norm(p[:,None,:]-p[None,:,:],axis=-1)),\n                    np.max(np.linalg.norm(p-np.asarray(s.pos),axis=-1)))<=STILL_TOL)", "return s.resting(max_speed=.01,max_spin=.2)"),
-    'no_open_release':("Waypoint(.8,(gx,gy,place),FINGER_OPEN,'release',yaw)","Waypoint(.8,(gx,gy,place),FINGER_CLOSED,'release',yaw)"),
+ROOT=Path(__file__).resolve().parent
+SOURCE=(ROOT/'task.py').read_text()
+MUTATIONS={
+ 'sum_tiers':('return .75','return .25+.5+.75'),
+ 'yaw_is_tilt':('q[0]*q[0]+q[1]*q[1]','q[0]*q[0]+q[1]*q[1]+q[2]*q[2]'),
+ 'score_mutates':('def score(objects):\n    return float(_view(objects))','def score(objects):\n    _history.append(np.asarray(objects["soup_can"].pos).copy())\n    return float(_view(objects))'),
+ 'slow_reset':('reset = jumped and _nominal(objects)','reset = _nominal(objects)'),
+ 'forget_off_table':('if _off_table(s):\n            _off_table_latch = True','if False:\n            _off_table_latch = True'),
+ 'latch_tilt':('if _off_table(s):\n            _off_table_latch = True','if _off_table(s) or _tilt(s) >= MAX_TILT_DEG:\n            _off_table_latch = True'),
+ 'ignore_release':("if _hands is None or len(_hands) != 2:\n        return False","if _hands is None or len(_hands) != 2:\n        return True"),
+ 'ignore_hand_distance':('gap < OPEN_GAP or np.linalg.norm(np.maximum(separation,0.0)) < HAND_CLEARANCE','gap < OPEN_GAP'),
+ 'velocity_only':('return bool(np.max(np.linalg.norm(p[:,None,:]-p[None,:,:],axis=-1)) <= STILL_TOL)','return s.resting(max_speed=float(.01), max_spin=float(.2))'),
+ 'ignore_crossing':('or not _lifted or not _outside_drawer(s)','or not _outside_drawer(s)'),
+ 'no_open_release':("w(.8,(gx,gy,release),FINGER_OPEN,'release')","w(.8,(gx,gy,release),FINGER_CLOSED,'release')"),
+ 'high_release':('RELEASE_GAP = .0015','RELEASE_GAP = .004'),
+ 'low_approach':("w(1.5,(gx,gy,travel),FINGER_OPEN,'approach outside')","w(1.5,(gx,gy,float(TABLE_Z+.100)),FINGER_OPEN,'approach outside')"),
+ 'no_pause':("w(.4,(x,y,travel),LAYOUT['entry_finger_joint_m'],'align before descent')","w(.0,(x,y,travel),LAYOUT['entry_finger_joint_m'],'align before descent')"),
+ 'no_critical_debug':('_step==1 or _step%20==0 or critical','_step==1 or _step%20==0'),
+ 'numpy_numbers':('return tuple(float(v) for v in values)','return tuple(np.float64(v) for v in values)'),
 }
 
 
-def _build_task():
+def build():
     source=SOURCE
-    mutant=os.environ.get('TASK_MUTATION')
-    if mutant:
-        old,new=MUTATIONS[mutant]
-        assert old in source
+    mutation=os.environ.get('TASK_MUTATION')
+    if mutation:
+        old,new=MUTATIONS[mutation]
+        assert old in source,mutation
         source=source.replace(old,new)
-    module=types.ModuleType('can_gap_test_module');module.__file__=str(ROOT/'task.py')
+    module=types.ModuleType('drawer_task_test');module.__file__=str(ROOT/'task.py')
     exec(compile(source,str(ROOT/'task.py'),'exec'),module.__dict__)
     return module
 
 
+def safe_hands():
+    return [dict(low=np.array([.50,-.50,1.10]), high=np.array([.60,-.40,1.20]),gap=.0939),
+            dict(low=np.array([.50,+.40,1.10]), high=np.array([.60,+.50,1.20]),gap=.0939)]
+
+
 @pytest.fixture
 def task():
-    return _build_task()
+    t=build()
+    # Substitute only this task's observation adapter for deterministic CPU inputs.
+    t.read_grippers=lambda:(safe_hands(),'synthetic CPU fixture')
+    t.TASK_DEBUG=False
+    return t
 
 
 def state(pos,size,quat=(0,0,0,1),velocity=(0,0,0),spin=(0,0,0)):
@@ -60,397 +77,385 @@ def state(pos,size,quat=(0,0,0,1),velocity=(0,0,0),spin=(0,0,0)):
     return ObjectState(p,q,np.asarray(velocity,dtype=float),np.asarray(spin,dtype=float),p-half,p+half)
 
 
-def objects(task,can=None):
-    out={s.name:state(s.pos,s.size) for s in task.OBJECTS if isinstance(s,Box)}
-    out['soup_can']=can or state(task.START_POS,task.CAN_SIZE)
+def objects(t,can=None):
+    out={b.name:state(b.pos,b.size,(0,0,math.sin(b.yaw/2),math.cos(b.yaw/2))) for b in t.FIXED.values()}
+    out['soup_can']=can if can is not None else state(t.START_POS,t.CAN_SIZE)
     return out
 
 
-def replace_can(task,o,pos,**kw):
-    o['soup_can']=state(pos,task.CAN_SIZE,**kw)
-    return o
+def replace(t,o,pos,**kw):
+    o['soup_can']=state(pos,t.CAN_SIZE,**kw)
 
 
-def walk(task,o,pos,steps=24):
+def walk(t,o,pos,n=20):
     start=o['soup_can'].pos.copy()
-    for fraction in np.linspace(0,1,steps+1)[1:]:
-        replace_can(task,o,start+(np.asarray(pos)-start)*fraction)
-        task.success(o)
+    for u in np.linspace(0,1,n+1)[1:]:
+        replace(t,o,start+(np.asarray(pos)-start)*u);t.success(o)
     return o
 
 
-def at_goal(task,settle=10):
-    o=objects(task);task.success(o)
-    high=task.TABLE_Z+task.WALL_HEIGHT+task.CAN_HEIGHT/2+.005
-    walk(task,o,(*task.START_XY,high))
-    walk(task,o,(*task.GOAL_XY,high))
-    walk(task,o,task.GOAL_POS)
-    for _ in range(settle):task.success(o)
+def lifted(t):
+    o=objects(t);t.success(o)
+    walk(t,o,(*t.START_XY,t.TABLE_Z+.160+t.CAN_HEIGHT/2))
     return o
 
 
-def snapshot(task):
-    return (task._step,task._armed,task._violation,
-            tuple(tuple(p) for p in task._history),None if task._previous is None else tuple(task._previous))
+def at_goal(t):
+    o=lifted(t);walk(t,o,(*t.GOAL_XY,o['soup_can'].pos[2]));walk(t,o,t.GOAL_POS)
+    for _ in range(10):t.success(o)
+    return o
 
 
-def test_real_framework_contract_and_every_constructor_signature(task):
+def snapshot(t):
+    return (t._step,t._armed,t._off_table_latch,t._lifted,t._previous_bottom,
+            tuple(tuple(p) for p in t._history),None if t._previous is None else tuple(t._previous),
+            repr(t._hands),t._hand_reason)
+
+
+def numeric_floats(value):
+    if isinstance(value,(int,float,np.number)) and not isinstance(value,bool):assert type(value) is float,(value,type(value))
+    elif isinstance(value,(list,tuple)):
+        for v in value:numeric_floats(v)
+
+
+def test_real_framework_contract_and_constructor_types(task):
     loaded=load(ROOT/'task.py')
     assert loaded.scene=='station' and loaded.free_objects==('soup_can',)
-    assert loaded.score_over=='end' and loaded.success_hold_s==1.
+    assert loaded.score_over=='end' and loaded.success_hold_s==1.0
     for spec in task.OBJECTS:
-        inspect.signature(type(spec)).bind(**vars(spec));spec._check()
+        inspect.signature(type(spec)).bind(**vars(spec))
+        for v in vars(spec).values():numeric_floats(v)
     for ws in task.demo().values():
-        for w in ws:inspect.signature(type(w)).bind(**vars(w))
+        for w in ws:
+            inspect.signature(Waypoint).bind(**vars(w))
+            for v in vars(w).values():numeric_floats(v)
 
 
-def test_no_isaac_import_or_private_robot_state(task):
-    tree=ast.parse(SOURCE)
-    imports=[n.module or '' for n in ast.walk(tree) if isinstance(n,ast.ImportFrom)]
-    assert not any(x.startswith(('isaac','omni')) for x in imports)
-    assert 'monkeypatch' not in SOURCE and 'body_link_pose' not in SOURCE
-    assert set(task.demo())=={'right'}
-
-
-def test_each_tier_and_framework_hold(task):
-    o=objects(task);assert not task.success(o) and task.score(o)==0.
-    lift=task.TABLE_Z+task.WALL_HEIGHT+task.CAN_HEIGHT/2+.002
-    walk(task,o,(*task.START_XY,lift));assert task.score(o)==.25
-    off=task.GOAL_POS.copy();off[0]+=.03
-    walk(task,o,(*off[:2],lift));walk(task,o,off)
-    for _ in range(10):task.success(o)
+def test_tiers_and_external_success_hold(task):
+    o=objects(task);task.success(o);assert task.score(o)==0
+    o=lifted(task);assert task.score(o)==.25
+    walk(task,o,(*task.GOAL_XY,o['soup_can'].pos[2]));walk(task,o,task.GOAL_POS)
     assert task.score(o)==.5
-    walk(task,o,task.GOAL_POS)
     for _ in range(10):task.success(o)
     assert task.score(o)==.75
-    held=0
-    for _ in range(20):
-        held=held+1 if task.success(o) else 0
-        assert task.score(o)==.75
-    assert held>=round(task.SUCCESS_HOLD_S*20)
+    assert all(task.success(o) for _ in range(20))
+    assert task.score(o)==.75
 
 
-def test_starting_at_final_state_fails_closed(task):
+def test_terminal_spawn_and_direct_jump(task):
     o=objects(task,state(task.GOAL_POS,task.CAN_SIZE))
-    for _ in range(30):assert not task.success(o)
-    assert task.score(o)==0 and task._violation=='initial_layout'
+    for _ in range(25):assert not task.success(o)
+    assert not task._armed and task.score(o)==0
+    t=build();t.read_grippers=lambda:(safe_hands(),'synthetic')
+    o=objects(t);t.success(o);replace(t,o,t.GOAL_POS)
+    for _ in range(25):assert not t.success(o)
+    assert not t._lifted and t.score(o)==0
 
 
-def test_jump_straight_from_start_to_finish_is_not_progress(task):
+def test_jump_to_lift_cannot_fake_upward_crossing(task):
     o=objects(task);task.success(o)
-    replace_can(task,o,task.GOAL_POS);task.success(o)
-    assert task.score(o)==0 and task._violation=='discontinuous_motion'
+    replace(task,o,(*task.START_XY,task.TABLE_Z+.160+task.CAN_HEIGHT/2));task.success(o)
+    for _ in range(10):task.success(o)
+    assert not task._lifted and task.score(o)==0
 
 
-@pytest.mark.parametrize('violation',['tipped','off_table','fixed_layout','invalid_state','discontinuous_motion'])
-def test_every_irreversible_violation_survives_later_restoration(task,violation):
-    o=at_goal(task);good=copy.deepcopy(o)
-    if violation=='tipped':
-        o['soup_can']=state(o['soup_can'].pos,task.CAN_SIZE,quat=(math.sin(math.pi/4),0,0,math.cos(math.pi/4)))
-    elif violation=='off_table':
-        # Below-table violation is small enough to avoid resetting/jump classification.
-        p=o['soup_can'].pos.copy();p[2]-=.02;replace_can(task,o,p)
-    elif violation=='fixed_layout':
-        s=o['cabinet_side'];o['cabinet_side']=state(s.pos+[.002,0,0],task.FIXED['cabinet_side'].size)
-    elif violation=='invalid_state':
-        o['soup_can'].lin_vel[0]=np.nan
-    else:
-        replace_can(task,o,o['soup_can'].pos+[.12,0,0])
-    task.success(o);assert task.score(o)==0
-    # Restore into the goal, never the nominal start, so no reset can be claimed.
-    o=good
-    for _ in range(30):task.success(o)
-    assert task.score(o)==0 and task._violation is not None
+def test_off_table_latch_survives_slow_restoration(task):
+    o=at_goal(task)
+    walk(task,o,(*task.GOAL_XY,task.GOAL_POS[2]-.020))
+    assert task._off_table_latch and task.score(o)==0
+    walk(task,o,task.GOAL_POS)
+    for _ in range(20):task.success(o)
+    assert task.score(o)==0
+    walk(task,o,task.START_POS,n=60)
+    assert task._off_table_latch
 
 
-def test_topple_inside_gap_and_slowly_restore_cannot_clear_latch(task):
-    o=objects(task);task.success(o)
-    s=o['soup_can'];o['soup_can']=state(s.pos,task.CAN_SIZE,quat=(.70710678,0,0,.70710678))
-    task.success(o);replace_can(task,o,task.START_POS)
-    for _ in range(30):task.success(o)
-    assert task._violation=='tipped' and task.score(o)==0
-
-
-def test_true_reset_requires_jump_and_nominal_layout(task):
-    o=at_goal(task);replace_can(task,o,task.GOAL_POS,quat=(.70710678,0,0,.70710678));task.success(o)
-    replace_can(task,o,task.START_POS);assert not task.success(o)
-    assert task._violation is None and task._armed and task._step==1
+def test_can_launched_beyond_table_stays_failed(task):
+    o=at_goal(task)
+    p=task.GOAL_POS.copy()
+    for x in np.arange(p[0],1.05,.04):
+        p[0]=x;replace(task,o,p,velocity=(2,0,0));task.success(o)
+    assert task._off_table_latch and task.score(o)==0
+    walk(task,o,task.GOAL_POS,n=60)
     assert task.score(o)==0
 
 
-def test_jump_to_near_start_with_wrong_fixed_layout_does_not_reset(task):
-    o=at_goal(task);s=o['wall_panel'];o['wall_panel']=state(s.pos+[.003,0,0],task.FIXED['wall_panel'].size)
-    replace_can(task,o,task.START_POS);task.success(o)
-    assert task._violation is not None and task.score(o)==0
+def test_tilt_is_repairable_and_yaw_180_is_upright(task):
+    o=at_goal(task)
+    replace(task,o,task.GOAL_POS,quat=(math.sqrt(.5),0,0,math.sqrt(.5)));task.success(o)
+    assert task.score(o)==0 and not task._off_table_latch
+    replace(task,o,task.GOAL_POS,quat=(0,0,1,0))
+    for _ in range(10):task.success(o)
+    assert task.score(o)==.75
 
 
-def test_final_frame_conditions_are_rechecked_without_advancing_history(task):
-    o=at_goal(task);before=snapshot(task)
-    replace_can(task,o,task.GOAL_POS,quat=(.70710678,0,0,.70710678))
+def test_topple_in_row_can_be_repaired(task):
+    o=objects(task);task.success(o)
+    replace(task,o,task.START_POS,quat=(math.sqrt(.5),0,0,math.sqrt(.5)));task.success(o)
+    replace(task,o,task.START_POS);task.success(o)
+    walk(task,o,(*task.START_XY,task.TABLE_Z+.160+task.CAN_HEIGHT/2))
+    assert task._lifted and not task._off_table_latch and task.score(o)==.25
+
+
+def test_real_reset_requires_jump_and_nominal_layout(task):
+    o=at_goal(task)
+    walk(task,o,(*task.GOAL_XY,task.GOAL_POS[2]-.020));assert task._off_table_latch
+    replace(task,o,task.START_POS);task.success(o)
+    assert not task._off_table_latch and task._armed and not task._lifted and task._step==1
+
+
+def test_fixed_layout_and_invalid_readings_fail_closed_but_recover(task):
+    o=at_goal(task);good=copy.deepcopy(o);s=o['divider_1']
+    o['divider_1']=state(s.pos+[.002,0,0],task.FIXED['divider_1'].size,s.quat_xyzw);task.success(o)
     assert task.score(o)==0
-    assert snapshot(task)==before
+    o=copy.deepcopy(good);task.success(o);assert task.score(o)==.75
+    o['soup_can'].lin_vel[0]=np.nan;task.success(o);assert task.score(o)==0
+    o=copy.deepcopy(good);task.success(o);assert task.score(o)==.75
 
 
-def test_yaw_180_is_not_tilt(task):
-    o=at_goal(task);replace_can(task,o,task.GOAL_POS,quat=(0,0,1,0))
-    task.success(o);assert task.score(o)==.75 and task._violation is None
+@pytest.mark.parametrize('offset,armed',[(.004999,True),(.005001,False)])
+def test_initial_position_boundary(task,offset,armed):
+    p=task.START_POS.copy();p[0]+=offset;o=objects(task,state(p,task.CAN_SIZE));task.success(o)
+    assert task._armed==armed
 
 
 @pytest.mark.parametrize('angle,allowed',[(4.999,True),(5.001,False),(90,False),(180,False)])
-def test_tilt_threshold_both_sides(task,angle,allowed):
-    o=at_goal(task);a=math.radians(angle)/2
-    replace_can(task,o,task.GOAL_POS,quat=(math.sin(a),0,0,math.cos(a)))
-    task.success(o);assert (task.score(o)>0)==allowed
+def test_tilt_boundary(task,angle,allowed):
+    o=at_goal(task);a=math.radians(angle)/2;replace(task,o,task.GOAL_POS,quat=(math.sin(a),0,0,math.cos(a)));task.success(o)
+    assert (task.score(o)>.0)==allowed
 
 
 @pytest.mark.parametrize('offset,full',[(.014999,True),(.015001,False),(-.014999,True),(-.015001,False)])
-def test_target_threshold_both_sides(task,offset,full):
+def test_target_boundary(task,offset,full):
     o=at_goal(task);p=task.GOAL_POS.copy();p[0]+=offset;walk(task,o,p)
     for _ in range(10):task.success(o)
     assert task.score(o)==(.75 if full else .5)
 
 
-@pytest.mark.parametrize('height,supported',[(.002999,True),(.003001,False)])
-def test_support_threshold_both_sides(task,height,supported):
+@pytest.mark.parametrize('height,supported',[(.001999,True),(.002001,False),(-.000999,True),(-.001001,False)])
+def test_support_boundary(task,height,supported):
     o=at_goal(task);p=task.GOAL_POS.copy();p[2]+=height;walk(task,o,p)
     for _ in range(10):task.success(o)
     assert task.score(o)==(.75 if supported else .25)
 
 
 @pytest.mark.parametrize('delta,still',[(.001999,True),(.002001,False)])
-def test_position_window_threshold_both_sides(task,delta,still):
-    o=at_goal(task)
-    p=task.GOAL_POS.copy();p[0]+=delta;replace_can(task,o,p);task.success(o)
+def test_still_window_boundary(task,delta,still):
+    o=at_goal(task);p=task.GOAL_POS.copy();p[0]+=delta;replace(task,o,p);task.success(o)
     assert task.score(o)==(.75 if still else .5)
 
 
-def test_frozen_zero_velocity_cannot_hide_motion(task):
-    o=at_goal(task)
-    p=task.GOAL_POS.copy();p[0]+=.006;replace_can(task,o,p);task.success(o)
+def test_frozen_velocity_and_noisy_velocity(task):
+    o=at_goal(task);p=task.GOAL_POS.copy();p[0]+=.006;replace(task,o,p);task.success(o)
     assert task.score(o)==.5
-
-
-def test_position_window_handles_frozen_noisy_velocity(task):
-    o=at_goal(task)
-    replace_can(task,o,task.GOAL_POS,velocity=(.02,0,.08),spin=(0,0,.8))
+    replace(task,o,task.GOAL_POS,velocity=(.03,0,.08),spin=(0,0,.8))
     for _ in range(10):task.success(o)
     assert task.score(o)==.75
 
 
-def test_unfilled_window_uses_explicit_speed_and_spin(task):
+def test_unfilled_window_speed_spin_fallback(task):
     o=objects(task);task.success(o)
-    assert len(task._history)<10
-    s=state(task.START_POS,task.CAN_SIZE,velocity=(.02,0,0))
-    assert not task._still(s)
-    assert task._still(state(task.START_POS,task.CAN_SIZE))
+    assert task._still(o['soup_can'])
+    assert not task._still(state(task.START_POS,task.CAN_SIZE,velocity=(.02,0,0)))
+    assert not task._still(state(task.START_POS,task.CAN_SIZE,spin=(0,0,.3)))
 
 
-def test_score_and_distance_are_read_only(task):
+def test_holding_and_missing_hand_readings_do_not_get_release_credit(task):
+    o=at_goal(task);assert task.score(o)==.75
+    task.read_grippers=lambda:(None,'unavailable');task.success(o);assert task.score(o)==.25
+    closed=safe_hands();closed[0]['gap']=.067
+    task.read_grippers=lambda:(closed,'synthetic closed');task.success(o);assert task.score(o)==.25
+
+
+@pytest.mark.parametrize('clearance,release',[(.029999,False),(.030001,True)])
+def test_complete_hand_distance_boundary(task,clearance,release):
+    o=at_goal(task);s=o['soup_can'];hands=safe_hands()
+    hands[0]=dict(low=s.low+np.array([0,0,task.CAN_HEIGHT+clearance]),high=s.high+np.array([0,0,task.CAN_HEIGHT+clearance]),gap=.0939)
+    task.read_grippers=lambda:(hands,'synthetic close hand');task.success(o)
+    assert task.score(o)==(.75 if release else .25)
+
+
+@pytest.mark.parametrize('gap,release',[(.084999,False),(.085001,True)])
+def test_opening_boundary(task,gap,release):
+    o=at_goal(task);hands=safe_hands();hands[0]['gap']=gap
+    task.read_grippers=lambda:(hands,'synthetic opening');task.success(o)
+    assert task.score(o)==(.75 if release else .25)
+
+
+def test_public_reader_unavailable_is_closed():
+    t=build();observations,reason=t.read_grippers()
+    assert observations is None and reason.startswith('gripper unavailable:')
+
+
+def test_score_distance_and_final_frame_are_read_only(task):
     o=at_goal(task)
     for dx in np.linspace(0,.001,5):
-        p=task.GOAL_POS.copy();p[0]+=dx;replace_can(task,o,p);task.success(o)
+        p=task.GOAL_POS.copy();p[0]+=dx;replace(task,o,p);task.success(o)
     before=snapshot(task);inputs=copy.deepcopy(o)
-    for _ in range(20):task.score(o);task.distance(o)
+    for _ in range(12):task.score(o);task.distance(o)
     assert snapshot(task)==before
     for name in o:
-        for attr in vars(o[name]):assert np.array_equal(getattr(o[name],attr),getattr(inputs[name],attr))
+        for k in vars(o[name]):assert np.array_equal(getattr(o[name],k),getattr(inputs[name],k))
+    replace(task,o,task.GOAL_POS,quat=(math.sqrt(.5),0,0,math.sqrt(.5)))
+    assert task.score(o)==0 and snapshot(task)==before
 
 
-def test_holding_without_release_is_documented_simulation_limit(task):
-    o=at_goal(task);held=copy.deepcopy(o)
-    assert task.score(o)==task.score(held)==.75
-    meta=json.loads((ROOT/'task.json').read_text())
-    assert 'the gripper is open and at least 30 mm from the can at the end, judged from the trial video' in meta['scoring']
-
-
-def test_spawn_has_no_overlap(task):
-    o=objects(task)
-    assert o['soup_can'].low[2]-task.TABLE_Z==pytest.approx(.001)
-    specs=list(task.OBJECTS)
-    for i,a in enumerate(specs):
-        for b in specs[i+1:]:
-            overlap=np.minimum(o[a.name].high,o[b.name].high)-np.maximum(o[a.name].low,o[b.name].low)
-            assert np.any(overlap<=1e-9),(a.name,b.name,overlap)
-
-
-def test_debug_cadence_is_print_only(task,capsys):
+def test_debug_cadence_and_critical_every_step(task,capsys):
     task.TASK_DEBUG=True;o=objects(task)
     for _ in range(41):task.success(o)
     lines=capsys.readouterr().out.splitlines()
-    assert all(s.startswith('task_progress ') for s in lines)
     assert [json.loads(s.split(' ',1)[1])['step'] for s in lines]==[1,20,40]
-    assert task.score(o)==0 and task._violation is None
-
-
-def test_debug_disabled_does_not_print(task,capsys):
-    task.TASK_DEBUG=False;o=objects(task)
+    replace(task,o,task.START_POS+np.array([0,0,.010]))
+    for _ in range(5):task.success(o)
+    lines=capsys.readouterr().out.splitlines()
+    assert [json.loads(s.split(' ',1)[1])['step'] for s in lines]==[42,43,44,45,46]
+    task.TASK_DEBUG=False
     for _ in range(21):task.success(o)
     assert capsys.readouterr().out==''
 
 
-def test_demo_opens_then_retreats_and_release_is_not_a_throw(task):
-    ws=task.demo()['right'];release=next(w for w in ws if w.label=='release');lower=next(w for w in ws if w.label=='lower')
+def test_release_pause_run_limit_and_own_side(task):
+    ws=task.demo()['left'];release=next(w for w in ws if w.label=='release');lower=next(w for w in ws if w.label=='lower')
     assert release.pos==lower.pos and release.finger==FINGER_OPEN
+    assert release.pos[2]-task.TABLE_Z-task.PICK_HEIGHT<=.002
+    assert release.pos[2]-task.TABLE_Z-task.PICK_HEIGHT>=0.0
+    for i,w in enumerate(ws):
+        if w.label in ('descend','lower'):
+            assert ws[i-1].pos[:2]==w.pos[:2] and ws[i-1].duration>=.3 and ws[i-1].label.startswith('align')
+        assert w.pos[1]>0 and w.yaw==task.YAW
     assert ws[-1].finger==FINGER_OPEN
-    assert release.pos[2]-task.TABLE_Z-task.P['tcp_pick_above_table_m']==pytest.approx(.004)
-    # Lowest fingertip, not only TCP, clears the standing can's highest point.
-    assert ws[-1].pos[2]-.013-(task.TABLE_Z+task.CAN_HEIGHT)>=.030
-    assert sum(w.duration for w in ws)+task.SUCCESS_HOLD_S+1<=task.RUN_LIMIT/20
+    assert sum(w.duration for w in ws)*20+20<=task.RUN_LIMIT
 
 
 @pytest.fixture(scope='module')
-def real_demo_trace():
-    task=_build_task();plan=ArmPlan(task.demo()['right'],BASES['right']);trace=[]
-    for frame in range(round(plan.duration*20)+1):
-        a,label=plan.action7(frame/20);_,_,finger,_=plan.target(frame/20)
-        trace.append((frame/20,a.copy(),label,float(finger)))
-    return task,plan,trace
+def geometry():
+    spec=importlib.util.spec_from_file_location('historical_gap_geometry',ROOT/'validation/scan_gap.py')
+    g=importlib.util.module_from_spec(spec);sys.modules[spec.name]=g;spec.loader.exec_module(g)
+    return g,g.read_hulls()
 
 
-def test_demo_calls_action7_every_20hz_frame_and_respects_limits(real_demo_trace):
-    task,plan,trace=real_demo_trace
-    assert len(trace)==207
-    assert plan.worst_ik_mm<1 and plan.worst_ik_deg<1
-    actions=np.array([a for _,a,_,_ in trace]);assert np.all(actions[:,:6]>=ik.LOWER) and np.all(actions[:,:6]<=ik.UPPER)
-    assert np.min(np.minimum(actions[:,:6]-ik.LOWER,ik.UPPER-actions[:,:6]))>math.radians(1)
-    # Independently recompute residuals so zero/unused ArmPlan counters cannot pass.
-    for t,a,_,_ in trace:
-        wanted,rot,_,_=plan.target(t);p,r=ik.tcp_pose(a[:6],BASES['right'])
-        assert np.linalg.norm(p-wanted)<.001
-        assert np.linalg.norm(ik._rot_error(rot,r))<math.radians(1)
+@pytest.fixture(scope='module')
+def trace():
+    t=build();ws=t.demo()['left'];plan=ArmPlan(ws,tuple(map(float,BASES['left'])));frames=[]
+    for k in range(round(plan.duration*20)+1):
+        tm=float(k/20);a,label=plan.action7(tm);target,rot,finger,_=plan.target(tm)
+        p,r=ik.tcp_pose(a[:6],BASES['left'])
+        frames.append((tm,label,a.copy(),float(finger),float(np.linalg.norm(p-target)),rotation_angle_deg(rot,r)))
+    return t,plan,frames
 
 
-def test_demo_held_can_clears_panel_tops_and_final_fingers_are_clear(real_demo_trace):
-    task,plan,trace=real_demo_trace
-    carry_start=sum(w.duration for w in plan.waypoints[:4]);carry_end=carry_start+plan.waypoints[4].duration
-    for t,a,label,_ in trace:
-        if carry_start<=t<=carry_end:
-            p,_=ik.tcp_pose(a[:6],BASES['right'])
-            assert p[2]-task.P['tcp_pick_above_table_m']>=task.TABLE_Z+task.WALL_HEIGHT+.003
-    last=trace[-1][1];q=dict(zip(ARM_JOINTS,last[:6]))|{'joint7':FINGER_OPEN,'joint8':FINGER_OPEN}
-    fk=forward_kinematics(YAM_URDF,q)
-    for name in ['tip_left','tip_right']:
-        m=fk[name]
-        p=np.concatenate([h.vertices@m[:3,:3].T+m[:3,3]+BASES['right'] for h in link_hulls()[name]])
-        assert p[:,2].min()-(task.TABLE_Z+task.CAN_HEIGHT)>=.030
+def test_full_demo_20hz_ik_limits_and_plus10(trace):
+    t,p,frames=trace
+    assert len(frames)==289 and p.worst_ik_mm<.5 and p.worst_ik_deg<.1
+    assert max(f[4] for f in frames)<.0005 and max(f[5] for f in frames)<.1
+    actions=np.array([f[2][:6] for f in frames]);assert np.min(np.minimum(actions-ik.LOWER,ik.UPPER-actions))>math.radians(1)
+    elapsed=0.0
+    for w in p.waypoints:
+        elapsed+=w.duration;seed=min(frames,key=lambda f:abs(f[0]-elapsed))[2][:6]
+        q,pe,re=ik.solve(np.array(w.pos)+(0,0,.010),ik.matrix_to_quat_xyzw(grip_rotation(w.yaw)),seed,base_pos=BASES['left'],iters=200)
+        assert pe<.0005 and math.degrees(re)<.1
+        assert np.min(np.minimum(q-ik.LOWER,ik.UPPER-q))>0
 
 
-def _unit_unique(v):
-    n=np.linalg.norm(v,axis=1);v=v[n>1e-8]/n[n>1e-8,None]
-    return np.unique(v.round(7),axis=0)
-
-
-def _box_sat(vertices,planes,box):
-    # Independently rebuild true convex faces/edges using SciPy, then compare
-    # against the scanner's shipped-STL triangle-edge axis set.
-    from scipy.spatial import ConvexHull
-    v=vertices
-    simplices=ConvexHull(v).simplices
-    edges=np.concatenate([v[simplices[:,(i+1)%3]]-v[simplices[:,i]] for i in range(3)])
-    cross=np.cross(edges[:,None,:],np.eye(3)[None,:,:]).reshape(-1,3)
-    axes=_unit_unique(np.concatenate([np.eye(3),planes[:,:3],cross]))
-    projected=v@axes.T;c=np.asarray(box.pos);half=np.asarray(box.size)/2
-    mid=c@axes.T;extent=np.abs(axes)@half
-    return float(np.maximum(mid-extent-projected.max(0),projected.min(0)-mid-extent).max())
-
-
-def test_both_arms_fingers_wrist_forearm_clear_all_fixed_structures(real_demo_trace):
-    task,plan,trace=real_demo_trace;minimum=.020;limiting=None
-    hulls=link_hulls();static=forward_kinematics(YAM_URDF,dict(zip(ARM_JOINTS,READY))|{'joint7':FINGER_OPEN,'joint8':FINGER_OPEN})
-    grouped={n:np.concatenate([h.vertices for h in hs]) for n,hs in hulls.items()}
-    for t,a,label,finger in trace:
-        physical=min(finger,-.033) if label in ('close','lift','carry','lower','release') else finger
-        dynamic=forward_kinematics(YAM_URDF,dict(zip(ARM_JOINTS,a[:6]))|{'joint7':physical,'joint8':physical})
-        for side,fk in [('right',dynamic),('left',static)]:
-            for name,hs in hulls.items():
-                m=fk[name];r=m[:3,:3];p=m[:3,3]+BASES[side];allv=grouped[name]@r.T+p
-                for box in task.FIXED.values():
-                    c=np.asarray(box.pos);half=np.asarray(box.size)/2
-                    if np.maximum(c-half-allv.max(0),allv.min(0)-c-half).max()>=minimum:continue
-                    for h in hs:
-                        v=h.vertices@r.T+p
-                        if np.maximum(c-half-v.max(0),v.min(0)-c-half).max()>=minimum:continue
-                        normals=h.planes.copy();normals[:,:3]=normals[:,:3]@r.T
-                        gap=_box_sat(v,normals,box)
-                        if gap<minimum:minimum=gap;limiting=(side,name,box.name,t)
+def test_real_collision_hulls_clear_all_fixed_structures(trace,geometry):
+    t,plan,frames=trace;g,hulls=geometry
+    requests=fcl.DistanceRequest(enable_nearest_points=True,gjk_solver_type=fcl.GJKSolverType.GST_LIBCCD)
+    boxes=[]
+    for b in t.FIXED.values():
+        r=quat_xyzw_to_matrix(np.array([0,0,math.sin(b.yaw/2),math.cos(b.yaw/2)]))
+        corners=np.array([[i,j,k] for i in (-1,1) for j in (-1,1) for k in (-1,1)])*(np.asarray(b.size)/2)
+        vs=corners@r.T+np.asarray(b.pos)
+        boxes.append((b.name,vs.min(0),vs.max(0),fcl.CollisionObject(fcl.Box(*b.size),fcl.Transform(r,np.array(b.pos)))))
+    static=forward_kinematics(YAM_URDF,g.joint_map(READY,FINGER_OPEN))
+    samples=[(0.0,'right',static)]
+    for tm,label,a,finger,_,_ in frames:
+        physical=min(finger,t.LAYOUT['contact_finger_joint_m']) if label in ('close','extract vertically','carry','align before placement','lower','release') else finger
+        samples.append((tm,'left',forward_kinematics(YAM_URDF,g.joint_map(a[:6],physical))))
+    minimum=.02;limiting=None
+    bundles={}
+    for name in g.LINK_NAMES:
+        hs=[h for h in hulls if h.link==name];starts=np.r_[0,np.cumsum([len(h.vertices) for h in hs])[:-1]]
+        bundles[name]=(np.concatenate([h.vertices for h in hs]),starts,hs)
+    for tm,side,poses in samples:
+        for name,(vertices,starts,hs) in bundles.items():
+            mat=poses[name];r=mat[:3,:3];p=mat[:3,3]+BASES[side];vs=vertices@r.T+p
+            lo=np.minimum.reduceat(vs,starts,axis=0);hi=np.maximum.reduceat(vs,starts,axis=0)
+            for bn,blo,bhi,box in boxes:
+                lower=np.linalg.norm(np.maximum(np.maximum(blo-hi,lo-bhi),0),axis=1)
+                for i in np.flatnonzero(lower<=max(minimum,.003)):
+                    hs[i].obj.setTransform(fcl.Transform(r,p));gap=max(0.0,float(fcl.distance(hs[i].obj,box,requests,fcl.DistanceResult())))
+                    if gap<minimum:minimum=gap;limiting=(tm,side,name,bn)
     assert minimum>=.003,(minimum,limiting)
-    assert minimum==pytest.approx(.004493454,abs=.0001)
 
 
-def test_asset_information_has_no_identity_or_metadata_payload(task):
-    for p in (ROOT/'assets').rglob('*'):
-        if p.is_file():
-            assert p.suffix=='.json' # No embedded image/texture bytes are distributed.
-            raw=p.read_bytes()
-            for token in [b'/Users/',b'/home/',b'C:\\',b'Exif',b'caBX',b'xmpmeta']:
-                assert token not in raw
-    assert len(task.CAN['source_sha256'])==64
+def test_carried_can_and_spawn_clearances(task):
+    # Conservative OBB SAT axes certify nonoverlap; robot clearance is separately GJK checked.
+    o=objects(task);specs=list(task.FIXED.values())
+    can=o['soup_can'];assert can.low[2]-task.TABLE_Z==pytest.approx(.001)
+    axes=[np.eye(3)[i] for i in range(3)]+[task.ROTATION[:,i] for i in range(3)]
+    for i,a in enumerate(specs):
+        for b in specs[i+1:]:
+            ra=quat_xyzw_to_matrix(np.array([0,0,math.sin(a.yaw/2),math.cos(a.yaw/2)]));rb=quat_xyzw_to_matrix(np.array([0,0,math.sin(b.yaw/2),math.cos(b.yaw/2)]))
+            assert any(abs(np.dot(np.asarray(a.pos)-b.pos,axis))-np.abs(axis@ra)@np.asarray(a.size)/2-np.abs(axis@rb)@np.asarray(b.size)/2>=-1e-10 for axis in axes),(a.name,b.name)
+    for b in specs:
+        rb=quat_xyzw_to_matrix(np.array([0,0,math.sin(b.yaw/2),math.cos(b.yaw/2)]))
+        assert any(abs(np.dot(can.pos-b.pos,axis))-np.abs(axis)@task.CAN_SIZE/2-np.abs(axis@rb)@np.asarray(b.size)/2>=-1e-10 for axis in axes),b.name
+    assert task.PICK_HEIGHT-float(.012842499535)>=.003
+    # During transfer the whole carried can clears the taller outer frame.
+    assert task.TRAVEL_HEIGHT-task.PICK_HEIGHT-task.LAYOUT['frame_height_m']>=.003
+    release=next(w for w in task.demo()['left'] if w.label=='release')
+    assert release.pos[2]-task.TABLE_Z-task.PICK_HEIGHT==pytest.approx(.0015)
+
+
+def test_native_asset_metadata_and_text(task):
     assert max(task.CAN_SIZE[:2])<.085 and task.CAN['grasp_band_height_m']>=.015
+    assert task.CAN['scale']==1.0 and task.OBJECTS[0].extent==max(task.CAN_SIZE[:2])
+    assert task.CAN_HEIGHT==pytest.approx(.10203700512647629)
+    assert task.LAYOUT['divider_height_m']==.127 and task.LAYOUT['divider_thickness_m']==.015875
+    for path in (ROOT/'assets').rglob('*'):
+        if path.is_file():
+            assert path.suffix=='.json'
+            for token in [b'/Users/',b'/home/',b'C:\\',b'Exif',b'caBX',b'xmpmeta']:assert token not in path.read_bytes()
+    meta=json.loads((ROOT/'task.json').read_text())
+    assert set(['title','category','keywords','instruction','context','setup','scoring','run_limit','fidelity','scores','media','reset_notes'])<=set(meta)
+    assert meta['scores']=='pending' and meta['media']=={}
+    for text in [meta['context'],(ROOT/'README.md').read_text()]:
+        for token in ['#182','#1957','#2376','strong_reject','review rules']:assert token not in text
+    assert meta['context'].startswith('Deep kitchen drawers often hold cans upright')
 
 
-def test_task_json_required_metadata(task):
-    d=json.loads((ROOT/'task.json').read_text())
-    assert set(['title','category','keywords','instruction','context','setup','scoring','run_limit','fidelity','scores','media','reset_notes'])<=set(d)
-    assert d['category']=='Societal relatability' and d['scores']=='pending' and d['media']=={}
+def test_debug_every_step_during_hand_descent(task,capsys):
+    task.TASK_DEBUG=True;o=objects(task);s=o['soup_can'];hands=safe_hands()
+    hands[0]=dict(low=s.low+np.array([0,0,.1]),high=s.high+np.array([0,0,.1]),gap=.0939)
+    task.read_grippers=lambda:(hands,'synthetic descent')
+    for _ in range(4):task.success(o)
+    assert [json.loads(line.split(' ',1)[1])['step'] for line in capsys.readouterr().out.splitlines()]==[1,2,3,4]
 
 
-@pytest.mark.parametrize('offset,valid',[(.004999,True),(.005001,False)])
-def test_initial_position_threshold(task,offset,valid):
-    p=task.START_POS.copy();p[0]+=offset;o=objects(task,state(p,task.CAN_SIZE));task.success(o)
-    assert task._armed==valid
+@pytest.mark.parametrize('offset,resets',[(.099999,False),(.100001,True)])
+def test_reset_jump_boundary(task,offset,resets):
+    o=at_goal(task);walk(task,o,(*task.GOAL_XY,task.GOAL_POS[2]-.020))
+    p=task.START_POS.copy();p[0]+=offset;walk(task,o,p,n=60)
+    assert task._off_table_latch
+    replace(task,o,task.START_POS);task.success(o)
+    assert (not task._off_table_latch)==resets
 
 
-def test_launched_can_leaving_table_latches_zero(task):
-    o=at_goal(task)
-    p=task.GOAL_POS.copy()
-    for x in np.arange(p[0],1.02,.04):
-        p[0]=x;replace_can(task,o,p,velocity=(2,0,0));task.success(o)
-    assert task.score(o)==0 and task._violation=='off_table'
-    # Slow restoration of a launched body, no return to the nominal reset pose.
-    walk(task,o,task.GOAL_POS,steps=50)
-    for _ in range(20):task.success(o)
-    assert task.score(o)==0
+@pytest.mark.parametrize('depth,latches',[(.009999,False),(.010001,True)])
+def test_below_table_boundary(task,depth,latches):
+    o=at_goal(task);p=task.GOAL_POS.copy();p[2]-=depth;replace(task,o,p);task.success(o)
+    assert task._off_table_latch==latches
 
 
-@pytest.mark.parametrize('offset,jumped',[(.099999,False),(.100001,True)])
-def test_reset_displacement_threshold(task,offset,jumped):
+@pytest.mark.parametrize('clearance,extracted',[(.002999,False),(.003001,True)])
+def test_lift_crossing_boundary(task,clearance,extracted):
     o=objects(task);task.success(o)
-    p=task.START_POS.copy();p[0]+=offset;replace_can(task,o,p);task.success(o)
-    assert (task._violation=='discontinuous_motion')==jumped
+    walk(task,o,(*task.START_XY,task.TABLE_Z+task.LAYOUT['frame_height_m']+clearance+task.CAN_HEIGHT/2))
+    assert task._lifted==extracted
 
 
-def test_complete_path_has_ten_millimeters_of_vertical_reach_reserve(task):
-    from yam_arena.demo import Waypoint
-    ws=[Waypoint(w.duration,(w.pos[0],w.pos[1],w.pos[2]+.010),w.finger,w.label,w.yaw) for w in task.demo()['right']]
-    plan=ArmPlan(ws,BASES['right'])
-    for k in range(round(plan.duration*20)+1):plan.action7(k/20)
-    assert plan.worst_ik_mm<1 and plan.worst_ik_deg<1
-
-
-def test_full_scan_rows_are_complete_and_criteria_are_not_relaxed(task):
-    import csv
-    rows=list(csv.DictReader((ROOT/'parameter_scan.csv').open()))
-    summary=json.loads((ROOT/'scan_summary.json').read_text())
-    assert summary['complete'] and len(rows)==4032
-    expected=set(product([.14,.16,.18,.20,.22,.24,.26],
-                         [.08,.10,.12,.14,.16,.18,.20,.22,.24,-.08,-.10,-.12,-.14,-.16,-.18,-.20,-.22,-.24],
-                         [90,-90],[5,15,25,40],[4,6,8,10]))
-    keys={(float(r['x_m']),float(r['y_m']),int(r['yaw_deg']),int(r['wall_extra_mm']),int(r['gap_extra_mm'])) for r in rows}
-    assert keys==expected and len(keys)==len(rows)
-    for r in rows:
-        assert int(r['frames'])==207
-        accepted=float(r['ik_mm'])<1 and float(r['ik_deg'])<1 and float(r['min_sat_gap_mm'])>=3 and float(r['side_margin_mm'])<=10
-        assert (r['pass']=='True')==accepted
-    selected=summary['selected']
-    assert selected['pass'] and selected['side_margin_mm']==min(float(r['side_margin_mm']) for r in rows if r['pass']=='True')==2
-    assert selected['x_m']==task.START_XY[0] and selected['y_m']==task.START_XY[1]
-    assert selected['gap_width_mm']/1000==pytest.approx(task.GAP_WIDTH)
-    assert selected['wall_height_mm']/1000==pytest.approx(task.WALL_HEIGHT)
-
-
-@pytest.mark.parametrize('offset,expected',[(.006,.5),(.12,0.)])
-def test_final_frame_position_is_rechecked_read_only(task,offset,expected):
-    o=at_goal(task);before=snapshot(task)
-    p=task.GOAL_POS.copy();p[0]+=offset;replace_can(task,o,p)
-    assert task.score(o)==expected
-    assert snapshot(task)==before
+@pytest.mark.parametrize('offset,allowed',[(.000499,True),(.000501,False)])
+def test_fixed_board_translation_boundary(task,offset,allowed):
+    o=at_goal(task);s=o['divider_1'];b=task.FIXED['divider_1']
+    o['divider_1']=state(s.pos+[offset,0,0],b.size,s.quat_xyzw);task.success(o)
+    assert (task.score(o)==.75)==allowed

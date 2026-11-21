@@ -1,0 +1,123 @@
+{
+  "can_xy_m": [
+    0.16,
+    0.1
+  ],
+  "goal_xy_m": [
+    0.24,
+    0.28
+  ],
+  "long_axis_rad": 0.13913073229469264,
+  "yaw_rad": -1.431665594500204,
+  "divider_height_m": 0.127,
+  "divider_thickness_m": 0.015875,
+  "inner_length_m": 0.460375,
+  "inner_width_m": 0.3,
+  "frame_height_m": 0.15,
+  "frame_thickness_m": 0.018,
+  "floor_thickness_m": 0.012,
+  "transverse_offset_m": -0.08,
+  "longitudinal_offset_m": 0.0,
+  "gap_width_m": 0.07705204470558671,
+  "c_m": 0.004,
+  "entry_finger_joint_m": -0.03616991070503016,
+  "contact_finger_joint_m": -0.03416991070503016,
+  "boards_local": [
+    {
+      "name": "divider_neg",
+      "pos": [
+        0.0,
+        -0.04646352235279336,
+        0.0635
+      ],
+      "size": [
+        0.460375,
+        0.015875,
+        0.127
+      ]
+    },
+    {
+      "name": "divider_1",
+      "pos": [
+        0.0,
+        0.04646352235279336,
+        0.0635
+      ],
+      "size": [
+        0.460375,
+        0.015875,
+        0.127
+      ]
+    },
+    {
+      "name": "drawer_floor",
+      "pos": [
+        0.0,
+        -0.08,
+        -0.006
+      ],
+      "size": [
+        0.49637499999999996,
+        0.33599999999999997,
+        0.012
+      ]
+    },
+    {
+      "name": "end_neg",
+      "pos": [
+        -0.2391875,
+        -0.08,
+        0.075
+      ],
+      "size": [
+        0.018,
+        0.33599999999999997,
+        0.15
+      ]
+    },
+    {
+      "name": "side_neg",
+      "pos": [
+        0.0,
+        -0.239,
+        0.075
+      ],
+      "size": [
+        0.460375,
+        0.018,
+        0.15
+      ]
+    },
+    {
+      "name": "end_1",
+      "pos": [
+        0.2391875,
+        -0.08,
+        0.075
+      ],
+      "size": [
+        0.018,
+        0.33599999999999997,
+        0.15
+      ]
+    },
+    {
+      "name": "side_1",
+      "pos": [
+        0.0,
+        0.079,
+        0.075
+      ],
+      "size": [
+        0.460375,
+        0.018,
+        0.15
+      ]
+    }
+  ],
+  "manufacturer": "Lipper International",
+  "model": "8897",
+  "specification_url": "https://www.lipperinternational.com/products/bamboo-deep-drawer-dividers-set-of-two/",
+  "product_dimensions": "0.625 in thick x 5 in high; adjustable length 18.125 to 22 in",
+  "chosen_dimensions": "460.375 mm divider length; drawer interior 460.375 x 300 x 150 mm; 18 mm frame and 12 mm floor; can at row midpoint and 70 mm from near-side inner frame"
+}

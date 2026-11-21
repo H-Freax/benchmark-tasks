@@ -1,0 +1,296 @@
+{
+  "status": "passed",
+  "baseline": {
+    "name": "baseline",
+    "status": "passed",
+    "tests": 50,
+    "passed": 50,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failure_types": [],
+    "failing_tests": []
+  },
+  "mutations": [
+    {
+      "name": "sum_tiers",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_tiers_and_external_success_hold"
+      ],
+      "detected": true
+    },
+    {
+      "name": "yaw_is_tilt",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_tilt_is_repairable_and_yaw_180_is_upright"
+      ],
+      "detected": true
+    },
+    {
+      "name": "score_mutates",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_score_distance_and_final_frame_are_read_only"
+      ],
+      "detected": true
+    },
+    {
+      "name": "slow_reset",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_off_table_latch_survives_slow_restoration"
+      ],
+      "detected": true
+    },
+    {
+      "name": "forget_off_table",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_off_table_latch_survives_slow_restoration"
+      ],
+      "detected": true
+    },
+    {
+      "name": "latch_tilt",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_tilt_is_repairable_and_yaw_180_is_upright"
+      ],
+      "detected": true
+    },
+    {
+      "name": "ignore_release",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_holding_and_missing_hand_readings_do_not_get_release_credit"
+      ],
+      "detected": true
+    },
+    {
+      "name": "ignore_hand_distance",
+      "status": "failed",
+      "tests": 2,
+      "passed": 1,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_complete_hand_distance_boundary[0.029999-False]"
+      ],
+      "detected": true
+    },
+    {
+      "name": "velocity_only",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_frozen_velocity_and_noisy_velocity"
+      ],
+      "detected": true
+    },
+    {
+      "name": "ignore_crossing",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_terminal_spawn_and_direct_jump"
+      ],
+      "detected": true
+    },
+    {
+      "name": "no_open_release",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_release_pause_run_limit_and_own_side"
+      ],
+      "detected": true
+    },
+    {
+      "name": "high_release",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_release_pause_run_limit_and_own_side"
+      ],
+      "detected": true
+    },
+    {
+      "name": "low_approach",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_real_collision_hulls_clear_all_fixed_structures"
+      ],
+      "detected": true
+    },
+    {
+      "name": "no_pause",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_release_pause_run_limit_and_own_side"
+      ],
+      "detected": true
+    },
+    {
+      "name": "no_critical_debug",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_debug_cadence_and_critical_every_step"
+      ],
+      "detected": true
+    },
+    {
+      "name": "numpy_numbers",
+      "status": "failed",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failure_types": [
+        "AssertionError"
+      ],
+      "failing_tests": [
+        "test_real_framework_contract_and_constructor_types"
+      ],
+      "detected": true
+    }
+  ],
+  "environment": {
+    "interpreter_environment": "existing yam_env",
+    "python": "3.12.16",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "numpy": "2.5.4",
+    "pytest": "9.2.0",
+    "python_fcl": "0.7.0.11",
+    "dependency_note": "FCL-only temporary --target install with --no-deps; yam_env unchanged",
+    "yam_commit": "bd62771e60320433893bd1d2df0fc79b5ddcd6d1",
+    "arena_release": "release/0.3.1",
+    "arena_commit": "c7edf3a9d5d8276565208f72422f8f8a0806d6cf",
+    "isaac_sim_used": false,
+    "gpu_used": false,
+    "synthetic_scorer_inputs": true,
+    "public_gripper_gpu_integration_tested": false
+  },
+  "source_sha256": "9740d38c3c610516f73f68c583afa4cb7be2604b41cd6a5c2d097d7add6b6d89",
+  "test_sha256": "f80c0619b7944382e5c25660b0130b3aff78dc111e7c3eb3346876f04f708327",
+  "artifact_sha256": {
+    "drawer_info.json": "b207b902e4a2090d93c5a6514a4613f5bbf91628def3af42792bcceb25346d06",
+    "can_info.json": "0d0973c47abdd0c0f74889a333c53f118a510a1bdb18ba34b0129820ed5583b7"
+  },
+  "parser_note": "Result status is derived from complete JUnit testcases and assertion failure text, not subprocess exit code. Initial missing-type/message-only reporting errors were corrected against the saved JUnit files.",
+  "baseline_elapsed_s": 2.483
+}

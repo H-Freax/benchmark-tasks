@@ -1,0 +1,233 @@
+{
+  "assertions": {
+    "grid_complete": true,
+    "unique_rows": true,
+    "variants_complete": true,
+    "every_frame_called": true,
+    "every_waypoint_plus10": true,
+    "passing_thresholds_consistent": true,
+    "selected_pass_iff_some_variant_passes": true,
+    "script_hash_matches": true,
+    "independent_distance_checks": true
+  },
+  "independent_distance_samples": [
+    {
+      "config": {
+        "x_m": 0.2,
+        "y_m": 0.22,
+        "theta_deg": 0,
+        "delta_mm": 5,
+        "h_mm": 65,
+        "c_mm": 4
+      },
+      "limiting_link": "tip_left",
+      "limiting_time_s": 1.55,
+      "csv_distance_mm": 7.58561928500597,
+      "replayed_gjk_mm": 7.58561928500597,
+      "independent_qp_mm": 7.5855252685584,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 0.0,
+      "gjk_vs_qp_error_mm": 9.401644756983074e-05,
+      "csv_vs_replay_error_mm": 0.0,
+      "replay_ik_mm": 0.08581327055154674,
+      "replay_ik_deg": 0.009482425472569743
+    },
+    {
+      "config": {
+        "x_m": 0.2,
+        "y_m": -0.22,
+        "theta_deg": 0,
+        "delta_mm": 15,
+        "h_mm": 65,
+        "c_mm": 4
+      },
+      "limiting_link": "tip_left",
+      "limiting_time_s": 1.55,
+      "csv_distance_mm": 3.9573340294889476,
+      "replayed_gjk_mm": 3.957334029450179,
+      "independent_qp_mm": 3.9572471996625014,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 1.734723475976807e-15,
+      "gjk_vs_qp_error_mm": 8.682978767764193e-05,
+      "csv_vs_replay_error_mm": 3.8768543930700616e-11,
+      "replay_ik_mm": 0.08480800925602092,
+      "replay_ik_deg": 0.00961933912794985
+    },
+    {
+      "config": {
+        "x_m": 0.16,
+        "y_m": 0.16,
+        "theta_deg": 60,
+        "delta_mm": 25,
+        "h_mm": 35,
+        "c_mm": 4
+      },
+      "limiting_link": "tip_left",
+      "limiting_time_s": 2.85,
+      "csv_distance_mm": 4.509223991154815,
+      "replayed_gjk_mm": 4.509223991154822,
+      "independent_qp_mm": 4.509223994451652,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 0.0,
+      "gjk_vs_qp_error_mm": 3.29682982302959e-09,
+      "csv_vs_replay_error_mm": 7.105427357601002e-15,
+      "replay_ik_mm": 0.09074355503124107,
+      "replay_ik_deg": 0.009085896698996291
+    },
+    {
+      "config": {
+        "x_m": 0.16,
+        "y_m": 0.16,
+        "theta_deg": 60,
+        "delta_mm": 40,
+        "h_mm": 35,
+        "c_mm": 4
+      },
+      "limiting_link": "tip_right",
+      "limiting_time_s": 2.9,
+      "csv_distance_mm": 4.50325044738399,
+      "replayed_gjk_mm": 4.50325044738399,
+      "independent_qp_mm": 4.503250487115831,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 6.938893903907228e-15,
+      "gjk_vs_qp_error_mm": 3.9731841081080965e-08,
+      "csv_vs_replay_error_mm": 0.0,
+      "replay_ik_mm": 0.08270479252223557,
+      "replay_ik_deg": 0.009399031802462604
+    },
+    {
+      "config": {
+        "x_m": 0.16,
+        "y_m": -0.22,
+        "theta_deg": 0.0,
+        "delta_mm": 5.0,
+        "h_mm": 35.0,
+        "c_mm": 4.0
+      },
+      "limiting_link": "base",
+      "limiting_time_s": 0.0,
+      "csv_distance_mm": 0.0,
+      "replayed_gjk_mm": 0.0,
+      "independent_qp_mm": 0.0,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 0.0,
+      "gjk_vs_qp_error_mm": 0.0,
+      "csv_vs_replay_error_mm": 0.0,
+      "replay_ik_mm": 0.08912108755126327,
+      "replay_ik_deg": 0.008601409291494388
+    },
+    {
+      "config": {
+        "x_m": 0.16,
+        "y_m": -0.22,
+        "theta_deg": 0.0,
+        "delta_mm": 25.0,
+        "h_mm": 65.0,
+        "c_mm": 4.0
+      },
+      "limiting_link": "base",
+      "limiting_time_s": 0.0,
+      "csv_distance_mm": 0.0,
+      "replayed_gjk_mm": 0.0,
+      "independent_qp_mm": 0.0,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 0.0,
+      "gjk_vs_qp_error_mm": 0.0,
+      "csv_vs_replay_error_mm": 0.0,
+      "replay_ik_mm": 5.1572833376557305,
+      "replay_ik_deg": 1.2246466243363194
+    },
+    {
+      "config": {
+        "x_m": 0.16,
+        "y_m": -0.22,
+        "theta_deg": 0.0,
+        "delta_mm": 15.0,
+        "h_mm": 65.0,
+        "c_mm": 4.0
+      },
+      "limiting_link": "base",
+      "limiting_time_s": 0.0,
+      "csv_distance_mm": 0.0,
+      "replayed_gjk_mm": 0.0,
+      "independent_qp_mm": 0.0,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 0.0,
+      "gjk_vs_qp_error_mm": 0.0,
+      "csv_vs_replay_error_mm": 0.0,
+      "replay_ik_mm": 0.08636027005027494,
+      "replay_ik_deg": 0.00843986580446087
+    },
+    {
+      "config": {
+        "x_m": 0.16,
+        "y_m": -0.22,
+        "theta_deg": 60.0,
+        "delta_mm": 5.0,
+        "h_mm": 35.0,
+        "c_mm": 4.0
+      },
+      "limiting_link": "tip_left",
+      "limiting_time_s": 1.5,
+      "csv_distance_mm": 1.9930089883914917,
+      "replayed_gjk_mm": 1.9930089883914917,
+      "independent_qp_mm": 1.9930086555904267,
+      "qp_success": true,
+      "qp_message": "Optimization terminated successfully",
+      "qp_constraint_violation_mm": 6.938893903907228e-15,
+      "gjk_vs_qp_error_mm": 3.3280106491798134e-07,
+      "csv_vs_replay_error_mm": 0.0,
+      "replay_ik_mm": 0.08912108708901134,
+      "replay_ik_deg": 0.00864284791482189
+    }
+  ],
+  "failed_reason_combinations": {
+    "wall_clearance": 940,
+    "waypoint_plus_10mm;joint_limit_saturation;wall_clearance": 268,
+    "IK;waypoint_plus_10mm;joint_limit_saturation;wall_clearance": 240,
+    "waypoint_plus_10mm;joint_limit_saturation": 308,
+    "IK;waypoint_plus_10mm;joint_limit_saturation": 176,
+    "joint_limit_saturation;wall_clearance": 2
+  },
+  "variant_failures_nonexclusive": {
+    "total_rows": 6912,
+    "passed": 2196,
+    "failed": 4716,
+    "IK": 2352,
+    "plus10": 3216,
+    "wall": 4036,
+    "joint_limit_violation": 0,
+    "joint_limit_saturation": 3348
+  },
+  "nominal_palm_entry_classification_mismatch_rows": 1152,
+  "total_action7_calls": 169344.0,
+  "total_plus10_solves": 8640.0,
+  "note": "Counts divide variant CSV rows by four because the four wall widths share a complete IK trajectory.",
+  "preliminary_runs": {
+    "pilot_combinations": 8,
+    "pilot_passed": 5,
+    "analytic_convex_box_distance_cases": 3,
+    "analytic_max_error_mm": 8.7e-16
+  },
+  "issues": [
+    "First full run stopped before scanning: sandbox denied writing into the attached worktree. Retried in /private/tmp; outputs copied afterward.",
+    "Initial dependency install was blocked by sandbox cache writes, and initial public asset download by sandbox DNS. Retried with reviewed network access and a temporary cache; both succeeded.",
+    "Migrated branch .venv uses Python 3.9.6 and lacks numpy/yam_arena. Scan used bundled Python 3.12.14 and temporary CPU dependencies.",
+    "Local Arena source pyproject version is 0.3.0, commit c7edf3a9d5d8276565208f72422f8f8a0806d6cf; the scan imports no Isaac or Arena runtime.",
+    "Can asset is the 6.2 public mirror; no Isaac Sim 6.1 / Arena 0.3.1 simulator validation was performed.",
+    "usd-core emitted ARCH_CACHE_LINE_SIZE != Arch_ObtainCacheLineSize() during measurement; USD mesh dimensions and SHA match the previously recorded asset.",
+    "d is measured from TCP, so palm entry starts at 70.501234 mm, not at L=83.343734 mm. Requested d/L classification retained; complete hull collision checks prevent omitted palm geometry.",
+    "At an exact downward pose, wrist link5 begins 134 mm above TCP, beyond the largest scan d=105.752791 mm. The requested d>L width rule therefore conservatively includes a wrist that is above the wall top.",
+    "The original task scaled the can to 66 mm; this scan uses 67 mm with height 100.752791 mm.",
+    "Joint-limit saturation is counted separately from violations because the unmodified framework solver clips every iterate.",
+    "All passes are CPU kinematics/geometry only: no contact simulation or proof of stable can extraction.",
+    "Failed local IK seeds/paths do not establish global infeasibility."
+  ]
+}
