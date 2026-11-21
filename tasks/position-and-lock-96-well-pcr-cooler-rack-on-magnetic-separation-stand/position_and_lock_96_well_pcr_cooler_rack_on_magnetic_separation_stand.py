@@ -202,6 +202,8 @@ kit.part(
     solver_position_iterations=16,
 )
 
+OBJECTS = kit.objects()
+
 
 # -- State Tracking & Dwell Helpers ----------------------------------------------------------------------------
 
