@@ -58,15 +58,15 @@ CUVETTE_CLEAR = (0.85, 0.90, 0.95)
 CUVETTE_FROSTED = (0.65, 0.70, 0.78)
 RACK_BLUE = (0.15, 0.40, 0.75)
 
-# 1. Benchtop Spectrophotometer Instrument Chassis (240 mm X x 200 mm Y x 80 mm Z)
+# 1. Benchtop Spectrophotometer Instrument Chassis (240 mm X x 200 mm Y x 75 mm Z)
 SPECTRO_X = 0.220
 SPECTRO_Y = -0.040
-SPECTRO_BASE_Z = TOP + 0.040  # Centered at Z = 0.790 (base floor spans 0.750 to 0.800)
+SPECTRO_BASE_Z = TOP + 0.030  # Centered at Z = 0.780 (base floor spans 0.750 to 0.770)
 
 # Sample compartment socket center
 HOLDER_X = 0.220
 HOLDER_Y = -0.040
-HOLDER_FLOOR_Z = TOP + 0.050  # 0.800 m
+HOLDER_FLOOR_Z = TOP + 0.020  # 0.770 m
 
 # 2. Cuvette Dimensions (Standard 12.5 mm x 12.5 mm x 45.0 mm)
 CUVETTE_W = 0.0125  # X width (frosted handling sides)
@@ -85,7 +85,7 @@ CUVETTE_INIT_Y = RACK_Y
 CUVETTE_INIT_Z = RACK_FLOOR_Z + CUVETTE_H / 2.0  # 0.7925 m
 
 # Target Cuvette Position seated in Spectrophotometer Socket
-CUVETTE_SEATED_Z = HOLDER_FLOOR_Z + CUVETTE_H / 2.0  # 0.8225 m
+CUVETTE_SEATED_Z = HOLDER_FLOOR_Z + CUVETTE_H / 2.0  # 0.7925 m
 
 # Clear margin for hand retraction (> 40 mm)
 CLEAR_MARGIN_M = 0.040
@@ -100,22 +100,22 @@ kit.part(
     name="spectrophotometer",
     pos=(SPECTRO_X, SPECTRO_Y, SPECTRO_BASE_Z),
     boxes=[
-        # Base instrument cast housing floor (240 x 200 x 50 mm, Z: 0.750 to 0.800)
-        mk.box((0.240, 0.200, 0.050), at=(0.000, 0.000, -0.015), color=CHASSIS_WHITE),
-        # Upper perimeter chassis walls (surrounding 60 x 60 mm sample chamber cavity, Z: 0.800 to 0.830)
-        mk.box((0.090, 0.200, 0.030), at=(-0.075, 0.000, 0.025), color=CHASSIS_WHITE),  # Left (-X)
-        mk.box((0.090, 0.200, 0.030), at=(0.075, 0.000, 0.025), color=CHASSIS_WHITE),   # Right (+X)
-        mk.box((0.060, 0.070, 0.030), at=(0.000, -0.065, 0.025), color=CHASSIS_WHITE),  # Front (-Y)
-        mk.box((0.060, 0.070, 0.030), at=(0.000, 0.065, 0.025), color=CHASSIS_WHITE),   # Back (+Y)
+        # Base instrument cast housing floor (240 x 200 x 20 mm, Z: 0.750 to 0.770)
+        mk.box((0.240, 0.200, 0.020), at=(0.000, 0.000, -0.020), color=CHASSIS_WHITE),
+        # Upper perimeter chassis walls (surrounding 60 x 60 mm sample chamber cavity, Z: 0.770 to 0.825)
+        mk.box((0.090, 0.200, 0.055), at=(-0.075, 0.000, 0.0175), color=CHASSIS_WHITE),  # Left (-X)
+        mk.box((0.090, 0.200, 0.055), at=(0.075, 0.000, 0.0175), color=CHASSIS_WHITE),   # Right (+X)
+        mk.box((0.060, 0.070, 0.055), at=(0.000, -0.065, 0.0175), color=CHASSIS_WHITE),  # Front (-Y)
+        mk.box((0.060, 0.070, 0.055), at=(0.000, 0.065, 0.0175), color=CHASSIS_WHITE),   # Back (+Y)
         # Sloped front interface bezel with digital LCD & keypad
-        mk.box((0.060, 0.160, 0.015), at=(-0.080, 0.000, 0.045), color=PANEL_DARK),
-        mk.box((0.035, 0.080, 0.004), at=(-0.080, -0.030, 0.054), color=DISPLAY_TEAL),
-        mk.box((0.035, 0.040, 0.004), at=(-0.080, 0.040, 0.054), color=PANEL_DARK),
-        # Cuvette holder socket cavity collar walls (15 x 15 mm inner nest, Z: 0.800 to 0.825)
-        mk.box((0.0105, 0.036, 0.025), at=(-0.01275, 0.000, 0.0225), color=CHAMBER_BLACK), # Left (-X)
-        mk.box((0.0105, 0.036, 0.025), at=(0.01275, 0.000, 0.0225), color=CHAMBER_BLACK),  # Right (+X)
-        mk.box((0.0150, 0.0105, 0.025), at=(0.000, -0.01275, 0.0225), color=CHAMBER_BLACK), # Front (-Y)
-        mk.box((0.0150, 0.0105, 0.025), at=(0.000, 0.01275, 0.0225), color=CHAMBER_BLACK),  # Back (+Y)
+        mk.box((0.060, 0.160, 0.015), at=(-0.080, 0.000, 0.048), color=PANEL_DARK),
+        mk.box((0.035, 0.080, 0.004), at=(-0.080, -0.030, 0.057), color=DISPLAY_TEAL),
+        mk.box((0.035, 0.040, 0.004), at=(-0.080, 0.040, 0.057), color=PANEL_DARK),
+        # Cuvette holder socket cavity collar walls (15 x 15 mm inner nest, Z: 0.770 to 0.790)
+        mk.box((0.0105, 0.036, 0.020), at=(-0.01275, 0.000, 0.000), color=CHAMBER_BLACK), # Left (-X)
+        mk.box((0.0105, 0.036, 0.020), at=(0.01275, 0.000, 0.000), color=CHAMBER_BLACK),  # Right (+X)
+        mk.box((0.0150, 0.0105, 0.020), at=(0.000, -0.01275, 0.000), color=CHAMBER_BLACK), # Front (-Y)
+        mk.box((0.0150, 0.0105, 0.020), at=(0.000, 0.01275, 0.000), color=CHAMBER_BLACK),  # Back (+Y)
     ],
     mass=None,  # Rigid bench fixture
     color=CHASSIS_WHITE,
@@ -124,7 +124,7 @@ kit.part(
 # 2. Hinged Sample-Compartment Lid (62 x 62 x 8 mm cover platen with ergonomic front lip)
 LID_HINGE_X = SPECTRO_X + 0.030  # 0.250 m
 LID_HINGE_Y = SPECTRO_Y          # -0.040 m
-LID_HINGE_Z = TOP + 0.080        # 0.830 m (flush with top of chamber perimeter)
+LID_HINGE_Z = TOP + 0.075        # 0.825 m (flush with top of chamber perimeter)
 
 kit.part(
     name="sample_lid",
@@ -353,8 +353,8 @@ def demo() -> dict[str, list[Waypoint]]:
     if cheat == "lift_only":
         left = [
             Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
             Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
             Waypoint(16.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "hold_air", yaw=math.pi / 2),
         ]
@@ -365,12 +365,12 @@ def demo() -> dict[str, list[Waypoint]]:
     if cheat == "seat_only":
         left = [
             Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
             Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
             Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=math.pi / 2),
-            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.835), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
-            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.835), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
+            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
+            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
             Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=math.pi / 2),
             Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=0.0),
             Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=0.0),
@@ -382,22 +382,22 @@ def demo() -> dict[str, list[Waypoint]]:
     if cheat == "no_release":
         left = [
             Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
-            Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
+            Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
             Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
             Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=math.pi / 2),
-            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.835), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
-            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.835), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
+            Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
+            Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
             Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=math.pi / 2),
             Waypoint(1.2, LEFT_PARK, FINGER_OPEN, "left_retract", yaw=0.0),
             Waypoint(10.0, LEFT_PARK, FINGER_OPEN, "left_park", yaw=0.0),
         ]
         right = [
             Waypoint(7.5, RIGHT_PARK, FINGER_OPEN, "right_wait"),
-            Waypoint(1.2, (0.228, -0.040, 0.930), FINGER_CLOSED, "lid_hover"),
-            Waypoint(0.8, (0.225, -0.040, 0.895), FINGER_CLOSED, "lid_contact"),
-            Waypoint(1.5, (0.185, -0.040, 0.835), FINGER_CLOSED, "lid_press_close"),
-            Waypoint(10.0, (0.185, -0.040, 0.835), FINGER_CLOSED, "hold_unreleased"),
+            Waypoint(1.2, (0.228, -0.040, 0.925), FINGER_CLOSED, "lid_hover"),
+            Waypoint(0.8, (0.228, -0.040, 0.890), FINGER_CLOSED, "lid_contact"),
+            Waypoint(1.5, (0.185, -0.040, 0.830), FINGER_CLOSED, "lid_press_close"),
+            Waypoint(10.0, (0.185, -0.040, 0.830), FINGER_CLOSED, "hold_unreleased"),
         ]
         return {"left": left, "right": right}
 
@@ -409,17 +409,17 @@ def demo() -> dict[str, list[Waypoint]]:
         # Approach staging rack
         Waypoint(1.2, (RACK_X, RACK_Y, 0.890), FINGER_OPEN, "rack_approach", yaw=math.pi / 2),
         # Descend around upper frosted sides of cuvette
-        Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
+        Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_OPEN, "cuvette_descend", yaw=math.pi / 2),
         # Pinch frosted handling ribs firmly
-        Waypoint(0.8, (RACK_X, RACK_Y, 0.805), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
+        Waypoint(0.8, (RACK_X, RACK_Y, 0.815), FINGER_CLOSED, "cuvette_grip", yaw=math.pi / 2),
         # Lift cuvette vertically clear of staging rack
         Waypoint(1.0, (RACK_X, RACK_Y, 0.900), FINGER_CLOSED, "cuvette_lift", yaw=math.pi / 2),
         # Transfer across to spectrophotometer sample chamber
         Waypoint(1.5, (HOLDER_X, HOLDER_Y, 0.900), FINGER_CLOSED, "cuvette_transfer", yaw=math.pi / 2),
         # Lower cuvette into socket with clear windows facing optical beam (+/- Y)
-        Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.835), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
+        Waypoint(1.0, (HOLDER_X, HOLDER_Y, 0.815), FINGER_CLOSED, "cuvette_insert", yaw=math.pi / 2),
         # Release grip onto cuvette
-        Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.835), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
+        Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.815), FINGER_OPEN, "cuvette_release", yaw=math.pi / 2),
         # Retract vertically clear of chamber opening
         Waypoint(0.8, (HOLDER_X, HOLDER_Y, 0.900), FINGER_OPEN, "cuvette_clear_up", yaw=math.pi / 2),
         # Retract left arm to park
@@ -432,13 +432,13 @@ def demo() -> dict[str, list[Waypoint]]:
         # Wait for left arm to insert cuvette and clear chamber (t = 7.5 s)
         Waypoint(7.5, RIGHT_PARK, FINGER_OPEN, "right_wait"),
         # Approach hinged lid handle lip
-        Waypoint(1.2, (0.228, -0.040, 0.930), FINGER_CLOSED, "lid_hover"),
+        Waypoint(1.2, (0.228, -0.040, 0.925), FINGER_CLOSED, "lid_hover"),
         # Make contact with lid front lip
-        Waypoint(0.8, (0.225, -0.040, 0.895), FINGER_CLOSED, "lid_contact"),
+        Waypoint(0.8, (0.228, -0.040, 0.890), FINGER_CLOSED, "lid_contact"),
         # Press lid closed flush over chamber (angle <= 8 deg)
-        Waypoint(1.5, (0.185, -0.040, 0.835), FINGER_CLOSED, "lid_press_close"),
+        Waypoint(1.5, (0.185, -0.040, 0.830), FINGER_CLOSED, "lid_press_close"),
         # Back off vertically from lid
-        Waypoint(0.8, (0.185, -0.040, 0.885), FINGER_OPEN, "lid_back_off"),
+        Waypoint(0.8, (0.185, -0.040, 0.880), FINGER_OPEN, "lid_back_off"),
         # Retract right arm to park
         Waypoint(1.2, RIGHT_PARK, FINGER_OPEN, "right_retract"),
         # Hold parked position for final dwell
