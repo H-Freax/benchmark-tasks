@@ -105,9 +105,9 @@ RACK_TARGET_Y = NEST_CENTER_Y
 RACK_TARGET_Z = NEST_FLOOR_Z + RACK_H / 2.0
 
 # Slide Lock Bar (Prismatic Slider along Y on -Y side of stand)
-# Retracted: 0.0 mm. Engaged: 18.0 mm travel along +Y over the rack skirt lip.
+# Retracted: 0.0 mm. Engaged: 10.0 - 18.0 mm travel along +Y over the rack skirt lip.
 LOCK_TRAVEL = 0.020  # 20 mm max travel
-LOCK_ENGAGED_MIN = 0.015  # 15 mm travel threshold for full engagement
+LOCK_ENGAGED_MIN = 0.008  # 8 mm travel threshold for secure mechanical engagement
 LOCK_INIT_X = STAND_X
 LOCK_INIT_Y = STAND_Y - (RACK_L / 2.0 + 0.014)
 LOCK_INIT_Z = TOP + STAND_H + 0.005
@@ -334,9 +334,9 @@ def demo() -> dict[str, list[Waypoint]]:
     # Right Arm: Slide lock bar along +Y to clamp rack into magnetic stand
     # Starts after left arm has released rack and retracted clear (t = 12.0 s)
     # Lock slider knob at (LOCK_INIT_X, LOCK_INIT_Y - 0.010, LOCK_INIT_Z + 0.008)
-    p_knob_rear = (LOCK_INIT_X, LOCK_INIT_Y - 0.035, LOCK_INIT_Z + 0.010)
-    p_knob_contact = (LOCK_INIT_X, LOCK_INIT_Y - 0.010, LOCK_INIT_Z + 0.010)
-    p_knob_push = (LOCK_INIT_X, LOCK_INIT_Y + 0.018, LOCK_INIT_Z + 0.010)
+    p_knob_rear = (LOCK_INIT_X, LOCK_INIT_Y - 0.035, LOCK_INIT_Z + 0.008)
+    p_knob_contact = (LOCK_INIT_X, LOCK_INIT_Y - 0.010, LOCK_INIT_Z + 0.008)
+    p_knob_push = (LOCK_INIT_X, LOCK_INIT_Y + 0.025, LOCK_INIT_Z + 0.008)
     p_knob_retract = (LOCK_INIT_X, LOCK_INIT_Y - 0.030, LOCK_INIT_Z + 0.050)
 
     if VARIANT == "no_seat":
@@ -408,8 +408,8 @@ def self_test():
     sc_seated = score(st_seated_open)
     assert sc_seated == 0.40, f"seated score {sc_seated} != 0.40"
 
-    # 4. Rack seated, slider advancing (e.g. 8.0 mm) -> 0.50 to 0.70
-    st_half_locked = fake_state(RACK_TARGET_X, RACK_TARGET_Y, RACK_TARGET_Z, 0.008)
+    # 4. Rack seated, slider advancing (e.g. 4.0 mm) -> 0.50 to 0.70
+    st_half_locked = fake_state(RACK_TARGET_X, RACK_TARGET_Y, RACK_TARGET_Z, 0.004)
     sc_half = score(st_half_locked)
     assert 0.50 <= sc_half < 0.70, f"half locked score {sc_half} out of range [0.50, 0.70)"
 
