@@ -2,7 +2,7 @@
 # Full qualification runner for clamp-standard-microplate-in-orbital-shaker-platform
 set -e
 
-GPU_RUN="/home/freax/agentwork/ctl-isaac/gpu-run"
+GPU_RUN="/home/freax/agentwork/ctl-isaac/gpu-run --queue-timeout 86400 --ram-gib 9.0 --vram-gib 6.0"
 INSPECT="/home/freax/IsaacLab-Arena/.venv/bin/inspect-robots"
 T="/home/freax/Documents/GitHub/bt-clamp-microplate/tasks/clamp-standard-microplate-in-orbital-shaker-platform"
 E="/mnt/hdd/non-dream-80-evidence/final/clamp-standard-microplate-in-orbital-shaker-platform"
