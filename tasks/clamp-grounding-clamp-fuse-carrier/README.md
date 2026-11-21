@@ -39,7 +39,7 @@ This benchmark task evaluates bimanual robotic manipulation for safety prerequis
 ## Scoring Breakdown
 
 - **0.20**: Grounding clamp lifted from table (> 20 mm vertical lift).
-- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (dr <= 30 mm, dz <= 30 mm).
+- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (dr <= 25 mm, dz <= 25 mm).
 - **0.75**: Fuse carrier extracted from enclosure spring clips without tripping ungrounded fault interlock.
 - **1.00**: Fuse carrier deposited flush in safety parts tray (dr <= 45 mm, dz <= 25 mm), both arms cleared >= 35 mm, and held stationary for 0.75 s (15 consecutive steps at 20 Hz).
 - **0.00 (Fail)**: Attempting to withdraw or displace fuse carrier before grounding clamp is secured (ungrounded fault trigger), base tipped > 15°, or components dropped off bench.

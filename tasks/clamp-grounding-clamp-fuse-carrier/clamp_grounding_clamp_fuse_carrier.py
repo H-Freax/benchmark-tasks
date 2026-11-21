@@ -172,8 +172,8 @@ def _on_step(objects: dict[str, Any]) -> None:
     jaw_z = gp[2]
     dr_clamp = math.sqrt((jaw_x - BUSBAR_POS[0]) ** 2 + (jaw_y - BUSBAR_POS[1]) ** 2)
     dz_clamp = abs(jaw_z - BUSBAR_POS[2])
-    # Tighter clamp grounding threshold: strictly requires jaws over busbar (< 30 mm)
-    clamped = dr_clamp <= 0.030 and dz_clamp <= 0.030
+    # Tighter clamp grounding threshold: strictly requires jaws straddling copper busbar tab (<= 25 mm)
+    clamped = dr_clamp <= 0.025 and dz_clamp <= 0.025
     if clamped:
         M["clamp_grounded"] = True
 
@@ -325,9 +325,9 @@ def demo() -> dict[str, list[Waypoint]]:
     cg_z = CLAMP_INIT_POS[2] + 0.025
 
     # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
-    # Jaws at (x, y - 0.030, z) slide over BUSBAR_POS (y=0.120)
+    # Jaws at (x, y - 0.030, z) slide over BUSBAR_POS (y=0.120). Shifted by -0.045m to straddle copper tab directly.
     attach_x = BUSBAR_POS[0]
-    attach_y = BUSBAR_POS[1] + 0.030
+    attach_y = BUSBAR_POS[1] + 0.030 - 0.045
     attach_z = BUSBAR_POS[2] + 0.025
 
     # Fuse pull handle coordinates (Center Y=0)
@@ -336,7 +336,7 @@ def demo() -> dict[str, list[Waypoint]]:
     fh_z = FUSE_SEATED_POS[2] + 0.025
 
     # Tray placement coordinates (Right side -Y)
-    tray_place_z = TRAY_POS[2] + 0.025
+    tray_place_z = TRAY_POS[2] + 0.028
 
     if cheat == "no_ground":
         # Right arm pulls fuse WITHOUT grounding (trips hazard fault detector -> score 0.0)
@@ -392,10 +392,10 @@ def demo() -> dict[str, list[Waypoint]]:
         # Carry fuse carrier over to safety parts tray (-Y side)
         Waypoint(1.2, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_CLOSED, "tray_approach"),
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_CLOSED, "tray_place"),
-        # Release fuse carrier into tray
-        Waypoint(0.8, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_OPEN, "fuse_release"),
+        # Release fuse carrier into tray (generous time to open fully clear of T-bar)
+        Waypoint(1.2, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_OPEN, "fuse_release"),
         # Lift straight up to CARRY_Z before any lateral motion to prevent dragging
-        Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_OPEN, "tray_clear_up"),
+        Waypoint(1.2, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_OPEN, "tray_clear_up"),
         # Retract clear and park
         Waypoint(1.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_retract"),
         Waypoint(8.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_park"),

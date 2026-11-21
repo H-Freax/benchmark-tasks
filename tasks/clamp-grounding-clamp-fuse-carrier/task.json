@@ -19,5 +19,5 @@
   "reset_notes": "Place disconnect enclosure at x 0.22 m, y 0.00 m. Place grounding clamp at x 0.18 m, y +0.20 m. Place safety parts tray at x 0.22 m, y -0.18 m.",
   "fidelity": "Commercial NEMA 3R 60A disconnect box (140x180x80 mm steel enclosure, 1.2 kg) with 6 mm copper busbar tab. Bronze spring grounding clamp (45g, stable 50x40 mm base). Ceramic pull-out fuse carrier (40g, dual contact blades). Molded anti-static safety tray (140x110 mm, 0.25 kg). 100% dynamic rigid contact physics, zero synthetic teleportation.",
   "scores": "Dream-1: 0.0; demo_1: 1.0; demo_2: 1.0; ctrl_no_ground: 0.0; ctrl_ground_only: 0.50; ctrl_no_tray: 0.75",
-  "media": "M-J9754P"
+  "media": "M-ASMKT6"
 }

@@ -1,83 +1,33 @@
-### Task Overview
+# Clamp Safety Grounding Lead Before Pulling Ceramic Fuse Carrier
 
-In commercial electrical maintenance, HVAC service, and industrial power distribution,
-electricians and substation technicians frequently service commercial fused pull-out disconnect
-boxes (such as Eaton/Square D 60A NEMA 3R fused disconnects, ~$35 off-the-shelf commercial
-equipment). Under OSHA 29 CFR 1910.269(n) and NFPA 70E §120.5 personal protective grounding
-mandates, de-energized distribution busbars can carry hazardous induced capacitive voltage or
-backfeed electrical potential.
+## Summary
+Implements bimanual safety prerequisite compliance for commercial high-voltage pull-out fused disconnect boxes (OSHA 29 CFR 1910.269(n) and NFPA 70E §120.5 personal protective grounding prerequisites).
 
-This benchmark task evaluates bimanual robotic manipulation for safety prerequisite compliance
-and multi-mechanism extraction:
-1. **Implicit Safety Prerequisite**: Before disturbing the high-voltage ceramic pull-out fuse
-   carrier, the robot must identify the exposed copper ground busbar and securely clamp a
-   bronze spring-loaded grounding duckbill clamp jaw onto the busbar tab (establishing an
-   equipotential zone).
-2. **Hazard Fault Detector**: If the robot attempts to pull or extract the fuse carrier before
-   the grounding clamp is mechanically secured to the ground busbar, the ungrounded fault
-   detector trips (immediate 0.0 fail score).
-3. **Fuse Carrier Extraction**: After grounding is verified, the robot grasps the insulated
-   pull-handle of the ceramic fuse carrier and withdraws it from the heavy-duty spring-clip
-   receiver terminals.
-4. **Safe Component Placement**: The extracted fuse carrier is carried across the workspace and
-   deposited flush into the molded safety parts tray.
-5. **Clear Arms & Equilibrium Dwell**: Both manipulator arms retract clear (>= 35 mm clearance)
-   and maintain stationary stability for 0.75 s (15 consecutive control steps at 20 Hz).
+Before servicing high-voltage distribution disconnects, technicians must mechanically attach a spring-loaded grounding clamp to the enclosure busbar to discharge induced voltages. This task enforces this safety prerequisite using an implicit hazard fault detector: attempting to extract the ceramic fuse carrier prior to grounding trips a safety interlock, locking the score at 0.0. After grounding is established, the robot extracts the fuse carrier from dual spring-clip terminals and deposits it flush into the safety parts tray, retracting both arms to equilibrium dwell.
 
-### Occupational Relevance
-
+## Occupational Relevance
 - **Primary SOC**: `47-2111 Electricians` (762,600 US jobs, BLS OEWS May 2023).
-- **Secondary SOC**: `49-2095 Electrical and Electronics Repairers, Powerhouse and Substation`
-  (23,400 US jobs, BLS OEWS May 2023).
-- **Additional Trade Impact**: `49-9041 Industrial Machinery Mechanics` (380,000+ US jobs).
-- **Total Workforce**: Over 1,165,000 workers regularly perform lock-out, de-energization,
-  grounding, and component service on electrical distribution apparatus.
-- **Physical Difficulty**: Bimanual safety interlock execution, spring-loaded duckbill jaw
-  clamping, high-force linear clip withdrawal, precision placement, and multi-step
-  stillness hold.
+- **Secondary SOC**: `49-2095 Electrical and Electronics Repairers, Powerhouse and Substation` (23,400 US jobs).
+- **Total Workforce**: Over 1,165,000 workers performing lock-out/tag-out, equipotential grounding, and electrical distribution service.
+- **Physical Difficulty**: Bimanual coordination, spring-loaded duckbill jaw grounding, linear clip extraction, containment placement, and equilibrium dwell.
 
-### Mechanical Components
+## Validation Suite & Qualification Scores
+- **demo_1** (yam_scripted, seed 0): **1.00** (hold=29 at step 320, full credit)
+- **demo_2** (yam_scripted, seed 1): **1.00** (hold=29 at step 320, full credit)
+- **ctrl_no_ground** (seed 0, cheat=`no_ground`): **0.00** (hazard fault detector trips at step 100, locked at 0.0)
+- **ctrl_ground_only** (seed 0, cheat=`ground_only`): **0.50** (clamp grounded, fuse carrier untouched)
+- **ctrl_no_tray** (seed 0, cheat=`no_tray`): **0.75** (fuse carrier extracted, held outside tray)
+- **dream_1** (policy=dream, 800 steps, seed 0): **0.00** (baseline model achieves 0.00)
 
-1. **Commercial Disconnect Enclosure (`disconnect_box`)**:
-   - Heavy-gauge painted steel NEMA 3R enclosure (140x180x80 mm chassis, 1.2 kg) mounted at
-  `(0.22, 0.00, TOP + 0.060)`.
-   - Hinged steel door swung open providing unhindered access.
-   - Vertical copper ground busbar tab (25x6x20 mm) with copper support mounting shelf positioned
-  at `(0.22, +0.095, TOP + 0.030)`.
-2. **Bronze Grounding Duckbill Clamp (`grounding_clamp`)**:
-   - Cast bronze grounding clamp body with serrated jaw opening and broad stable rectangular
-  base (50x40x18 mm, 45g).
-   - Molded high-dielectric insulated rear grip post and T-bar cross handle (38x22x10 mm) for
-  robot parallel clamp.
-3. **Ceramic Pull-out Fuse Carrier (`fuse_carrier`)**:
-   - Commercial molded ceramic insulator body (75x40x22 mm, 40g) holding 60A cylindrical
-  cartridge fuses.
-   - Insulated central finger pull-handle stem and capture T-bar (36x22x10 mm) for extraction.
-   - Dual brass receiver terminal spring clip alignment.
-4. **Safety Parts Tray (`safety_tray`)**:
-   - Molded anti-static safety parts tray (140x110x25 mm, 0.25 kg) centered at `(0.22, -0.18,
-  TOP + 0.015)`.
-   - Generous containment rim walls (140x110 mm boundary) for secure setdown.
+## Mechanical Setup & Coordinate Architecture
+- **Commercial Disconnect Enclosure (`disconnect_box`)**: Heavy-gauge steel NEMA 3R chassis (140x180x80 mm, 1.2 kg) centered at `(0.22, 0.00, TOP + 0.060)` with door hinged open at top `+X` rim clear of lateral transfer paths.
+- **Copper Busbar Terminal**: Vertical copper terminal tab (40x10x35 mm) on broad mounting shelf (80x80x12 mm) at `(0.22, +0.120, TOP + 0.045)`.
+- **Bronze Grounding Clamp (`grounding_clamp`)**: Cast bronze duckbill clamp (50x40x18 mm base, 45g) initialized at `(0.18, +0.20, TOP + 0.010)`. Grounding scored at `dr <= 25 mm, dz <= 30 mm`.
+- **Ceramic Pull-out Fuse Carrier (`fuse_carrier`)**: Molded ceramic body with insulated capture T-bar (40g) seated at `(0.22, 0.00, TOP + 0.055)`.
+- **Safety Parts Tray (`safety_tray`)**: Molded containment tray at `(0.22, -0.18, TOP + 0.015)`. Scored at `dr <= 45 mm, dz <= 25 mm`.
 
-### Scoring Breakdown
-
-- **0.20**: Grounding clamp lifted from table (> 20 mm vertical lift).
-- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (dr <= 40 mm,
-  dz <= 40 mm).
-- **0.75**: Fuse carrier extracted from enclosure spring clips without tripping ungrounded
-  fault interlock.
-- **1.00**: Fuse carrier deposited flush in safety parts tray (dr <= 80 mm, dz <= 35 mm), both
-  arms cleared >= 35 mm, and held stationary for 0.75 s (15 consecutive steps at 20 Hz).
-- **0.00 (Fail)**: Attempting to withdraw or displace fuse carrier before grounding clamp is
-  secured (ungrounded fault trigger), base tipped > 15°, or components dropped off bench.
-
-### Validation & Scores
-
-- **Media ID**: `M-796K2Z`
-- **Dream-1 Baseline**: `0.00` (800 steps, seed 0; zero progression, clean separation)
-- **yam_scripted demo_1**: `1.00` (347 steps, seed 0; hold >= 15 verified, full task completion)
-- **yam_scripted demo_2**: `1.00` (347 steps, seed 1; hold >= 15 verified, robust across seeds)
-- **ctrl_no_ground**: `0.00` (seed 0; ungrounded fuse carrier extraction immediately trips fault interlock)
-- **ctrl_ground_only**: `0.50` (seed 0; grounding clamp attached, fuse carrier left untouched)
-- **ctrl_no_tray**: `0.75` (seed 0; grounding clamp attached, fuse extracted safely, left in air outside tray)
-- **Physics**: 100% genuine dynamic contact physics, ZERO synthetic pose/joint writes.
+## Media
+- **Media ID**: `M-ASMKT6`
+- Screenshot: `setup.png`
+- Scripted Demo: `demo.mp4`
+- Baseline Evaluation: `model_run.mp4`
