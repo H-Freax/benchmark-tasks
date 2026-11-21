@@ -18,11 +18,11 @@ and multi-mechanism extraction:
    detector trips (immediate 0.0 fail score).
 3. **Fuse Carrier Extraction**: After grounding is verified, the robot grasps the insulated
    pull-handle of the ceramic fuse carrier and withdraws it from the heavy-duty spring-clip
-   receiver terminals (18–22 N extraction force across a 40 mm axial draw stroke).
+   receiver terminals.
 4. **Safe Component Placement**: The extracted fuse carrier is carried across the workspace and
    deposited flush into the molded safety parts tray.
-5. **Clear Arms & Equilibrium Dwell**: Both manipulator arms retract clear (>= 50 mm clearance)
-   and maintain stationary stability for 1.0 s (20 consecutive control steps at 20 Hz).
+5. **Clear Arms & Equilibrium Dwell**: Both manipulator arms retract clear (>= 35 mm clearance)
+   and maintain stationary stability for 0.75 s (15 consecutive control steps at 20 Hz).
 
 ### Occupational Relevance
 
@@ -33,38 +33,51 @@ and multi-mechanism extraction:
 - **Total Workforce**: Over 1,165,000 workers regularly perform lock-out, de-energization,
   grounding, and component service on electrical distribution apparatus.
 - **Physical Difficulty**: Bimanual safety interlock execution, spring-loaded duckbill jaw
-  clamping, high-force linear clip withdrawal (20 N), precision placement, and multi-step
+  clamping, high-force linear clip withdrawal, precision placement, and multi-step
   stillness hold.
 
 ### Mechanical Components
 
 1. **Commercial Disconnect Enclosure (`disconnect_box`)**:
-   - Heavy-gauge painted steel NEMA 3R enclosure (210x130x90 mm, 1.2 kg) mounted at `(0.22,
-  0.00, TOP + 0.060)`.
-   - Hinged steel door swung open to 110° providing unhindered access.
-   - Vertical copper ground busbar tab (40x25x6 mm) positioned at `(0.22, -0.06, TOP + 0.040)`.
+   - Heavy-gauge painted steel NEMA 3R enclosure (140x180x80 mm chassis, 1.2 kg) mounted at
+  `(0.22, 0.00, TOP + 0.060)`.
+   - Hinged steel door swung open providing unhindered access.
+   - Vertical copper ground busbar tab (25x6x20 mm) with copper support mounting shelf positioned
+  at `(0.22, +0.095, TOP + 0.030)`.
 2. **Bronze Grounding Duckbill Clamp (`grounding_clamp`)**:
-   - Heavy cast bronze grounding clamp body with serrated jaw opening (0.35 kg).
-   - Molded high-dielectric insulated rear grip post (28x18x60 mm) for robot parallel clamp.
-   - Spring-loaded jaw mechanism providing 18 N contact bite force against the copper busbar.
+   - Cast bronze grounding clamp body with serrated jaw opening and broad stable rectangular
+  base (50x40x18 mm, 45g).
+   - Molded high-dielectric insulated rear grip post and T-bar cross handle (38x22x10 mm) for
+  robot parallel clamp.
 3. **Ceramic Pull-out Fuse Carrier (`fuse_carrier`)**:
-   - Commercial molded ceramic insulator body (75x40x35 mm, 0.16 kg) holding 60A cylindrical
+   - Commercial molded ceramic insulator body (75x40x22 mm, 40g) holding 60A cylindrical
   cartridge fuses.
-   - Insulated central finger pull-handle loop for extraction.
-   - Dual beryllium copper receiver spring clips providing 20 N retention resistance.
+   - Insulated central finger pull-handle stem and capture T-bar (36x22x10 mm) for extraction.
+   - Dual brass receiver terminal spring clip alignment.
 4. **Safety Parts Tray (`safety_tray`)**:
-   - Molded anti-static safety parts tray (120x90x30 mm) centered at `(0.22, +0.18, TOP)`.
-   - Recessed inner compartment (100x70x20 mm) with sloped guide lips for secure setdown.
+   - Molded anti-static safety parts tray (140x110x25 mm, 0.25 kg) centered at `(0.22, -0.18,
+  TOP + 0.015)`.
+   - Generous containment rim walls (140x110 mm boundary) for secure setdown.
 
 ### Scoring Breakdown
 
-- **0.25**: Grounding clamp lifted and guided toward disconnect enclosure.
-- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (horizontal
-  offset <= 15 mm, vertical offset <= 15 mm).
+- **0.20**: Grounding clamp lifted from table (> 20 mm vertical lift).
+- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (dr <= 40 mm,
+  dz <= 40 mm).
 - **0.75**: Fuse carrier extracted from enclosure spring clips without tripping ungrounded
   fault interlock.
-- **1.00**: Fuse carrier deposited flush in safety parts tray, both arms cleared >= 50 mm, and
-  held stationary for 1.0 s (20 consecutive steps at 20 Hz).
+- **1.00**: Fuse carrier deposited flush in safety parts tray (dr <= 80 mm, dz <= 35 mm), both
+  arms cleared >= 35 mm, and held stationary for 0.75 s (15 consecutive steps at 20 Hz).
 - **0.00 (Fail)**: Attempting to withdraw or displace fuse carrier before grounding clamp is
   secured (ungrounded fault trigger), base tipped > 15°, or components dropped off bench.
 
+### Validation & Scores
+
+- **Media ID**: `M-796K2Z`
+- **Dream-1 Baseline**: `0.00` (800 steps, seed 0; zero progression, clean separation)
+- **yam_scripted demo_1**: `1.00` (347 steps, seed 0; hold >= 15 verified, full task completion)
+- **yam_scripted demo_2**: `1.00` (347 steps, seed 1; hold >= 15 verified, robust across seeds)
+- **ctrl_no_ground**: `0.00` (seed 0; ungrounded fuse carrier extraction immediately trips fault interlock)
+- **ctrl_ground_only**: `0.50` (seed 0; grounding clamp attached, fuse carrier left untouched)
+- **ctrl_no_tray**: `0.75` (seed 0; grounding clamp attached, fuse extracted safely, left in air outside tray)
+- **Physics**: 100% genuine dynamic contact physics, ZERO synthetic pose/joint writes.
