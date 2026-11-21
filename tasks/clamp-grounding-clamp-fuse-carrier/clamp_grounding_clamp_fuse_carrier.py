@@ -49,7 +49,7 @@ BOX_BASE_Z = TOP + 0.055
 BUSBAR_POS = np.array([BOX_X, 0.095, TOP + 0.030])
 CLAMP_INIT_POS = np.array([0.180, 0.200, TOP + 0.010])
 FUSE_SEATED_POS = np.array([BOX_X, 0.000, TOP + 0.055])
-TRAY_POS = np.array([0.220, -0.180, TOP + 0.015])
+TRAY_POS = np.array([0.220, -0.160, TOP + 0.015])
 
 
 # -- Kit Setup -----------------------------------------------------------------
@@ -105,8 +105,8 @@ kit.part(
         mk.box((0.005, 0.025, 0.018), at=(-0.008, -0.030, 0.000), color=BRONZE_CAST),
         # Central dielectric insulated grip handle stem (14x14 mm stem x 40 mm high)
         mk.box((0.014, 0.014, 0.040), at=(0.000, 0.000, 0.028), color=SAFETY_YELLOW),
-        # Mechanical capture T-bar cross handle (38 mm wide along Y x 22 mm deep along X x 10 mm thick)
-        mk.box((0.022, 0.038, 0.010), at=(0.000, 0.000, 0.052), color=SAFETY_YELLOW),
+        # Mechanical capture T-bar cross handle (42 mm wide along Y x 22 mm deep along X x 10 mm thick)
+        mk.box((0.022, 0.042, 0.010), at=(0.000, 0.000, 0.052), color=SAFETY_YELLOW),
     ],
     mass=0.045,
 )
@@ -124,8 +124,8 @@ kit.part(
         mk.box((0.014, 0.005, 0.018), at=(-0.025, 0.000, -0.018), color=CONTACT_BRASS),
         # Front central ergonomic pull-handle stem (14 mm wide x 14 mm thick x 35 mm high)
         mk.box((0.014, 0.014, 0.035), at=(0.000, 0.000, 0.025), color=SAFETY_YELLOW),
-        # Pull-handle capture T-bar cross handle (36 mm wide along Y x 22 mm deep along X x 10 mm thick)
-        mk.box((0.022, 0.036, 0.010), at=(0.000, 0.000, 0.044), color=SAFETY_YELLOW),
+        # Pull-handle capture T-bar cross handle (42 mm wide along Y x 22 mm deep along X x 10 mm thick)
+        mk.box((0.022, 0.042, 0.010), at=(0.000, 0.000, 0.044), color=SAFETY_YELLOW),
     ],
     mass=0.040,
 )
@@ -201,7 +201,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     # Placed in safety parts tray
     dr_tray = math.sqrt((fp[0] - TRAY_POS[0]) ** 2 + (fp[1] - TRAY_POS[1]) ** 2)
     dz_tray = abs(fp[2] - (TRAY_POS[2] + 0.018))
-    fuse_in_tray = dr_tray <= 0.055 and dz_tray <= 0.030 and not M.get("ungrounded_hazard_tripped", False)
+    fuse_in_tray = dr_tray <= 0.080 and dz_tray <= 0.035 and not M.get("ungrounded_hazard_tripped", False)
     if fuse_in_tray:
         M["fuse_in_tray"] = True
 
@@ -320,7 +320,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Clamp handle grip coordinates (Left side +Y)
     cg_x = CLAMP_INIT_POS[0]
     cg_y = CLAMP_INIT_POS[1]
-    cg_z = CLAMP_INIT_POS[2] + 0.025
+    cg_z = CLAMP_INIT_POS[2] + 0.030
 
     # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
     # Jaws at (x, y - 0.030, z) slide over BUSBAR_POS
@@ -331,7 +331,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Fuse pull handle coordinates (Center Y=0)
     fh_x = FUSE_SEATED_POS[0]
     fh_y = FUSE_SEATED_POS[1]
-    fh_z = FUSE_SEATED_POS[2] + 0.025
+    fh_z = FUSE_SEATED_POS[2] + 0.032
 
     # Tray placement coordinates (Right side -Y)
     tray_place_z = TRAY_POS[2] + 0.030
@@ -391,7 +391,7 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_CLOSED, "tray_place"),
         # Release fuse carrier into tray
         Waypoint(0.8, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_OPEN, "fuse_release"),
-        # Lift straight up to CARRY_Z before any lateral motion to prevent dragging
+        # Lift straight up to CARRY_Z before any lateral motion
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_OPEN, "tray_clear_up"),
         # Retract clear and park
         Waypoint(1.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_retract"),
