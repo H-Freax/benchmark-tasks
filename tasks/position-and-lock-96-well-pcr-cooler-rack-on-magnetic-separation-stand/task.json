@@ -1,0 +1,37 @@
+{
+  "task_name": "position-and-lock-96-well-pcr-cooler-rack-on-magnetic-separation-stand",
+  "category": "Other",
+  "domain": "Wet-Lab Research Automation / Molecular Biology & NGS Automation",
+  "workforce": {
+    "occupations": [
+      "Biological Technicians (BLS SOC 19-4021, >85,000 workers)",
+      "Chemical Technicians (BLS SOC 19-4031, >65,000 workers)",
+      "Medical and Clinical Laboratory Technologists and Technicians (BLS SOC 29-2010, >340,000 workers)"
+    ],
+    "total_workforce": ">490,000 laboratory research personnel"
+  },
+  "instruction": "Transfer the 96-well PCR cooler rack onto the magnetic separation stand and engage the slide lock bar.",
+  "apparatus": {
+    "cooler_rack": "Chilled 96-well skirted polypropylene PCR cooler rack (127.8 x 85.5 x 28.0 mm, ANSI/SLAS standard, 110 g)",
+    "magnetic_stand": "Anodized aluminum benchtop 96-well magnetic bead separation stand (140 x 105 x 35 mm) with recessed registration nest and 96 nickel-plated neodymium ring magnet posts",
+    "slider_lock": "Prismatic sliding retaining lock bar along Y (travel 20 mm, minimum engagement 15 mm)",
+    "staging_mat": "Benchtop silicone cleanroom staging mat"
+  },
+  "scoring": {
+    "rubric": [
+      {"stage": 0, "score": 0.00, "description": "Rack resting untouched on bench staging mat"},
+      {"stage": 1, "score": "0.10 - 0.40", "description": "Rack lifted and transferring toward magnetic stand"},
+      {"stage": 2, "score": "0.40 - 0.70", "description": "Rack seated flush in magnetic registration nest, lock bar advancing"},
+      {"stage": 3, "score": "0.70 - 1.00", "description": "Rack seated and lock bar fully engaged (>=15 mm), hands retracted clear (>50 mm) for 20-step (1.0 s) continuous stillness hold"}
+    ],
+    "instantaneous_compliance": "Zero permanent positive stage latching. All criteria evaluated from live physical state at each simulation step; unseating rack or retracting lock bar immediately revokes score."
+  },
+  "physics": {
+    "teleportation": false,
+    "write_root_pose_to_sim": false,
+    "dynamic_contacts": true,
+    "joints": [
+      {"name": "slider_joint", "type": "prismatic", "axis": [0, 1, 0], "travel_m": [0.0, 0.020]}
+    ]
+  }
+}
