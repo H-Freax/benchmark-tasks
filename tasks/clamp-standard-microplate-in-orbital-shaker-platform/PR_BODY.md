@@ -4,7 +4,7 @@ Adds `tasks/clamp-standard-microplate-in-orbital-shaker-platform/`: Transfer an 
 In wet-lab biological, pharmaceutical, and clinical diagnostic laboratories, benchtop orbital shakers agitate microtiter plates to mix reagents, incubate bacterial or mammalian cell cultures, and run ELISA protocols. Operating an orbital shaker with an unsecured microplate causes immediate centrifugal plate ejection, shattering the vessel and dispersing biohazardous fluids across the laboratory.
 
 ### Workforce / Domain Grounding (Category: "Other" - Wet-Lab Research Automation)
-- **Relevant Occupations**: Medical & Clinical Laboratory Technologists & Technicians (BLS SOC 29-2010, >340,000 workers) + Biological Technicians (BLS SOC 19-4021, >85,000 workers) + Chemical Technicians (BLS SOC 19-4031, >65,000 workers) -> **>490,000 laboratory research & diagnostic personnel**.
+- **Relevant Occupations**: Medical & Clinical Laboratory Technologists & Technicians (BLS SOC 29-2010, >340,000 workers) + Biological Technicians (BLS SOC 19-4021, >85,000 workers) + Chemical Technicians (BLS SOC 19-4031, >65,000 workers) + Life Scientists & Microbiologists (BLS SOC 19-1020, >55,000 workers) -> **>545,000 laboratory research & diagnostic personnel**.
 - **Equipment Practicality**: Standard off-the-shelf benchtop orbital shaker platform (<$200) and universal ANSI/SLAS standard 96-well microplates ($1-$3/unit).
 
 ### Physical Mechanics & Anti-Cheat Measures

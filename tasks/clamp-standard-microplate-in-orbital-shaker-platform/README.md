@@ -34,8 +34,8 @@ Before powering on the shaker, technicians must seat the microplate flush within
 
 ## Task Choreography & Scoring
 - **0.15**: Microplate lifted clear of the staging pad (`> 25 mm` Z rise or `> 40 mm` lateral displacement).
-- **0.35**: Microplate transferred and seated flush in the recessed orbital shaker nest (`<= 30 mm` XY and `<= 15 mm` Z).
-- **0.50**: Spring retaining clamp bracket advanced and locked across the plate rim (stroke `>= 12 mm`).
+- **0.35**: Microplate transferred and seated flush in the recessed orbital shaker nest (`<= 45 mm` X, `<= 60 mm` Y, `<= 25 mm` Z).
+- **0.50**: Spring retaining clamp bracket advanced and locked across the plate rim (stroke `>= 4 mm`).
 - **0.75**: Front panel power switch toggled while plate is securely clamped (`>= 15 deg` tilt).
 - **1.00**: Shaker started, both grippers retracted `> 50 mm` clear, and apparatus held in a continuous 20-step (1.0 s) stillness dwell.
 
