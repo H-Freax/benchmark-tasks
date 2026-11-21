@@ -18,5 +18,6 @@
   "reset_notes": "Extract certificate card from press throat and re-stage on desk at (0.280, 0.130) m. Return spring lever handle to propped 35 deg rest position. Re-center press base at (0.280, -0.060) m.",
   "fidelity": "Rigid bodies and composite collision boxes for cast-iron platen base, vertical throat column, upper/lower brass die platens, spring-return chrome lever arm with spherical palm knob, and stiff 300 gsm cardstock certificate with gold foil seal. Authentic 1:1 desktop dimensions. Multi-stage physics-verified scoring with stillness hold requirement.",
   "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete runs, seed 0 and seed 1).",
-  "media": "M-PENDING"
+  "media": "M-DYWPFX",
+  "no_model_video_reason": "Dream-1 policy completed 400 simulation steps but did not produce a video recording artifact on the cluster; task_score=0.0."
 }
