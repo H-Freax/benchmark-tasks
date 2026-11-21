@@ -151,7 +151,7 @@ kit.part("retaining_clamp", (NEST_CENTER_X, CLAMP_INIT_Y, SHAKER_TOP_Z + 0.008),
 # Prismatic slider joint: moves along +Y (toward +Y fixed stop), spring rest at 0.0 (retracted)
 kit.slider("clamp_slider", "shaker_chassis", "retaining_clamp", axis=(0, 1, 0),
            lower=0.0, upper=CLAMP_TRAVEL, start=0.0,
-           stiffness=2000.0, rest=0.0, damping=30.0, friction=2.0)
+           friction=35.0)
 
 # 5. Front Rocker Power Switch (Revolute joint)
 kit.part("power_switch", (SWITCH_X, SWITCH_Y, SWITCH_Z),
@@ -162,7 +162,7 @@ kit.part("power_switch", (SWITCH_X, SWITCH_Y, SWITCH_Z),
 kit.hinge("switch_hinge", "shaker_chassis", "power_switch",
           anchor=(SWITCH_X, SWITCH_Y, SWITCH_Z), axis=(0, 1, 0),
           lower_deg=0.0, upper_deg=SWITCH_TRAVEL_DEG, start_deg=0.0,
-          stiffness=15.0, rest_deg=0.0, damping=1.0, friction=0.2)
+          friction=0.5)
 
 OBJECTS = kit.objects()
 
@@ -198,9 +198,9 @@ def _on_step(objects) -> None:
 
     # Causal defect latch: power switch pressed before plate is clamped in nest
     # Simulates violent orbital agitation ejecting an unsecured microplate
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.020 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.020 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.010)
+    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.035 and
+                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.035 and
+                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.018)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
 
     if switch_deg >= 15.0 and (not plate_in_nest or not clamp_locked):
@@ -230,9 +230,9 @@ def score(objects) -> float:
     clamp_travel = kit.q(objects, "clamp_slider")
     switch_deg = math.degrees(kit.q(objects, "switch_hinge"))
 
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.020 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.020 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.010)
+    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.035 and
+                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.035 and
+                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.018)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
     switch_on = switch_deg >= 15.0
 

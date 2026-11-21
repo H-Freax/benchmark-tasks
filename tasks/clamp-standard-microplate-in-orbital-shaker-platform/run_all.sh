@@ -55,6 +55,7 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_seat $INSPECT run \
   -E control_hz=20 \
   -E cam_width=320 \
   -E cam_height=176 \
+  --seed 0 \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
@@ -72,6 +73,7 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_clamp $INSPECT run \
   -E control_hz=20 \
   -E cam_width=320 \
   -E cam_height=176 \
+  --seed 0 \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
@@ -89,6 +91,7 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_release $INSPECT run \
   -E control_hz=20 \
   -E cam_width=320 \
   -E cam_height=176 \
+  --seed 0 \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
@@ -100,28 +103,28 @@ echo "=== EXTRACTING FRAMES & ENCODING VIDEO ==="
 python3 -c "
 import numpy as np, glob, subprocess
 from PIL import Image
-f_dirs = glob.glob('/demo1/frames/*')
+f_dirs = glob.glob('$E/demo1/frames/*')
 if f_dirs:
     top_files = sorted(glob.glob(f'{f_dirs[-1]}/*top_cam*.npy'))
     if top_files:
-        Image.fromarray(np.load(top_files[0])).save('/setup.png')
-        Image.fromarray(np.load(top_files[-1])).save('/final_frame.png')
-        subprocess.run('cp -f /*.png /', shell=True)
+        Image.fromarray(np.load(top_files[0])).save('$E/setup.png')
+        Image.fromarray(np.load(top_files[-1])).save('$E/final_frame.png')
+        subprocess.run('cp -f $E/*.png $T/', shell=True)
         cmd = [
             'ffmpeg', '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo',
             '-s', '320x176', '-pix_fmt', 'rgb24', '-r', '20',
             '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
-            '-movflags', '+faststart', '/demo.mp4'
+            '-movflags', '+faststart', '$E/demo.mp4'
         ]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         for f in top_files:
             proc.stdin.write(np.load(f).tobytes())
         proc.stdin.close()
         proc.wait()
-        subprocess.run('cp -f /demo.mp4 /demo.mp4', shell=True)
+        subprocess.run('cp -f $E/demo.mp4 $T/demo.mp4', shell=True)
 "
 
-=== RUNNING DREAM-1 POLICY ==="
+echo "=== RUNNING DREAM-1 POLICY ==="
 rm -rf "$E/dream1"
 $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   --embodiment yam_arena \
