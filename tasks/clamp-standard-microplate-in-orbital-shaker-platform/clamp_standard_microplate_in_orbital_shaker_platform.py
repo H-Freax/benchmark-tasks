@@ -151,7 +151,7 @@ kit.part("retaining_clamp", (NEST_CENTER_X, CLAMP_INIT_Y, SHAKER_TOP_Z + 0.008),
 # Prismatic slider joint: moves along +Y (toward +Y fixed stop), spring rest at 0.0 (retracted)
 kit.slider("clamp_slider", "shaker_chassis", "retaining_clamp", axis=(0, 1, 0),
            lower=0.0, upper=CLAMP_TRAVEL, start=0.0,
-           friction=35.0)
+           stiffness=100.0, rest=0.0, damping=5.0, friction=0.5)
 
 # 5. Front Rocker Power Switch (Revolute joint)
 kit.part("power_switch", (SWITCH_X, SWITCH_Y, SWITCH_Z),
@@ -162,7 +162,7 @@ kit.part("power_switch", (SWITCH_X, SWITCH_Y, SWITCH_Z),
 kit.hinge("switch_hinge", "shaker_chassis", "power_switch",
           anchor=(SWITCH_X, SWITCH_Y, SWITCH_Z), axis=(0, 1, 0),
           lower_deg=0.0, upper_deg=SWITCH_TRAVEL_DEG, start_deg=0.0,
-          friction=0.5)
+          stiffness=5.0, rest_deg=0.0, damping=0.2, friction=0.05)
 
 OBJECTS = kit.objects()
 
@@ -331,7 +331,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Retaining bracket tab is at (NEST_CENTER_X=0.280, CLAMP_INIT_Y - 0.012 = -0.115, SHAKER_TOP_Z + 0.018 = 0.818)
     tab_x = NEST_CENTER_X
     tab_y = CLAMP_INIT_Y - 0.012
-    tab_z = SHAKER_TOP_Z + 0.018
+    tab_z = SHAKER_TOP_Z + 0.008
 
     wait_until("right", 7.2, "wait for plate transfer")
     add("right", 1.0, (tab_x, tab_y - 0.040, tab_z + 0.040), FINGER_OPEN, "approach clamp tab", yaw=0.0)
@@ -347,7 +347,7 @@ def demo() -> dict[str, list[Waypoint]]:
         return plans
 
     # Advance clamp bracket along +Y by 0.018 m (firmly clamping plate rim)
-    clamped_y = tab_y + 0.018
+    clamped_y = tab_y + 0.022
     add("right", 0.8, (tab_x, clamped_y, tab_z), FINGER_CLOSED, "advance clamp to lock", yaw=0.0)
     # Release clamp tab and hold position
     add("right", 0.4, (tab_x, clamped_y, tab_z), FINGER_OPEN, "release clamp handle", yaw=0.0)
@@ -357,7 +357,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # Power switch is at (SWITCH_X=0.160, SWITCH_Y=-0.060, SWITCH_Z=0.780)
     sw_x, sw_y, sw_z = SWITCH_X, SWITCH_Y, SWITCH_Z
     add("right", 1.0, (sw_x - 0.040, sw_y, sw_z + 0.030), FINGER_CLOSED, "approach power switch", yaw=0.0)
-    add("right", 0.6, (sw_x, sw_y, sw_z), FINGER_CLOSED, "press power switch", yaw=0.0)
+    add("right", 0.6, (sw_x + 0.015, sw_y, sw_z), FINGER_CLOSED, "press power switch", yaw=0.0)
 
     if variant == "no_release":
         # Keep finger pressed on switch without retracting
