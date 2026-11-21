@@ -297,21 +297,21 @@ def demo() -> dict[str, list[Waypoint]]:
     PLATE_GRIP_FINGER = FINGER_CLOSED
 
     # Initial parked poses
-    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park", yaw=-math.pi / 2)
+    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park", yaw=0.0)
     add("right", 1.0, RIGHT_PARK, FINGER_CLOSED, "right park", yaw=math.pi / 2)
 
     # 1. Left Arm: approach and grasp microplate on staging pad
     # Plate is at (PAD_X=0.280, PAD_Y=0.180, PLATE_INIT_Z=0.762)
     grip_x, grip_y = PAD_X, PAD_Y
-    grip_z = PLATE_INIT_Z + 0.004
+    grip_z = 0.764
 
-    add("left", 1.2, (grip_x, grip_y, grip_z + 0.070), FINGER_OPEN, "pre-grasp plate", yaw=-math.pi / 2)
-    add("left", 0.6, (grip_x, grip_y, grip_z), FINGER_OPEN, "descend on plate", yaw=-math.pi / 2)
-    add("left", 0.5, (grip_x, grip_y, grip_z), PLATE_GRIP_FINGER, "grasp plate rim", yaw=-math.pi / 2)
-    add("left", 0.8, (grip_x, grip_y, grip_z + 0.070), PLATE_GRIP_FINGER, "lift plate clear", yaw=-math.pi / 2)
+    add("left", 1.2, (grip_x, grip_y, grip_z + 0.070), FINGER_OPEN, "pre-grasp plate", yaw=0.0)
+    add("left", 0.6, (grip_x, grip_y, grip_z), FINGER_OPEN, "descend on plate", yaw=0.0)
+    add("left", 0.5, (grip_x, grip_y, grip_z), PLATE_GRIP_FINGER, "grasp plate rim", yaw=0.0)
+    add("left", 0.8, (grip_x, grip_y, grip_z + 0.070), PLATE_GRIP_FINGER, "lift plate clear", yaw=0.0)
 
     if variant == "no_seat":
-        add("left", 2.0, (grip_x, grip_y, grip_z + 0.070), PLATE_GRIP_FINGER, "hold suspended", yaw=-math.pi / 2)
+        add("left", 2.0, (grip_x, grip_y, grip_z + 0.070), PLATE_GRIP_FINGER, "hold suspended", yaw=0.0)
         end_t = max(clock.values()) + 1.0
         for arm in ("left", "right"):
             wait_until(arm, end_t, "finish")
@@ -320,13 +320,13 @@ def demo() -> dict[str, list[Waypoint]]:
     # 2. Transfer microplate to orbital shaker nest
     target_x = NEST_CENTER_X
     target_y = NEST_CENTER_Y
-    target_z = PLATE_SEATED_Z + 0.004
+    target_z = 0.801
 
-    add("left", 1.2, (target_x, target_y, target_z + 0.060), PLATE_GRIP_FINGER, "carry over nest", yaw=-math.pi / 2)
-    add("left", 0.8, (target_x, target_y, target_z), PLATE_GRIP_FINGER, "seat into nest", yaw=-math.pi / 2)
-    add("left", 0.4, (target_x, target_y, target_z), FINGER_OPEN, "release plate", yaw=-math.pi / 2)
-    add("left", 0.6, (target_x, target_y, target_z + 0.040), FINGER_OPEN, "retract left arm", yaw=-math.pi / 2)
-    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "park left arm", yaw=-math.pi / 2)
+    add("left", 1.2, (target_x, target_y, target_z + 0.060), PLATE_GRIP_FINGER, "carry over nest", yaw=0.0)
+    add("left", 0.8, (target_x, target_y, target_z), PLATE_GRIP_FINGER, "seat into nest", yaw=0.0)
+    add("left", 0.4, (target_x, target_y, target_z), FINGER_OPEN, "release plate", yaw=0.0)
+    add("left", 0.6, (target_x, target_y, target_z + 0.040), FINGER_OPEN, "retract left arm", yaw=0.0)
+    add("left", 1.0, LEFT_PARK, FINGER_OPEN, "park left arm", yaw=0.0)
 
     # 3. Right Arm: Clamp retaining bracket
     # Retaining bracket tab is at (NEST_CENTER_X=0.280, CLAMP_INIT_Y - 0.012 = -0.115, SHAKER_TOP_Z + 0.018 = 0.818)

@@ -96,27 +96,17 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_release $INSPECT run \
   --log-dir "$E/ctrl_no_release" > "$E/ctrl_no_release.log" 2>&1
 echo "ctrl_no_release completed: $(grep 'task_score:' "$E/ctrl_no_release.log" | tail -n 1)"
 
-echo "echo "=== EXTRACTING FRAMES & ENCODING VIDEO ==="
+echo "=== EXTRACTING FRAMES & ENCODING VIDEO ==="
 python3 -c "
-import numpy as np, glob
+import numpy as np, glob, subprocess
 from PIL import Image
 f_dirs = glob.glob('/demo1/frames/*')
 if f_dirs:
-    top_files = sorted(glob.glob(f'{f_dirs[0]}/*top_cam*.npy'))
+    top_files = sorted(glob.glob(f'{f_dirs[-1]}/*top_cam*.npy'))
     if top_files:
         Image.fromarray(np.load(top_files[0])).save('/setup.png')
         Image.fromarray(np.load(top_files[-1])).save('/final_frame.png')
-        cp_cmd = 'cp -f /*.png /'
-        import subprocess; subprocess.run(cp_cmd, shell=True)
-"
-
-# Encode mp4 from saved npy frames
-python3 -c "
-import numpy as np, glob, subprocess
-f_dirs = glob.glob('/demo1/frames/*')
-if f_dirs:
-    top_files = sorted(glob.glob(f'{f_dirs[0]}/*top_cam*.npy'))
-    if top_files:
+        subprocess.run('cp -f /*.png /', shell=True)
         cmd = [
             'ffmpeg', '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo',
             '-s', '320x176', '-pix_fmt', 'rgb24', '-r', '20',
