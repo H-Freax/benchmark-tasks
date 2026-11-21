@@ -1,0 +1,28 @@
+{
+  "name": "clamp-standard-microplate-in-orbital-shaker-platform",
+  "category": "Other",
+  "task_type": "bimanual",
+  "description": "Transfer an ANSI/SLAS 96-well microplate from a staging pad into a benchtop orbital shaker nest, advance the spring retaining clamp bracket across the plate rim, and toggle the front power switch to start the run before parking clear.",
+  "prompt": "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker.",
+  "eval_mode": "score",
+  "max_steps": 300,
+  "metrics": {
+    "task_score": {
+      "type": "scalar",
+      "range": [0.0, 1.0],
+      "target": 1.0
+    }
+  },
+  "rubric": {
+    "0.15": "Microplate lifted clear of the staging pad (> 25 mm Z rise or > 40 mm lateral displacement)",
+    "0.35": "Microplate seated flush within the orbital shaker corner registration nest (within 30 mm XY and 15 mm Z)",
+    "0.50": "Spring-loaded retaining clamp bracket advanced and locked across the plate rim (travel >= 12 mm)",
+    "0.75": "Front panel power rocker switch toggled to start orbital shaker (revolute tilt >= 15 deg)",
+    "1.00": "Shaker started while clamped, robot grippers retracted > 50 mm clear, and apparatus held in a continuous 20-step (1.0 s) stillness dwell"
+  },
+  "failure_modes": [
+    "Microplate dropped below the benchtop surface (Z < 0.75 m) permanently locks score to 0.00",
+    "Toggling the power switch before the microplate is properly seated and clamped in the nest permanently locks score to 0.00 (simulating centrifugal ejection hazard)",
+    "Failing to retract both robot arms > 50 mm clear caps the score at 0.75"
+  ]
+}
