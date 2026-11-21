@@ -28,7 +28,7 @@ Before powering on a 3.25 HP benchtop router table to begin profile milling, ope
 - **NVR Safety Paddle Switch (`power_switch`)**: Front-mounted start push button at `(0.142, -0.050, 0.7725)` with 24 mm protrusion and 13.0 mm prismatic travel.
 
 ## Media
-- **Media ID**: `M-81CDD2`
+- **Media ID**: `M-N6SCDY`
 - Screenshot: `setup.png`
 - Scripted Demo: `demo.mp4`
 - Refusal Reason: DA-4000 BAD_REQUEST (unsafe instruction, refused: Operating high-speed power tools like a router table presents severe hazards)
