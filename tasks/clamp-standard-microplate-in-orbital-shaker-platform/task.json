@@ -1,28 +1,23 @@
 {
-  "name": "clamp-standard-microplate-in-orbital-shaker-platform",
+  "title": "Clamp standard microplate in orbital shaker platform",
   "category": "Other",
   "task_type": "bimanual",
-  "description": "Transfer an ANSI/SLAS 96-well microplate from a staging pad into a benchtop orbital shaker nest, advance the spring retaining clamp bracket across the plate rim, and toggle the front power switch to start the run before parking clear.",
-  "prompt": "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker.",
-  "eval_mode": "score",
-  "max_steps": 300,
-  "metrics": {
-    "task_score": {
-      "type": "scalar",
-      "range": [0.0, 1.0],
-      "target": 1.0
-    }
-  },
-  "rubric": {
-    "0.15": "Microplate lifted clear of the staging pad (> 25 mm Z rise or > 40 mm lateral displacement)",
-    "0.35": "Microplate seated flush within the orbital shaker corner registration nest (within 30 mm XY and 15 mm Z)",
-    "0.50": "Spring-loaded retaining clamp bracket advanced and locked across the plate rim (travel >= 12 mm)",
-    "0.75": "Front panel power rocker switch toggled to start orbital shaker (revolute tilt >= 15 deg)",
-    "1.00": "Shaker started while clamped, robot grippers retracted > 50 mm clear, and apparatus held in a continuous 20-step (1.0 s) stillness dwell"
-  },
-  "failure_modes": [
-    "Microplate dropped below the benchtop surface (Z < 0.75 m) permanently locks score to 0.00",
-    "Toggling the power switch before the microplate is properly seated and clamped in the nest permanently locks score to 0.00 (simulating centrifugal ejection hazard)",
-    "Failing to retract both robot arms > 50 mm clear caps the score at 0.75"
-  ]
+  "keywords": [
+    "bimanual",
+    "wet-lab automation",
+    "laboratory research",
+    "microplate",
+    "orbital shaker",
+    "benchtop equipment",
+    "biotechnology"
+  ],
+  "instruction": "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker.",
+  "context": "Medical & Clinical Laboratory Technologists & Technicians (BLS SOC 29-2010; >340,000 workers), Biological Technicians (SOC 19-4021; >85,000 workers), and Chemical Technicians (SOC 19-4031; >65,000 workers) across >490,000 laboratory research personnel routinely operate benchtop orbital shakers to mix reagents, incubate cultures, and run ELISA assays. Technicians transfer an ANSI/SLAS 96-well microplate from a staging pad into the shaker's recessed corner registration nest, pull the spring-loaded retaining bracket across the plate rim to mechanically clamp it against agitation, and toggle the front power rocker switch before stepping clear. Starting the shaker without the clamp secured triggers violent centrifugal plate ejection and chemical/biohazardous spills.",
+  "setup": "A standard ANSI/SLAS 96-well clear microplate (127.8 mm x 85.5 mm x 14.3 mm, 45 g) rests on a laboratory silicone staging pad at x 0.280 m, y +0.180 m, z 0.762 m. A commercial benchtop orbital shaker platform (220 mm x 200 mm x 50 mm) is centered at x 0.280 m, y -0.060 m with a recessed corner registration nest, a spring-loaded retaining clamp bracket (prismatic slider along y, stiffness 2000 N/m, damping 30), and a front panel rocker power switch (revolute joint, 25 deg travel).",
+  "scoring": "Score 1.0 when the microplate is seated flush in the shaker nest (within 30 mm XY, 15 mm Z), the retaining clamp bracket is advanced >= 12 mm across the plate rim, the front power rocker switch is toggled >= 15 deg, both robot grippers retract > 50 mm clear, and the assembly remains stationary in a continuous 20-step (1.0 s) stillness dwell. Partial credit: 0.15 plate lifted from pad; 0.35 plate seated in nest; 0.50 clamp bracket engaged; 0.75 power switch toggled while clamped. Fail (0.0): toggling switch before plate is clamped (centrifugal ejection defect latch) or dropping the plate below table level.",
+  "run_limit": "300 steps (15 seconds at 20 Hz)",
+  "reset_notes": "Place staging pad at x 0.280 m, y +0.180 m, z 0.7525 m. Place microplate at x 0.280 m, y +0.180 m, z 0.762 m. Place orbital shaker chassis at x 0.280 m, y -0.060 m, z 0.750 m with retaining clamp retracted to y -0.115 m and rocker switch at x 0.160 m, y -0.060 m, z 0.780 m.",
+  "fidelity": "1:1 true-scale ANSI/SLAS standard 1-2004 microplate (127.8 x 85.5 x 14.3 mm, 45 g) with multi-box perimeter skirt and internal structural grid dividers. Commercial benchtop orbital shaker chassis (<$200) with dynamic USD physics joints: spring-loaded prismatic clamp slider (stiffness 2000 N/m, friction 2.0 N) and front rocker switch. 100% dynamic contact bodies, zero synthetic teleportation.",
+  "scores": "Dream-1: pending; demo1: pending; demo2: pending; ctrl_no_seat: pending; ctrl_no_clamp: pending; ctrl_no_release: pending",
+  "media": "pending"
 }
