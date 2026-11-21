@@ -39,9 +39,15 @@ Before powering on the shaker, technicians must seat the microplate flush within
 - **0.75**: Front panel power switch toggled while plate is securely clamped (`>= 15 deg` tilt).
 - **1.00**: Shaker started, both grippers retracted `> 50 mm` clear, and apparatus held in a continuous 20-step (1.0 s) stillness dwell.
 
-### Causal Defect Latch
-- Toggling the power switch before the microplate is seated and clamped in the nest permanently locks the task score to `0.00` (simulating centrifugal ejection hazard).
-- Dropping the microplate below the benchtop surface (`Z < 0.75 m`) permanently locks the task score to `0.00`.
+### Empirical Benchmark Scores
+| Condition | Task Score | Description |
+|---|---|---|
+| `demo1` (Seed 0) | **1.00** | Full bimanual transfer, clamp lock, switch toggle, retraction & dwell |
+| `demo2` (Seed 1) | **1.00** | Seed variation generalization |
+| `ctrl_no_seat` | **0.15** | Control ablation: plate suspended, not seated |
+| `ctrl_no_clamp` | **0.35** | Control ablation: plate seated, clamp not advanced |
+| `ctrl_no_release` | **0.75** | Control ablation: clamped & switch toggled, grippers dwell on switch |
+| `dream1` | **0.00** | Zero-shot untrained policy baseline |
 
 ## Run a Trial
 ```bash

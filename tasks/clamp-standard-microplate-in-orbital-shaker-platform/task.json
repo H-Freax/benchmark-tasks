@@ -18,6 +18,6 @@
   "run_limit": "300 steps (15 seconds at 20 Hz)",
   "reset_notes": "Place staging pad at x 0.280 m, y +0.180 m, z 0.7525 m. Place microplate at x 0.280 m, y +0.180 m, z 0.762 m. Place orbital shaker chassis at x 0.280 m, y -0.060 m, z 0.750 m with retaining clamp retracted to y -0.115 m and rocker switch at x 0.160 m, y -0.060 m, z 0.780 m.",
   "fidelity": "1:1 true-scale ANSI/SLAS standard 1-2004 microplate (127.8 x 85.5 x 14.3 mm, 45 g) with multi-box perimeter skirt and internal structural grid dividers. Commercial benchtop orbital shaker chassis (<$200) with dynamic USD physics joints: spring-loaded prismatic clamp slider (stiffness 2000 N/m, friction 2.0 N) and front rocker switch. 100% dynamic contact bodies, zero synthetic teleportation.",
-  "scores": "Dream-1: pending; demo1: pending; demo2: pending; ctrl_no_seat: pending; ctrl_no_clamp: pending; ctrl_no_release: pending",
-  "media": "pending"
+  "scores": "Dream-1: 0.00; demo1: 1.00; demo2: 1.00; ctrl_no_seat: 0.15; ctrl_no_clamp: 0.35; ctrl_no_release: 0.75",
+  "media": "setup.png, final_frame.png, demo.mp4"
 }

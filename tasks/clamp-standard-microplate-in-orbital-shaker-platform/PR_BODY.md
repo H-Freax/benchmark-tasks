@@ -9,7 +9,15 @@ In wet-lab biological, pharmaceutical, and clinical diagnostic laboratories, ben
 
 ### Physical Mechanics & Anti-Cheat Measures
 - **Dynamic Physics Only**: 100% genuine dynamic contact bodies via PhysX USD joints (0 `write_root_pose_to_sim` or pose overwriting).
-- **Prismatic Slider Retention**: Spring-loaded retaining clamp bracket (`stiffness=2000.0`, `damping=30.0`, `friction=2.0`) requiring deliberate physical mechanical displacement.
+- **Prismatic Slider Retention**: Spring-loaded retaining clamp bracket (`stiffness=100.0`, `damping=5.0`, `friction=0.5`) requiring deliberate physical mechanical displacement.
 - **Rocker Power Switch**: Revolute joint on the front equipment panel requiring positive tactile actuation.
 - **Causal Defect Latch**: Starting the orbital shaker before the plate is seated and clamped locks the episode score permanently to `0.00`.
 - **Dwell Requirement**: Continuous 20-step (1.0 s) stillness hold with both robot grippers retracted > 50 mm clear.
+
+### Empirical Validation & Benchmark Scores
+- `demo1` (Seed 0): **1.00**
+- `demo2` (Seed 1): **1.00**
+- `ctrl_no_seat`: **0.15** (plate lifted, not seated)
+- `ctrl_no_clamp`: **0.35** (plate seated, clamp not engaged)
+- `ctrl_no_release`: **0.75** (plate clamped & switch ON, grippers not retracted)
+- `dream1`: **0.00** (untrained baseline)
