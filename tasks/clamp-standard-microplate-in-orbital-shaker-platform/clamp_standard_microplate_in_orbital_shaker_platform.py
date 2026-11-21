@@ -23,6 +23,7 @@ Dropping the microplate below the benchtop also permanently latches score to 0.0
 import math
 import os
 from dataclasses import dataclass
+from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN
 import numpy as np
 import mechkit as mk
 
@@ -291,9 +292,9 @@ def demo() -> dict[str, list[Waypoint]]:
 
     LEFT_PARK = (0.160, 0.250, 0.940)
     RIGHT_PARK = (0.160, -0.250, 0.940)
-    FINGER_OPEN = 0.045
-    FINGER_CLOSED = 0.000
-    PLATE_GRIP_FINGER = 0.015
+    # Using yam_arena constants
+    
+    PLATE_GRIP_FINGER = FINGER_CLOSED
 
     # Initial parked poses
     add("left", 1.0, LEFT_PARK, FINGER_OPEN, "left park", yaw=-math.pi / 2)
@@ -302,7 +303,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # 1. Left Arm: approach and grasp microplate on staging pad
     # Plate is at (PAD_X=0.280, PAD_Y=0.180, PLATE_INIT_Z=0.762)
     grip_x, grip_y = PAD_X, PAD_Y
-    grip_z = PLATE_INIT_Z + 0.012
+    grip_z = PLATE_INIT_Z + 0.004
 
     add("left", 1.2, (grip_x, grip_y, grip_z + 0.070), FINGER_OPEN, "pre-grasp plate", yaw=-math.pi / 2)
     add("left", 0.6, (grip_x, grip_y, grip_z), FINGER_OPEN, "descend on plate", yaw=-math.pi / 2)
@@ -319,7 +320,7 @@ def demo() -> dict[str, list[Waypoint]]:
     # 2. Transfer microplate to orbital shaker nest
     target_x = NEST_CENTER_X
     target_y = NEST_CENTER_Y
-    target_z = PLATE_SEATED_Z + 0.012
+    target_z = PLATE_SEATED_Z + 0.004
 
     add("left", 1.2, (target_x, target_y, target_z + 0.060), PLATE_GRIP_FINGER, "carry over nest", yaw=-math.pi / 2)
     add("left", 0.8, (target_x, target_y, target_z), PLATE_GRIP_FINGER, "seat into nest", yaw=-math.pi / 2)

@@ -96,25 +96,42 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_release $INSPECT run \
   --log-dir "$E/ctrl_no_release" > "$E/ctrl_no_release.log" 2>&1
 echo "ctrl_no_release completed: $(grep 'task_score:' "$E/ctrl_no_release.log" | tail -n 1)"
 
-echo "=== EXTRACTING FRAMES & ENCODING VIDEO ==="
-DEMO_JSON=$(ls -1 "$E/demo1"/*.json 2>/dev/null | head -n 1)
-if [ -f "$DEMO_JSON" ]; then
-  $INSPECT video "$DEMO_JSON" || true
-  MP4_CANDIDATE=$(ls -1 "$E/demo1"/*overhead*.mp4 "$E/demo1"/*wrist*.mp4 "$E/demo1"/*.mp4 2>/dev/null | head -n 1)
-  if [ -f "$MP4_CANDIDATE" ]; then
-    ffmpeg -y -i "$MP4_CANDIDATE" -c:v libx264 -pix_fmt yuv420p -r 20 -movflags +faststart "$E/demo.mp4"
-    cp -f "$E/demo.mp4" "$T/demo.mp4"
-  fi
-  FRAME_DIR="$E/demo1/frames"
-  if [ -d "$FRAME_DIR" ]; then
-    FIRST_FRAME=$(find "$FRAME_DIR" -type f -name "*overhead*.png" -o -name "*.png" | sort | head -n 1)
-    LAST_FRAME=$(find "$FRAME_DIR" -type f -name "*overhead*.png" -o -name "*.png" | sort | tail -n 1)
-    [ -f "$FIRST_FRAME" ] && cp -f "$FIRST_FRAME" "$T/setup.png" && cp -f "$FIRST_FRAME" "$E/setup.png"
-    [ -f "$LAST_FRAME" ] && cp -f "$LAST_FRAME" "$T/final_frame.png" && cp -f "$LAST_FRAME" "$E/final_frame.png"
-  fi
-fi
+echo "echo "=== EXTRACTING FRAMES & ENCODING VIDEO ==="
+python3 -c "
+import numpy as np, glob
+from PIL import Image
+f_dirs = glob.glob('/demo1/frames/*')
+if f_dirs:
+    top_files = sorted(glob.glob(f'{f_dirs[0]}/*top_cam*.npy'))
+    if top_files:
+        Image.fromarray(np.load(top_files[0])).save('/setup.png')
+        Image.fromarray(np.load(top_files[-1])).save('/final_frame.png')
+        cp_cmd = 'cp -f /*.png /'
+        import subprocess; subprocess.run(cp_cmd, shell=True)
+"
 
-echo "=== RUNNING DREAM-1 POLICY ==="
+# Encode mp4 from saved npy frames
+python3 -c "
+import numpy as np, glob, subprocess
+f_dirs = glob.glob('/demo1/frames/*')
+if f_dirs:
+    top_files = sorted(glob.glob(f'{f_dirs[0]}/*top_cam*.npy'))
+    if top_files:
+        cmd = [
+            'ffmpeg', '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo',
+            '-s', '320x176', '-pix_fmt', 'rgb24', '-r', '20',
+            '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+            '-movflags', '+faststart', '/demo.mp4'
+        ]
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+        for f in top_files:
+            proc.stdin.write(np.load(f).tobytes())
+        proc.stdin.close()
+        proc.wait()
+        subprocess.run('cp -f /demo.mp4 /demo.mp4', shell=True)
+"
+
+=== RUNNING DREAM-1 POLICY ==="
 rm -rf "$E/dream1"
 $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   --embodiment yam_arena \
