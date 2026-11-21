@@ -23,10 +23,10 @@ This benchmark task evaluates bimanual robotic manipulation for safety prerequis
 
 1. **Commercial Disconnect Enclosure (`disconnect_box`)**:
    - Heavy-gauge painted steel NEMA 3R enclosure (140x180x80 mm chassis, 1.2 kg) mounted at `(0.22, 0.00, TOP + 0.060)`.
-   - Hinged steel door swung open providing unhindered access.
-   - Vertical copper ground busbar tab (25x6x20 mm) with copper support mounting shelf positioned at `(0.22, +0.095, TOP + 0.030)`.
+   - Hinged steel door swung open upward at top rim (`+X`) providing unhindered lateral transfer access.
+   - Vertical copper ground busbar tab (40x10x25 mm) on a broad copper mounting shelf (80x80x12 mm) positioned at `(0.22, +0.120, TOP + 0.045)`.
 2. **Bronze Grounding Duckbill Clamp (`grounding_clamp`)**:
-   - Cast bronze grounding clamp body with serrated jaw opening and broad stable rectangular base (50x40x18 mm, 45g).
+   - Cast bronze grounding clamp body with duckbill jaw opening and broad stable rectangular base (50x40x18 mm, 45g).
    - Molded high-dielectric insulated rear grip post and T-bar cross handle (38x22x10 mm) for robot parallel clamp.
 3. **Ceramic Pull-out Fuse Carrier (`fuse_carrier`)**:
    - Commercial molded ceramic insulator body (75x40x22 mm, 40g) holding 60A cylindrical cartridge fuses.
@@ -34,12 +34,12 @@ This benchmark task evaluates bimanual robotic manipulation for safety prerequis
    - Dual brass receiver terminal spring clip alignment.
 4. **Safety Parts Tray (`safety_tray`)**:
    - Molded anti-static safety parts tray (140x110x25 mm, 0.25 kg) centered at `(0.22, -0.18, TOP + 0.015)`.
-   - Generous containment rim walls (140x110 mm boundary) for secure setdown.
+   - Molded containment rim walls for secure setdown.
 
 ## Scoring Breakdown
 
 - **0.20**: Grounding clamp lifted from table (> 20 mm vertical lift).
-- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (dr <= 40 mm, dz <= 40 mm).
+- **0.50**: Grounding clamp jaw securely clamped over copper ground busbar tab (dr <= 30 mm, dz <= 30 mm).
 - **0.75**: Fuse carrier extracted from enclosure spring clips without tripping ungrounded fault interlock.
-- **1.00**: Fuse carrier deposited flush in safety parts tray (dr <= 80 mm, dz <= 35 mm), both arms cleared >= 35 mm, and held stationary for 0.75 s (15 consecutive steps at 20 Hz).
+- **1.00**: Fuse carrier deposited flush in safety parts tray (dr <= 45 mm, dz <= 25 mm), both arms cleared >= 35 mm, and held stationary for 0.75 s (15 consecutive steps at 20 Hz).
 - **0.00 (Fail)**: Attempting to withdraw or displace fuse carrier before grounding clamp is secured (ungrounded fault trigger), base tipped > 15°, or components dropped off bench.

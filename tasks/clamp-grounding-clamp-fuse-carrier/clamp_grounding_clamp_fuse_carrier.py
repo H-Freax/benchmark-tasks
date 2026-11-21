@@ -46,7 +46,7 @@ BOX_Y = 0.000
 BOX_BASE_Z = TOP + 0.055
 
 # Ground busbar lug on the accessible +Y flange of the enclosure
-BUSBAR_POS = np.array([BOX_X, 0.095, TOP + 0.030])
+BUSBAR_POS = np.array([BOX_X, 0.120, TOP + 0.045])
 CLAMP_INIT_POS = np.array([0.180, 0.200, TOP + 0.010])
 FUSE_SEATED_POS = np.array([BOX_X, 0.000, TOP + 0.055])
 TRAY_POS = np.array([0.220, -0.180, TOP + 0.015])
@@ -69,14 +69,14 @@ kit.part(
         mk.box((0.140, 0.008, 0.080), at=(0.000, -0.086, 0.000), color=ANSI_GRAY),
         mk.box((0.008, 0.180, 0.080), at=(0.066, 0.000, 0.000), color=ANSI_GRAY),
         mk.box((0.008, 0.180, 0.080), at=(-0.066, 0.000, 0.000), color=ANSI_GRAY),
-        # Open enclosure door (hinged on +X rim, swung open out of way)
-        mk.box((0.140, 0.006, 0.080), at=(0.050, -0.145, 0.020), color=ANSI_GRAY),
-        # Copper Ground Busbar Mounting Foot & Shelf extending along +Y (supports resting clamp)
-        mk.box((0.040, 0.050, 0.010), at=(0.000, 0.095, -0.040), color=COPPER_SHINE),
-        # Copper Ground Busbar Terminal Tab extending vertically from the shelf (6 mm thick in Y x 25 mm wide in X)
-        mk.box((0.025, 0.006, 0.020), at=(0.000, 0.095, -0.025), color=COPPER_SHINE),
+        # Open enclosure door swung open at top (+X rim) clear of lateral tray transfer
+        mk.box((0.006, 0.180, 0.080), at=(0.106, 0.000, 0.040), color=ANSI_GRAY),
+        # Broad Copper Ground Busbar Mounting Shelf extending along +Y (80x80 mm support)
+        mk.box((0.080, 0.080, 0.012), at=(0.000, 0.126, -0.040), color=COPPER_SHINE),
+        # Copper Ground Busbar Terminal Tab extending vertically from the shelf (10 mm thick in Y x 40 mm wide in X)
+        mk.box((0.040, 0.010, 0.035), at=(0.000, 0.120, -0.015), color=COPPER_SHINE),
         # Ground symbol identification marker plate
-        mk.box((0.018, 0.002, 0.012), at=(0.000, 0.099, -0.025), color=SAFETY_YELLOW),
+        mk.box((0.018, 0.002, 0.012), at=(0.000, 0.126, -0.015), color=SAFETY_YELLOW),
         # Internal fuse receptacle socket base block
         mk.box((0.090, 0.050, 0.020), at=(0.000, 0.000, -0.030), color=CERAMIC_WHITE),
         # Upper terminal spring receiver clips (at x = 0.025, flanking y=0.000 with 14 mm gap for 5 mm blade)
@@ -172,7 +172,8 @@ def _on_step(objects: dict[str, Any]) -> None:
     jaw_z = gp[2]
     dr_clamp = math.sqrt((jaw_x - BUSBAR_POS[0]) ** 2 + (jaw_y - BUSBAR_POS[1]) ** 2)
     dz_clamp = abs(jaw_z - BUSBAR_POS[2])
-    clamped = dr_clamp <= 0.040 and dz_clamp <= 0.040
+    # Tighter clamp grounding threshold: strictly requires jaws over busbar (< 30 mm)
+    clamped = dr_clamp <= 0.030 and dz_clamp <= 0.030
     if clamped:
         M["clamp_grounded"] = True
 
@@ -198,10 +199,11 @@ def _on_step(objects: dict[str, Any]) -> None:
     if fuse_extracted:
         M["fuse_extracted"] = True
 
-    # Placed in safety parts tray
+    # Placed strictly inside safety parts tray (tray interior is 140x110 mm)
     dr_tray = math.sqrt((fp[0] - TRAY_POS[0]) ** 2 + (fp[1] - TRAY_POS[1]) ** 2)
     dz_tray = abs(fp[2] - (TRAY_POS[2] + 0.018))
-    fuse_in_tray = dr_tray <= 0.080 and dz_tray <= 0.035 and not M.get("ungrounded_hazard_tripped", False)
+    # Tighter tray containment threshold: strictly within 45 mm of tray center
+    fuse_in_tray = dr_tray <= 0.045 and dz_tray <= 0.025 and not M.get("ungrounded_hazard_tripped", False)
     if fuse_in_tray:
         M["fuse_in_tray"] = True
 
@@ -310,7 +312,7 @@ def score(objects: dict[str, Any]) -> float:
 def demo() -> dict[str, list[Waypoint]]:
     cheat = os.environ.get("DISCONNECT_CHEAT", "")
 
-    CARRY_Z = TOP + 0.140
+    CARRY_Z = TOP + 0.160
 
     if cheat == "nothing":
         left = [Waypoint(10.0, (0.180, 0.200, CARRY_Z), FINGER_OPEN, "park_left")]
@@ -323,7 +325,7 @@ def demo() -> dict[str, list[Waypoint]]:
     cg_z = CLAMP_INIT_POS[2] + 0.025
 
     # Busbar tab attachment coordinates for clamp handle (+Y side of enclosure)
-    # Jaws at (x, y - 0.030, z) slide over BUSBAR_POS
+    # Jaws at (x, y - 0.030, z) slide over BUSBAR_POS (y=0.120)
     attach_x = BUSBAR_POS[0]
     attach_y = BUSBAR_POS[1] + 0.030
     attach_z = BUSBAR_POS[2] + 0.025
@@ -334,7 +336,7 @@ def demo() -> dict[str, list[Waypoint]]:
     fh_z = FUSE_SEATED_POS[2] + 0.025
 
     # Tray placement coordinates (Right side -Y)
-    tray_place_z = TRAY_POS[2] + 0.030
+    tray_place_z = TRAY_POS[2] + 0.025
 
     if cheat == "no_ground":
         # Right arm pulls fuse WITHOUT grounding (trips hazard fault detector -> score 0.0)
@@ -359,13 +361,14 @@ def demo() -> dict[str, list[Waypoint]]:
         Waypoint(1.2, (attach_x, attach_y, attach_z), FINGER_CLOSED, "clamp_attach"),
         # Release handle so spring jaws bite into copper busbar
         Waypoint(0.8, (attach_x, attach_y, attach_z), FINGER_OPEN, "clamp_release"),
-        Waypoint(1.0, (attach_x, attach_y + 0.040, CARRY_Z), FINGER_OPEN, "clamp_clear"),
+        # Lift straight UP along +Z to CARRY_Z to avoid dragging across clamp
+        Waypoint(1.0, (attach_x, attach_y, CARRY_Z), FINGER_OPEN, "clamp_clear_up"),
         Waypoint(1.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_retract"),
-        Waypoint(12.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_park"),
+        Waypoint(14.0, (0.180, 0.220, CARRY_Z), FINGER_OPEN, "left_park"),
     ]
 
     if cheat == "ground_only":
-        right = [Waypoint(16.0, (0.180, -0.200, CARRY_Z), FINGER_OPEN, "right_park")]
+        right = [Waypoint(18.0, (0.180, -0.200, CARRY_Z), FINGER_OPEN, "right_park")]
         return {"left": left, "right": right}
 
     # Right arm: waits for grounding clamp attachment (t = 8.0s), then extracts fuse
@@ -387,7 +390,7 @@ def demo() -> dict[str, list[Waypoint]]:
 
     right += [
         # Carry fuse carrier over to safety parts tray (-Y side)
-        Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_CLOSED, "tray_approach"),
+        Waypoint(1.2, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_CLOSED, "tray_approach"),
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_CLOSED, "tray_place"),
         # Release fuse carrier into tray
         Waypoint(0.8, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_OPEN, "fuse_release"),
