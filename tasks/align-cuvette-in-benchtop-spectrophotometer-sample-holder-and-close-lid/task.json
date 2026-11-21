@@ -1,19 +1,20 @@
 {
   "task": "align-cuvette-in-benchtop-spectrophotometer-sample-holder-and-close-lid",
-  "category": "Other",
+  "category": "Impact on jobs",
   "instruction": "Transfer the optical cuvette from the staging rack into the spectrophotometer sample holder, align its optical windows along the beam path, close the sample-compartment lid, and clear hands.",
   "scene": "station",
   "scorer": "task_score",
   "max_steps": 500,
   "occupational_relevance": {
-    "soc_codes": ["19-4031", "19-4021", "29-2010"],
+    "soc_codes": ["19-4031", "19-4021", "29-2010", "19-2031"],
     "titles": [
       "Chemical Technicians",
       "Biological Technicians",
-      "Clinical Laboratory Technologists and Technicians"
+      "Clinical Laboratory Technologists and Technicians",
+      "Chemists"
     ],
-    "employment_total": 487000,
-    "description": "Routine analytical chemistry and clinical sample analysis: loading standard 10 mm pathlength optical cuvettes into benchtop UV-Vis spectrophotometers for quantitative absorbance, optical density (OD600), and assay measurements without optical distortion from stray light or finger oils."
+    "employment_total": 575000,
+    "description": "Routine analytical chemistry, molecular biology, and clinical diagnostic sample analysis: transferring standard 10 mm pathlength optical cuvettes into benchtop UV-Vis spectrophotometers for quantitative absorbance, optical density (OD600), and kinetic assays, aligning polished optical windows along the optical beam path and sealing the hinged sample-compartment lid light-tight."
   },
   "physical_mechanism": {
     "spectrophotometer": "Benchtop UV-Vis instrument chassis with recessed sample holder pocket and light beam passage along the Y axis",
