@@ -19,7 +19,7 @@ $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   -E control_hz=20 \
   -E cam_width=320 \
   -E cam_height=176 \
-  -E seed=0 \
+  --seed 0 \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
@@ -37,7 +37,7 @@ $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   -E control_hz=20 \
   -E cam_width=320 \
   -E cam_height=176 \
-  -E seed=1 \
+  --seed 1 \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
@@ -124,7 +124,7 @@ $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   -E control_hz=20 \
   -E cam_width=320 \
   -E cam_height=176 \
-  -E seed=0 \
+  --seed 0 \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
