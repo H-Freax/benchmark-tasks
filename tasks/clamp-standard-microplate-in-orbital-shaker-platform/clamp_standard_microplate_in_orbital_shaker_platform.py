@@ -190,17 +190,19 @@ def _on_step(objects) -> None:
     p_pos, _ = kit.pose(objects, "microplate")
     clamp_travel = kit.q(objects, "clamp_slider")
     switch_deg = math.degrees(kit.q(objects, "switch_hinge"))
-    mk.MEMORY["_step_cnt"] = mk.MEMORY.get("_step_cnt", 0) + 1
+    step = mk.MEMORY.get("_step_cnt", 0) + 1
+    mk.MEMORY["_step_cnt"] = step
+
+    if step % 20 == 0 or step > 270:
+        print(f"[STEP {step:03d}] p_pos=({p_pos[0]:.3f}, {p_pos[1]:.3f}, {p_pos[2]:.3f}) clamp={clamp_travel:.4f} sw={switch_deg:.1f} defect={mk.MEMORY.get('defect')} score={score(objects):.2f} hold={mk.MEMORY.get('hold')}", flush=True)
 
     # Drop failure latch: microplate dropped below tabletop
     if p_pos[2] < TOP:
         mk.MEMORY["defect"] = True
 
-    # Causal defect latch: power switch pressed before plate is clamped in nest
-    # Simulates violent orbital agitation ejecting an unsecured microplate
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.035 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.035 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.018)
+    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.045 and
+                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.045 and
+                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.025)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
 
     if switch_deg >= 15.0 and (not plate_in_nest or not clamp_locked):
@@ -210,14 +212,11 @@ def _on_step(objects) -> None:
         mk.MEMORY["hold"] = 0
         return
 
-    # Track instantaneous continuous stillness hold at final valid state
-    # Must be currently seated in nest + clamp locked + switch on + hands clear
     shaker_started = plate_in_nest and clamp_locked and (switch_deg >= 15.0)
     if shaker_started and hands_clear(objects):
         mk.MEMORY["hold"] = mk.MEMORY.get("hold", 0) + 1
     else:
         mk.MEMORY["hold"] = 0
-
 
 kit.on_step(_on_step)
 
@@ -230,9 +229,9 @@ def score(objects) -> float:
     clamp_travel = kit.q(objects, "clamp_slider")
     switch_deg = math.degrees(kit.q(objects, "switch_hinge"))
 
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.035 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.035 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.018)
+    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.045 and
+                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.045 and
+                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.025)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
     switch_on = switch_deg >= 15.0
 

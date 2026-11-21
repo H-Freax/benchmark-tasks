@@ -101,27 +101,25 @@ echo "ctrl_no_release completed: $(grep 'task_score:' "$E/ctrl_no_release.log" |
 
 echo "=== EXTRACTING FRAMES & ENCODING VIDEO ==="
 python3 -c "
-import numpy as np, glob, subprocess
+import cv2, numpy as np, glob
 from PIL import Image
-f_dirs = glob.glob('$E/demo1/frames/*')
+f_dirs = sorted(glob.glob('/demo1/frames/*'))
 if f_dirs:
     top_files = sorted(glob.glob(f'{f_dirs[-1]}/*top_cam*.npy'))
     if top_files:
-        Image.fromarray(np.load(top_files[0])).save('$E/setup.png')
-        Image.fromarray(np.load(top_files[-1])).save('$E/final_frame.png')
-        subprocess.run('cp -f $E/*.png $T/', shell=True)
-        cmd = [
-            'ffmpeg', '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo',
-            '-s', '320x176', '-pix_fmt', 'rgb24', '-r', '20',
-            '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
-            '-movflags', '+faststart', '$E/demo.mp4'
-        ]
-        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+        Image.fromarray(np.load(top_files[0])).save('/setup.png')
+        Image.fromarray(np.load(top_files[-1])).save('/final_frame.png')
+        first = np.load(top_files[0])
+        h, w, _ = first.shape
+        out_path = '/demo.mp4'
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(out_path, fourcc, 20.0, (w, h))
         for f in top_files:
-            proc.stdin.write(np.load(f).tobytes())
-        proc.stdin.close()
-        proc.wait()
-        subprocess.run('cp -f $E/demo.mp4 $T/demo.mp4', shell=True)
+            writer.write(cv2.cvtColor(np.load(f), cv2.COLOR_RGB2BGR))
+        writer.release()
+        import subprocess
+        subprocess.run('cp -f /*.png /', shell=True)
+        subprocess.run('cp -f /demo.mp4 /demo.mp4', shell=True)
 "
 
 echo "=== RUNNING DREAM-1 POLICY ==="
