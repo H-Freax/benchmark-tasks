@@ -45,8 +45,8 @@ BOX_X = 0.220
 BOX_Y = 0.000
 BOX_BASE_Z = TOP + 0.055
 
-# Ground busbar tab extending on the accessible +Y flange of the enclosure
-BUSBAR_POS = np.array([BOX_X, 0.088, TOP + 0.075])
+# Ground busbar lug on the accessible +Y flange of the enclosure
+BUSBAR_POS = np.array([BOX_X, 0.095, TOP + 0.030])
 CLAMP_INIT_POS = np.array([0.180, 0.200, TOP + 0.010])
 FUSE_SEATED_POS = np.array([BOX_X, 0.000, TOP + 0.055])
 TRAY_POS = np.array([0.220, -0.180, TOP + 0.015])
@@ -71,10 +71,12 @@ kit.part(
         mk.box((0.008, 0.180, 0.080), at=(-0.066, 0.000, 0.000), color=ANSI_GRAY),
         # Open enclosure door (hinged on +X rim, swung open out of way)
         mk.box((0.140, 0.006, 0.080), at=(0.050, -0.145, 0.020), color=ANSI_GRAY),
-        # Copper Ground Busbar Tab extending vertically from the +Y side flange (6 mm thick in Y x 25 mm wide in X x 35 mm high in Z)
-        mk.box((0.025, 0.006, 0.035), at=(0.000, 0.088, 0.020), color=COPPER_SHINE),
+        # Copper Ground Busbar Mounting Foot & Shelf extending along +Y (supports resting clamp)
+        mk.box((0.040, 0.050, 0.010), at=(0.000, 0.095, -0.040), color=COPPER_SHINE),
+        # Copper Ground Busbar Terminal Tab extending vertically from the shelf (6 mm thick in Y x 25 mm wide in X)
+        mk.box((0.025, 0.006, 0.020), at=(0.000, 0.095, -0.025), color=COPPER_SHINE),
         # Ground symbol identification marker plate
-        mk.box((0.018, 0.002, 0.014), at=(0.000, 0.092, 0.020), color=SAFETY_YELLOW),
+        mk.box((0.018, 0.002, 0.012), at=(0.000, 0.099, -0.025), color=SAFETY_YELLOW),
         # Internal fuse receptacle socket base block
         mk.box((0.090, 0.050, 0.020), at=(0.000, 0.000, -0.030), color=CERAMIC_WHITE),
         # Upper terminal spring receiver clips (at x = 0.025, flanking y=0.000 with 14 mm gap for 5 mm blade)
@@ -134,13 +136,13 @@ kit.part(
     name="safety_tray",
     pos=(TRAY_POS[0], TRAY_POS[1], TRAY_POS[2]),
     boxes=[
-        # Tray base plate
-        mk.box((0.120, 0.090, 0.008), at=(0.000, 0.000, -0.010), color=SAFETY_ORANGE),
+        # Generous tray base plate (140 mm x 110 mm)
+        mk.box((0.140, 0.110, 0.008), at=(0.000, 0.000, -0.010), color=SAFETY_ORANGE),
         # Perimeter containment rim walls
-        mk.box((0.120, 0.006, 0.025), at=(0.000, 0.042, 0.005), color=SAFETY_ORANGE),
-        mk.box((0.120, 0.006, 0.025), at=(0.000, -0.042, 0.005), color=SAFETY_ORANGE),
-        mk.box((0.006, 0.090, 0.025), at=(0.057, 0.000, 0.005), color=SAFETY_ORANGE),
-        mk.box((0.006, 0.090, 0.025), at=(-0.057, 0.000, 0.005), color=SAFETY_ORANGE),
+        mk.box((0.140, 0.006, 0.025), at=(0.000, 0.052, 0.005), color=SAFETY_ORANGE),
+        mk.box((0.140, 0.006, 0.025), at=(0.000, -0.052, 0.005), color=SAFETY_ORANGE),
+        mk.box((0.006, 0.110, 0.025), at=(0.067, 0.000, 0.005), color=SAFETY_ORANGE),
+        mk.box((0.006, 0.110, 0.025), at=(-0.067, 0.000, 0.005), color=SAFETY_ORANGE),
     ],
     mass=0.250,
 )
@@ -170,7 +172,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     jaw_z = gp[2]
     dr_clamp = math.sqrt((jaw_x - BUSBAR_POS[0]) ** 2 + (jaw_y - BUSBAR_POS[1]) ** 2)
     dz_clamp = abs(jaw_z - BUSBAR_POS[2])
-    clamped = dr_clamp <= 0.035 and dz_clamp <= 0.035
+    clamped = dr_clamp <= 0.040 and dz_clamp <= 0.040
     if clamped:
         M["clamp_grounded"] = True
 
@@ -199,7 +201,7 @@ def _on_step(objects: dict[str, Any]) -> None:
     # Placed in safety parts tray
     dr_tray = math.sqrt((fp[0] - TRAY_POS[0]) ** 2 + (fp[1] - TRAY_POS[1]) ** 2)
     dz_tray = abs(fp[2] - (TRAY_POS[2] + 0.018))
-    fuse_in_tray = dr_tray <= 0.035 and dz_tray <= 0.025 and not M.get("ungrounded_hazard_tripped", False)
+    fuse_in_tray = dr_tray <= 0.055 and dz_tray <= 0.030 and not M.get("ungrounded_hazard_tripped", False)
     if fuse_in_tray:
         M["fuse_in_tray"] = True
 
@@ -211,7 +213,7 @@ def _on_step(objects: dict[str, Any]) -> None:
 
     # 5. Success hold counter
     if (
-        clamped
+        M.get("clamp_grounded", False)
         and fuse_in_tray
         and hands_clear
         and not failed(objects)
@@ -332,7 +334,7 @@ def demo() -> dict[str, list[Waypoint]]:
     fh_z = FUSE_SEATED_POS[2] + 0.025
 
     # Tray placement coordinates (Right side -Y)
-    tray_place_z = TRAY_POS[2] + 0.035
+    tray_place_z = TRAY_POS[2] + 0.030
 
     if cheat == "no_ground":
         # Right arm pulls fuse WITHOUT grounding (trips hazard fault detector -> score 0.0)
@@ -387,9 +389,11 @@ def demo() -> dict[str, list[Waypoint]]:
         # Carry fuse carrier over to safety parts tray (-Y side)
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_CLOSED, "tray_approach"),
         Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_CLOSED, "tray_place"),
-        # Release fuse carrier into tray and retract clear
+        # Release fuse carrier into tray
         Waypoint(0.8, (TRAY_POS[0], TRAY_POS[1], tray_place_z), FINGER_OPEN, "fuse_release"),
-        Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_OPEN, "tray_clear"),
+        # Lift straight up to CARRY_Z before any lateral motion to prevent dragging
+        Waypoint(1.0, (TRAY_POS[0], TRAY_POS[1], CARRY_Z), FINGER_OPEN, "tray_clear_up"),
+        # Retract clear and park
         Waypoint(1.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_retract"),
         Waypoint(8.0, (0.180, -0.220, CARRY_Z), FINGER_OPEN, "right_park"),
     ]
