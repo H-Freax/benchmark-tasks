@@ -3,7 +3,7 @@
 Verifies:
 1. Syntax and imports
 2. Trajectory IK feasibility across all waypoints
-3. Scorer stages, partial credit, and defect latch logic
+3. Scorer stages, instantaneous physical checks, and defect latch logic
 """
 
 import os
@@ -55,33 +55,54 @@ def test_demo_waypoints():
 def test_scoring_logic():
     print("Testing score stages and anti-cheat defect latch...")
     mk.MEMORY.clear()
-    assert task.score({}) == 0.0
 
-    # Defect latch
+    # 0. Initial unmanipulated state: 0.0
+    st0 = task.kit.fake_states()
+    task._on_step(st0)
+    assert task.score(st0) == 0.0, f"Expected 0.0, got {task.score(st0)}"
+
+    # 1. Defect latch check
     mk.MEMORY["defect"] = True
-    assert task.score({}) == 0.0
+    assert task.score(st0) == 0.0
     mk.MEMORY.clear()
 
-    # Stage 1: plate_lifted
-    mk.MEMORY["plate_lifted"] = True
-    assert abs(task.score({}) - 0.15) < 1e-4
+    # 2. Stage 1: Plate lifted from staging pad
+    st1 = task.kit.fake_states(moved={"microplate": ((task.PAD_X, task.PAD_Y, task.PLATE_INIT_Z + 0.040), (0,0,0,1))})
+    task._on_step(st1)
+    assert abs(task.score(st1) - 0.15) < 1e-4, f"Expected 0.15, got {task.score(st1)}"
 
-    # Stage 2: plate_seated
-    mk.MEMORY["plate_seated"] = True
-    assert abs(task.score({}) - 0.35) < 1e-4
+    # 3. Stage 2: Plate seated flush in nest
+    dx = task.NEST_CENTER_X - task.PAD_X
+    dy = task.NEST_CENTER_Y - task.PAD_Y
+    dz = task.PLATE_SEATED_Z - task.PLATE_INIT_Z
+    st2 = task.kit.fake_states(moved={"microplate": ((task.NEST_CENTER_X, task.NEST_CENTER_Y, task.PLATE_SEATED_Z), (0,0,0,1))})
+    task._on_step(st2)
+    assert abs(task.score(st2) - 0.35) < 1e-4, f"Expected 0.35, got {task.score(st2)}"
 
-    # Stage 3: plate_clamped
-    mk.MEMORY["plate_clamped"] = True
-    assert abs(task.score({}) - 0.50) < 1e-4
+    # 4. Stage 3: Plate seated and retaining clamp engaged (travel >= 12 mm)
+    st3 = task.kit.fake_states(q={"clamp_slider": 0.015}, moved={"microplate": ((task.NEST_CENTER_X, task.NEST_CENTER_Y, task.PLATE_SEATED_Z), (0,0,0,1))})
+    task._on_step(st3)
+    assert abs(task.score(st3) - 0.50) < 1e-4, f"Expected 0.50, got {task.score(st3)}"
 
-    # Stage 4: shaker_started
-    mk.MEMORY["shaker_started"] = True
-    assert abs(task.score({}) - 0.75) < 1e-4
+    # 5. Stage 4: Shaker started while clamped (switch tilt >= 15 deg)
+    st4 = task.kit.fake_states(q={"clamp_slider": 0.015, "switch_hinge": 20.0},
+                               moved={"microplate": ((task.NEST_CENTER_X, task.NEST_CENTER_Y, task.PLATE_SEATED_Z), (0,0,0,1))}, deg=True)
+    task._on_step(st4)
+    assert abs(task.score(st4) - 0.75) < 1e-4, f"Expected 0.75, got {task.score(st4)}"
 
-    # Stage 5: hold steps
+    # 6. Premature start defect latch: switch toggled while plate NOT clamped
+    mk.MEMORY.clear()
+    bad_st = task.kit.fake_states(q={"switch_hinge": 20.0}, deg=True)
+    task._on_step(bad_st)
+    assert mk.MEMORY.get("defect") is True, "Premature start must trigger defect latch"
+    assert task.score(bad_st) == 0.0
+
+    # 7. Stage 5: 20-step stillness hold
+    mk.MEMORY.clear()
     mk.MEMORY["hold"] = task.HOLD_STEPS_REQUIRED
-    assert abs(task.score({}) - 1.00) < 1e-4
-    assert task.success({}) is True
+    assert abs(task.score(st4) - 1.00) < 1e-4, f"Expected 1.00, got {task.score(st4)}"
+    assert task.success(st4) is True
+
     print("Scoring stages verified!")
 
 if __name__ == "__main__":

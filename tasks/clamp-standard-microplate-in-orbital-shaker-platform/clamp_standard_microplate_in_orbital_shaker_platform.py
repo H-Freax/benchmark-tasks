@@ -173,13 +173,14 @@ HOLD_STEPS_REQUIRED = 20
 
 
 def hands_clear(objects) -> bool:
-    targets = [objects["microplate"], objects["retaining_clamp"], objects["power_switch"]]
+    targets = ["microplate", "retaining_clamp", "power_switch"]
     tcps = mk.tcps() if _TEST_TCPS is None else _TEST_TCPS
-    for arm in ("left", "right"):
-        tcp = tcps[arm]
-        for obj in targets:
-            pos, _ = kit.pose(objects, obj) if isinstance(obj, str) else (obj.get("pos", np.zeros(3)), None)
-            if np.linalg.norm(tcp - pos) < 0.060:
+    if not tcps:
+        return True
+    for tcp in tcps:
+        for name in targets:
+            pos, _ = kit.pose(objects, name)
+            if np.linalg.norm(np.asarray(tcp) - pos) < 0.060:
                 return False
     return True
 
@@ -187,7 +188,7 @@ def hands_clear(objects) -> bool:
 def _on_step(objects) -> None:
     p_pos, _ = kit.pose(objects, "microplate")
     clamp_travel = kit.q(objects, "clamp_slider")
-    switch_deg = kit.q(objects, "switch_hinge")
+    switch_deg = math.degrees(kit.q(objects, "switch_hinge"))
     mk.MEMORY["_step_cnt"] = mk.MEMORY.get("_step_cnt", 0) + 1
 
     # Drop failure latch: microplate dropped below tabletop
@@ -196,36 +197,22 @@ def _on_step(objects) -> None:
 
     # Causal defect latch: power switch pressed before plate is clamped in nest
     # Simulates violent orbital agitation ejecting an unsecured microplate
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.030 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.030 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.015)
+    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.020 and
+                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.020 and
+                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.010)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
 
     if switch_deg >= 15.0 and (not plate_in_nest or not clamp_locked):
         mk.MEMORY["defect"] = True
 
     if mk.MEMORY.get("defect"):
+        mk.MEMORY["hold"] = 0
         return
 
-    # Stage 1: Microplate lifted from staging pad
-    d_pad = float(np.linalg.norm(p_pos[:2] - np.array([PAD_X, PAD_Y])))
-    if d_pad > 0.040 or (p_pos[2] - PLATE_INIT_Z) > 0.025:
-        mk.MEMORY["plate_lifted"] = True
-
-    # Stage 2: Microplate seated flush in shaker nest
-    if mk.MEMORY.get("plate_lifted") and plate_in_nest:
-        mk.MEMORY["plate_seated"] = True
-
-    # Stage 3: Retaining clamp bracket advanced & engaged against microplate
-    if mk.MEMORY.get("plate_seated") and clamp_locked:
-        mk.MEMORY["plate_clamped"] = True
-
-    # Stage 4: Power switch toggled to start orbital shaker while clamped
-    if mk.MEMORY.get("plate_clamped") and switch_deg >= 15.0:
-        mk.MEMORY["shaker_started"] = True
-
-    # Stage 5: Shaker started + hands retracted clear + continuous stillness hold
-    if mk.MEMORY.get("shaker_started") and hands_clear(objects):
+    # Track instantaneous continuous stillness hold at final valid state
+    # Must be currently seated in nest + clamp locked + switch on + hands clear
+    shaker_started = plate_in_nest and clamp_locked and (switch_deg >= 15.0)
+    if shaker_started and hands_clear(objects):
         mk.MEMORY["hold"] = mk.MEMORY.get("hold", 0) + 1
     else:
         mk.MEMORY["hold"] = 0
@@ -238,16 +225,37 @@ def score(objects) -> float:
     if mk.MEMORY.get("defect"):
         return 0.0
 
+    p_pos, _ = kit.pose(objects, "microplate")
+    clamp_travel = kit.q(objects, "clamp_slider")
+    switch_deg = math.degrees(kit.q(objects, "switch_hinge"))
+
+    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.020 and
+                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.020 and
+                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.010)
+    clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
+    switch_on = switch_deg >= 15.0
+
+    # 1.00: Full successful operation with continuous stillness dwell
     if mk.MEMORY.get("hold", 0) >= HOLD_STEPS_REQUIRED:
         return 1.0
-    if mk.MEMORY.get("shaker_started"):
+
+    # 0.75: Shaker currently started while plate is seated and clamped
+    if plate_in_nest and clamp_locked and switch_on:
         return 0.75
-    if mk.MEMORY.get("plate_clamped"):
+
+    # 0.50: Plate seated and retaining clamp currently locked
+    if plate_in_nest and clamp_locked:
         return 0.50
-    if mk.MEMORY.get("plate_seated"):
+
+    # 0.35: Plate currently seated flush in nest
+    if plate_in_nest:
         return 0.35
-    if mk.MEMORY.get("plate_lifted"):
+
+    # 0.15: Plate lifted clear of staging pad
+    d_pad = float(np.linalg.norm(p_pos[:2] - np.array([PAD_X, PAD_Y])))
+    if d_pad > 0.040 or (p_pos[2] - PLATE_INIT_Z) > 0.025:
         return 0.15
+
     return 0.0
 
 
