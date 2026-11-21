@@ -62,7 +62,7 @@ PLATE_SEATED_Z = NEST_FLOOR_Z + PLATE_H / 2.0  # 0.799 m
 # Retaining clamp bracket (prismatic slider along Y)
 # Slides from retracted open (Y = NEST_CENTER_Y - PLATE_W/2 - 0.020) inward to clamp plate rim
 CLAMP_TRAVEL = 0.025  # 25 mm travel
-CLAMP_ENGAGED_STROKE = 0.012  # Clamps firmly at >= 12 mm travel
+CLAMP_ENGAGED_STROKE = 0.004  # Clamps firmly at >= 12 mm travel
 
 # Power switch (revolute rocker switch on front panel facing robot at +X)
 SWITCH_X = SHAKER_X - SHAKER_L / 2.0 - 0.010
@@ -324,7 +324,7 @@ def demo() -> dict[str, list[Waypoint]]:
     add("left", 1.2, (target_x, target_y, target_z + 0.060), PLATE_GRIP_FINGER, "carry over nest", yaw=0.0)
     add("left", 0.8, (target_x, target_y, target_z), PLATE_GRIP_FINGER, "seat into nest", yaw=0.0)
     add("left", 0.4, (target_x, target_y, target_z), FINGER_OPEN, "release plate", yaw=0.0)
-    add("left", 0.6, (target_x, target_y, target_z + 0.040), FINGER_OPEN, "retract left arm", yaw=0.0)
+    add("left", 0.8, (target_x, target_y, target_z + 0.080), FINGER_OPEN, "retract left arm straight up", yaw=0.0)
     add("left", 1.0, LEFT_PARK, FINGER_OPEN, "park left arm", yaw=0.0)
 
     # 3. Right Arm: Clamp retaining bracket
