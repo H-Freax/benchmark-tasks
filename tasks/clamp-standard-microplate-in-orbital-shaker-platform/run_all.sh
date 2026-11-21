@@ -23,7 +23,7 @@ $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
-  --store-frames \
+  --store-frames --no-prompt \
   --log-dir "$E/demo1" > "$E/demo1.log" 2>&1
 echo "demo1 completed: $(grep 'task_score:' "$E/demo1.log" | tail -n 1)"
 
@@ -41,7 +41,7 @@ $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
-  --store-frames \
+  --store-frames --no-prompt \
   --log-dir "$E/demo2" > "$E/demo2.log" 2>&1
 echo "demo2 completed: $(grep 'task_score:' "$E/demo2.log" | tail -n 1)"
 
@@ -58,7 +58,7 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_seat $INSPECT run \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
-  --store-frames \
+  --store-frames --no-prompt \
   --log-dir "$E/ctrl_no_seat" > "$E/ctrl_no_seat.log" 2>&1
 echo "ctrl_no_seat completed: $(grep 'task_score:' "$E/ctrl_no_seat.log" | tail -n 1)"
 
@@ -75,7 +75,7 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_clamp $INSPECT run \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
-  --store-frames \
+  --store-frames --no-prompt \
   --log-dir "$E/ctrl_no_clamp" > "$E/ctrl_no_clamp.log" 2>&1
 echo "ctrl_no_clamp completed: $(grep 'task_score:' "$E/ctrl_no_clamp.log" | tail -n 1)"
 
@@ -92,7 +92,7 @@ $GPU_RUN env PYTHONPATH=$T DEMO_VARIANT=no_release $INSPECT run \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
-  --store-frames \
+  --store-frames --no-prompt \
   --log-dir "$E/ctrl_no_release" > "$E/ctrl_no_release.log" 2>&1
 echo "ctrl_no_release completed: $(grep 'task_score:' "$E/ctrl_no_release.log" | tail -n 1)"
 
@@ -128,7 +128,7 @@ $GPU_RUN env PYTHONPATH=$T $INSPECT run \
   --instruction "Seat the microplate in the orbital shaker nest, lock the retaining clamp, and turn on the shaker." \
   --scorer task_score \
   --max-steps 300 \
-  --store-frames \
+  --store-frames --no-prompt \
   --log-dir "$E/dream1" > "$E/dream1.log" 2>&1 || true
 echo "dream1 completed: $(grep 'task_score:' "$E/dream1.log" | tail -n 1)"
 
