@@ -80,5 +80,5 @@
   "scoring": "Current-state stage scoring with causal safety defect latch: 0.00 initial; 0.20 when hex wrench is lifted clear (>45 mm above turntable); 0.40 when wrench rests stably in side tool tray (XY within 80 mm, Z < 0.7925 m); 0.75 when cutting head is pivoted down 75 degrees flush (<=5.0 deg) onto bottom mechanical stop; 1.00 when head is bottomed out flush, wrench rests in side tray, and both robot arms retract clear (>=40 mm) for a 20-step (1.0 s at 20 Hz) stillness dwell hold. Irreversible 0.0 defect latch triggers if the cutting head is lowered past 15.0 deg while the hex wrench remains on the turntable, or if the wrench falls below table level.",
   "reset_notes": "Return the hex wrench to the turntable kerf slot at X = 0.300 m, Y = 0.000 m, Z = 0.7945 m. Re-open the cutting head to 75.0 degrees. Verify side tool tray is clear and both robot arms are parked.",
   "fidelity": "Authentic compact 7-1/4\" compound miter saw geometry and mass distribution. Hinge counterbalance modeled via calibrated 1.2 N*m joint friction. Rigid steel hex wrench modeled with transverse grasp tab for positive parallel jaw gripping. Causal latch enforces strict OSHA 1910.213 woodworking machinery blade shatter and projectile shrapnel avoidance rules.",
-  "media": "M-MITER1"
+  "media": "M-Y4DR2R"
 }
