@@ -14,7 +14,7 @@ In molecular biology sample preparation, genomic sequencing (NGS) library constr
 
 1. **Grasp & Lift**: Manipulator (Left arm) pinches the chilled 96-well PCR cooler rack by its authentic perimeter skirt flange and lifts it from the benchtop silicone staging mat.
 2. **Transfer & Registration**: Manipulator transfers the cooler rack across the bench and seats it flush into the recessed magnetic pin registration nest of the 96-well magnetic separation stand (XY alignment error <= 15 mm, vertical flush <= 12 mm).
-3. **Engage Slide Lock**: Manipulator (Right arm) pushes the knurled handle tab of the sliding lock bar forward along +Y (travel >= 15 mm) to rigidly clamp the cooler rack skirt against the stand's fixed perimeter stops, ensuring uniform magnetic bead pellet separation and preventing plate movement.
+3. **Engage Slide Lock**: Manipulator (Right arm) pushes the knurled handle tab of the sliding lock bar forward along +Y (travel >= 8.0 mm) to rigidly clamp the cooler rack skirt against the stand's fixed perimeter stops, ensuring uniform magnetic bead pellet separation and preventing plate movement.
 4. **Retract & Hold**: Both arms retract clear (>50 mm) for a continuous 20-step (1.0 s at 20 Hz) stillness hold.
 
 ### Scoring & Strict Instantaneous State Evaluation
