@@ -18,5 +18,5 @@
   "reset_notes": "Return stainless spatula to the feed chute plate at (0.27, 0.02, 0.885) m. Return bread slice to the right staging caddy at (0.24, -0.18, 0.765) m.",
   "fidelity": "Rigid body contact physics for commercial stainless toaster chassis, slotted turner spatula, and deformable-feeling sandwich bread slice. Pure geometry contact without artificial grasping points or proximity welds.",
   "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete seeds, 800 steps each).",
-  "media": "M-PENDING"
+  "media": "M-TOAST1"
 }
