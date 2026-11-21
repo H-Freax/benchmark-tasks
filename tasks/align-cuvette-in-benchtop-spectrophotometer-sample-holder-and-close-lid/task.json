@@ -1,0 +1,30 @@
+{
+  "task": "align-cuvette-in-benchtop-spectrophotometer-sample-holder-and-close-lid",
+  "category": "Other",
+  "instruction": "Transfer the optical cuvette from the staging rack into the spectrophotometer sample holder, align its optical windows along the beam path, close the sample-compartment lid, and clear hands.",
+  "scene": "station",
+  "scorer": "task_score",
+  "max_steps": 500,
+  "occupational_relevance": {
+    "soc_codes": ["19-4031", "19-4021", "29-2010"],
+    "titles": [
+      "Chemical Technicians",
+      "Biological Technicians",
+      "Clinical Laboratory Technologists and Technicians"
+    ],
+    "employment_total": 487000,
+    "description": "Routine analytical chemistry and clinical sample analysis: loading standard 10 mm pathlength optical cuvettes into benchtop UV-Vis spectrophotometers for quantitative absorbance, optical density (OD600), and assay measurements without optical distortion from stray light or finger oils."
+  },
+  "physical_mechanism": {
+    "spectrophotometer": "Benchtop UV-Vis instrument chassis with recessed sample holder pocket and light beam passage along the Y axis",
+    "sample_lid": "Light-tight compartment cover attached via revolute hinge joint (0 to 75 deg travel)",
+    "optical_cuvette": "Standard 12.5 x 12.5 x 45.0 mm optical cuvette with opposing frosted handling sides along X and opposing polished clear optical windows along Y",
+    "cuvette_rack": "Countertop polypropylene staging rack"
+  },
+  "scoring": {
+    "0.25": "Cuvette lifted vertically clear of staging rack",
+    "0.50": "Cuvette seated squarely and upright inside spectrophotometer sample socket",
+    "0.75": "Cuvette seated and hinged sample-compartment lid closed flush (<= 8 deg)",
+    "1.00": "All criteria met with robot hands retracted clear (> 40 mm) for 20-step stillness hold"
+  }
+}

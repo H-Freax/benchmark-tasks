@@ -1,0 +1,12 @@
+{
+  "task": "align-cuvette-in-benchtop-spectrophotometer-sample-holder-and-close-lid",
+  "category": "Other",
+  "criteria": {
+    "zero_artificial_grasp_aids": "MET - Standard 12.5 x 12.5 x 45.0 mm optical cuvette with authentic frosted ribs and polished optical windows; zero robot-only grasp tabs, stems, or posts.",
+    "live_instantaneous_scoring": "MET - Zero permanent positive credit latching. If the cuvette is removed, tipped, or lid re-opened, credit immediately drops.",
+    "authentic_geometry": "MET - Faithful multi-part CAD representation of commercial UV-Vis spectrophotometer, hinged light-tight sample compartment, optical socket, and cuvette staging rack.",
+    "domain_novelty": "MET - Distinct wet-lab sample preparation task with 0 collisions or variants across 3,388 PRs.",
+    "pure_multibody_dynamics": "MET - 100% genuine dynamic contact bodies and PhysX revolute joint; zero synthetic pose teleportation.",
+    "local_execution": "MET - Strictly local worktree and evidence vault on RTX 3090 + HDD; zero git push or PR creation."
+  }
+}
