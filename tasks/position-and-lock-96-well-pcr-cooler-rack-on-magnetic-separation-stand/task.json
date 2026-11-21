@@ -30,10 +30,26 @@
   },
   "scoring": {
     "rubric": [
-      {"stage": 0, "score": "0.00", "description": "Rack resting untouched on bench staging mat"},
-      {"stage": 1, "score": "0.10 - 0.39", "description": "Rack lifted and transferring toward magnetic stand"},
-      {"stage": 2, "score": "0.40 - 0.69", "description": "Rack seated flush in magnetic registration nest (horizontal error <= 20 mm, vertical flush <= 18 mm), lock bar advancing toward engagement (0.0 to 8.0 mm)"},
-      {"stage": 3, "score": "0.70 - 1.00", "description": "Rack seated and lock bar fully engaged (>=8.0 mm travel), hands retracted clear (>50 mm) for 20-step (1.0 s) continuous stillness hold"}
+      {
+        "stage": 0,
+        "score": "0.00",
+        "description": "Rack resting untouched on bench staging mat"
+      },
+      {
+        "stage": 1,
+        "score": "0.10 - 0.39",
+        "description": "Rack lifted and transferring toward magnetic stand"
+      },
+      {
+        "stage": 2,
+        "score": "0.40 - 0.69",
+        "description": "Rack seated flush in magnetic registration nest (horizontal error <= 20 mm, vertical flush <= 18 mm), lock bar advancing toward engagement (0.0 to 8.0 mm)"
+      },
+      {
+        "stage": 3,
+        "score": "0.70 - 1.00",
+        "description": "Rack seated and lock bar fully engaged (>=8.0 mm travel), hands retracted clear (>50 mm) for 20-step (1.0 s) continuous stillness hold"
+      }
     ],
     "instantaneous_compliance": "Zero permanent positive stage latching. All criteria evaluated from live physical state at each simulation step; unseating rack or retracting lock bar immediately revokes score and resets dwell to 0."
   },
@@ -42,7 +58,20 @@
     "write_root_pose_to_sim": false,
     "dynamic_contacts": true,
     "joints": [
-      {"name": "slider_joint", "type": "prismatic", "axis": [0, 1, 0], "travel_m": [0.0, 0.020]}
+      {
+        "name": "slider_joint",
+        "type": "prismatic",
+        "axis": [
+          0,
+          1,
+          0
+        ],
+        "travel_m": [
+          0.0,
+          0.02
+        ]
+      }
     ]
-  }
+  },
+  "media": "M-EDKJAB"
 }
