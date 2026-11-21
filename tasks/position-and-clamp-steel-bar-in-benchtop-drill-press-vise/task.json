@@ -18,5 +18,6 @@
   "run_limit": "400 steps (20 seconds at 20 Hz)",
   "reset_notes": "Place vise base at x 0.280 m, y 0.020 m. Place staging rack at x 0.240 m, y 0.220 m with workpiece bar seated in locating rails. Moving jaw open at x 0.250 m.",
   "fidelity": "Commercial 4-inch benchtop drill press vise with precision-ground fixed jaw plate, lateral end stop, ground steel parallels, heavy sliding jaw, and T-bar screw handle. Workpiece bar modelled with authentic 0.55 kg high-carbon steel inertia and friction. 100% dynamic rigid contact physics, zero synthetic pose writing.",
-  "scores": "Dream-1: 0.0; demo_1: 1.0; demo_2: 1.0; neg_no_seat: 0.20; neg_no_clamp: 0.50; neg_no_release: 0.85"
+  "scores": "Dream-1: 0.0; demo_1: 1.0; demo_2: 1.0; neg_no_seat: 0.20; neg_no_clamp: 0.50; neg_no_release: 0.85",
+  "media": "M-A4BAMK"
 }
