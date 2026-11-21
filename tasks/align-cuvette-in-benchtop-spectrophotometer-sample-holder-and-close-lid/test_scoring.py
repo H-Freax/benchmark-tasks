@@ -118,6 +118,24 @@ class TestScoring(unittest.TestCase):
         self.assertEqual(task.score(states_open), 0.50)
         self.assertEqual(mk.MEMORY.get("hold_steps", 0), 0)
 
+    def test_misaligned_cuvette_drops_score(self):
+        # Cuvette seated in socket and lid closed, BUT cuvette rotated 90 deg (yaw = pi/2)
+        # Optical windows face +/- X instead of light beam axis (+/- Y)
+        # Quat for 90 deg around Z: (0, 0, sin(45), cos(45)) = (0, 0, 0.7071068, 0.7071068)
+        states = task.kit.fake_states(
+            q={"lid_hinge": math.radians(0.0)},
+            moved={
+                "optical_cuvette": (
+                    (task.HOLDER_X, task.HOLDER_Y, task.CUVETTE_SEATED_Z),
+                    (0.0, 0.0, 0.70710678, 0.70710678),
+                )
+            },
+        )
+        task._update_mechanics(states)
+        # Since optical_aligned is False, stage 2, 3, and 4 cannot be achieved. Score should be 0.25 (or in transit/lifted) or 0.0
+        self.assertLess(task.score(states), 0.50)
+        self.assertEqual(mk.MEMORY.get("hold_steps", 0), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

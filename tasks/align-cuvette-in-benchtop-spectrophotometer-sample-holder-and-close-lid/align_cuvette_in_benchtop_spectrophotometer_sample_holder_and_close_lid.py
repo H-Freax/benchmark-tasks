@@ -207,9 +207,16 @@ def _update_mechanics(objects: dict):
     cuvette_seated = bool(dist_xy < 0.020 and abs(cuvette_p[2] - CUVETTE_SEATED_Z) < 0.020)
 
     # Check cuvette orientation: standing upright (tilt < 25 degrees)
-    # quat_xyzw = (x, y, z, w). For upright along Z, 2*(w^2 + z^2) - 1 ~ 1.0.
     tilt_rad = 2.0 * math.acos(min(1.0, max(-1.0, abs(cuvette_q[3]))))
     cuvette_upright = bool(tilt_rad < math.radians(25.0))
+
+    # Check optical window alignment: clear optical windows must align with light-path axis (+/- Y)
+    # Cuvette optical windows are normal to Y at yaw = 0 or pi. Frosted sides are normal to X.
+    siny_cosp = 2.0 * (cuvette_q[3] * cuvette_q[2] + cuvette_q[0] * cuvette_q[1])
+    cosy_cosp = 1.0 - 2.0 * (cuvette_q[1] * cuvette_q[1] + cuvette_q[2] * cuvette_q[2])
+    yaw_rad = math.atan2(siny_cosp, cosy_cosp)
+    optical_align_err_rad = abs((yaw_rad + math.pi / 2.0) % math.pi - math.pi / 2.0)
+    optical_aligned = bool(optical_align_err_rad <= math.radians(18.0))
 
     # Check lid closed: flush light-tight over sample chamber (angle <= 8 degrees)
     lid_closed = bool(lid_deg <= 8.0)
@@ -222,7 +229,7 @@ def _update_mechanics(objects: dict):
 
     # 2. Dwell Stillness Count: ONLY counts consecutive steps when ALL completion
     # conditions are SIMULTANEOUSLY and CONTINUOUSLY met!
-    all_complete_now = bool(cuvette_seated and cuvette_upright and lid_closed and hands_clear)
+    all_complete_now = bool(cuvette_seated and cuvette_upright and optical_aligned and lid_closed and hands_clear)
     if all_complete_now:
         mk.MEMORY["hold_steps"] = mk.MEMORY.get("hold_steps", 0) + 1
     else:
@@ -232,7 +239,7 @@ def _update_mechanics(objects: dict):
         print(
             f"[SPECTRO STEP {step:03d}] score={score(objects):.2f} "
             f"c_pos=({cuvette_p[0]:.3f},{cuvette_p[1]:.3f},{cuvette_p[2]:.3f}) "
-            f"seated={cuvette_seated} upright={cuvette_upright} "
+            f"seated={cuvette_seated} upright={cuvette_upright} opt_align={optical_aligned} "
             f"lid_deg={lid_deg:.1f} lid_closed={lid_closed} "
             f"clear={hands_clear} hold={mk.MEMORY.get('hold_steps', 0)}",
             flush=True,
@@ -281,6 +288,13 @@ def score(objects: dict) -> float:
     tilt_rad = 2.0 * math.acos(min(1.0, max(-1.0, abs(cuvette_q[3]))))
     cuvette_upright = bool(tilt_rad < math.radians(25.0))
 
+    # Check optical window alignment: clear optical windows must align with light-path axis (+/- Y)
+    siny_cosp = 2.0 * (cuvette_q[3] * cuvette_q[2] + cuvette_q[0] * cuvette_q[1])
+    cosy_cosp = 1.0 - 2.0 * (cuvette_q[1] * cuvette_q[1] + cuvette_q[2] * cuvette_q[2])
+    yaw_rad = math.atan2(siny_cosp, cosy_cosp)
+    optical_align_err_rad = abs((yaw_rad + math.pi / 2.0) % math.pi - math.pi / 2.0)
+    optical_aligned = bool(optical_align_err_rad <= math.radians(18.0))
+
     lid_closed = bool(lid_deg <= 8.0)
     hands_clear = bool(
         _released(objects["optical_cuvette"], CLEAR_MARGIN_M)
@@ -289,15 +303,15 @@ def score(objects: dict) -> float:
     hold_steps = int(mk.MEMORY.get("hold_steps", 0))
 
     # Stage 4: Full completion held stably for 20 consecutive steps
-    if cuvette_seated and cuvette_upright and lid_closed and hands_clear and hold_steps >= HOLD_STEPS:
+    if cuvette_seated and cuvette_upright and optical_aligned and lid_closed and hands_clear and hold_steps >= HOLD_STEPS:
         return 1.00
 
-    # Stage 3: Cuvette seated and lid closed flush
-    if cuvette_seated and cuvette_upright and lid_closed:
+    # Stage 3: Cuvette seated, optically aligned, and lid closed flush
+    if cuvette_seated and cuvette_upright and optical_aligned and lid_closed:
         return 0.75
 
-    # Stage 2: Cuvette seated inside holder chamber socket
-    if cuvette_seated and cuvette_upright:
+    # Stage 2: Cuvette seated inside holder chamber socket with optical windows aligned
+    if cuvette_seated and cuvette_upright and optical_aligned:
         return 0.50
 
     # Stage 1: Cuvette lifted clear of staging rack
