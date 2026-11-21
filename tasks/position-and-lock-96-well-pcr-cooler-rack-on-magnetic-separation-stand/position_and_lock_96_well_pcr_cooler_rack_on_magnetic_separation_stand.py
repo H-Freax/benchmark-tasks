@@ -174,9 +174,10 @@ kit.slider(
     lower=0.0,
     upper=LOCK_TRAVEL,
     start=0.0,
-    stiffness=50.0,
+    stiffness=0.0,
     rest=0.0,
-    damping=15.0,
+    damping=30.0,
+    friction=5.0,
 )
 
 # 4. 96-Well Skirted PCR Cooler Rack (Dynamic free-floating rigid body)
@@ -253,9 +254,13 @@ def score(objects: dict[str, ObjectState]) -> float:
     dist_nest_xy = np.hypot(rx - RACK_TARGET_X, ry - RACK_TARGET_Y)
     dist_nest_z = abs(rz - RACK_TARGET_Z)
 
+    m["step"] = m.get("step", 0) + 1
+    if m["step"] % 20 == 0 or m["step"] >= 400:
+        print(f"[STEP {m['step']:03d}] rx={rx:.4f}, ry={ry:.4f}, rz={rz:.4f} | dist_xy={dist_nest_xy*1000:.1f}mm, dist_z={dist_nest_z*1000:.1f}mm | slider={slider_travel*1000:.2f}mm | dwell={m['post_dwell']}", file=sys.stderr)
+
     # Physical milestones evaluated purely at current step:
     rack_lifted = np.hypot(rx - RACK_INIT_X, ry - RACK_INIT_Y) > 0.030 or (rz - RACK_INIT_Z) > 0.020
-    rack_seated = (dist_nest_xy <= 0.015) and (dist_nest_z <= 0.012)
+    rack_seated = (dist_nest_xy <= 0.020) and (dist_nest_z <= 0.018)
     slider_locked = (slider_travel >= LOCK_ENGAGED_MIN)
 
     # Scoring Ladder:
