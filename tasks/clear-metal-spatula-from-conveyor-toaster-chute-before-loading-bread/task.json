@@ -18,6 +18,6 @@
   "reset_notes": "Return stainless spatula to the feed chute plate at (0.27, 0.02, 0.885) m. Return bread slice to the right staging caddy at (0.24, -0.18, 0.765) m.",
   "fidelity": "Rigid body contact physics for commercial stainless toaster chassis, slotted turner spatula, and deformable-feeling sandwich bread slice. Pure geometry contact without artificial grasping points or proximity welds.",
   "scores": "Dream-1: 0.0; demo_1: 1.0; demo_2: 1.0; ctrl_no_clear: 0.20; ctrl_no_tray: 0.40; ctrl_no_release: 0.75",
-  "media": "M-Z5CYCZ",
+  "media": "M-39N36M",
   "no_model_video_reason": "DreamAPI refused the inference request: DA-4000 BAD_REQUEST (malformed): unsafe instruction, refused: Inserting objects into active commercial high-voltage heating appliances presents severe shock and burn hazards."
 }
