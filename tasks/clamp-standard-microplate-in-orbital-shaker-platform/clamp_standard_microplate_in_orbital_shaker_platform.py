@@ -334,7 +334,7 @@ def demo() -> dict[str, list[Waypoint]]:
     tab_y = CLAMP_INIT_Y - 0.012
     tab_z = SHAKER_TOP_Z + 0.018
 
-    wait_until("right", 3.0, "wait for plate transfer")
+    wait_until("right", 7.2, "wait for plate transfer")
     add("right", 1.0, (tab_x, tab_y - 0.040, tab_z + 0.040), FINGER_OPEN, "approach clamp tab", yaw=0.0)
     add("right", 0.6, (tab_x, tab_y, tab_z), FINGER_OPEN, "descend on clamp tab", yaw=0.0)
     add("right", 0.4, (tab_x, tab_y, tab_z), FINGER_CLOSED, "pinch clamp tab", yaw=0.0)
