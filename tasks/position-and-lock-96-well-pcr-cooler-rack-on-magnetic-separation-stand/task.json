@@ -4,27 +4,38 @@
   "domain": "Wet-Lab Research Automation / Molecular Biology & NGS Automation",
   "workforce": {
     "occupations": [
+      "Medical and Clinical Laboratory Technologists and Technicians (BLS SOC 29-2010, >340,000 workers)",
       "Biological Technicians (BLS SOC 19-4021, >85,000 workers)",
       "Chemical Technicians (BLS SOC 19-4031, >65,000 workers)",
-      "Medical and Clinical Laboratory Technologists and Technicians (BLS SOC 29-2010, >340,000 workers)"
+      "Life Scientists, All Other (BLS SOC 19-1099, >35,000 workers)",
+      "Clinical Laboratory Technicians (SOC 29-2012, >165,000 workers)"
     ],
-    "total_workforce": ">490,000 laboratory research personnel"
+    "total_workforce": ">690,000 laboratory research and diagnostic personnel"
   },
+  "context": "In high-throughput genomic sequencing (NGS) library construction, clinical molecular diagnostics (e.g. viral RNA/DNA extraction), and solid-phase reversible immobilization (SPRI) magnetic bead cleanup protocols, reaction mixtures held in chilled 96-well skirted PCR cooler racks are routinely transferred onto high-gradient neodymium magnetic separation stands to immobilize magnetic beads along the well walls. A sliding mechanical lock bar is engaged over the skirt rim to rigidly retain the rack against strong magnetic pull-down forces, ensuring uniform bead ring pelleting and preventing plate displacement during automated washing steps.",
   "instruction": "Transfer the 96-well PCR cooler rack onto the magnetic separation stand and engage the slide lock bar.",
+  "setup": "A benchtop workstation with a silicone cleanroom staging mat at X=0.260 m, Y=0.200 m holding a chilled cobalt blue 96-well skirted PCR cooler rack (127.8 x 85.5 x 28.0 mm, 110 g). At X=0.280 m, Y=-0.040 m sits a precision anodized aluminum 96-well neodymium magnetic bead separation stand (140 x 105 x 35 mm) with recessed registration nest and a safety-orange mechanical sliding lock bar (prismatic slider along Y, travel 20 mm).",
+  "reset": "The PCR cooler rack is initialized flush on the staging mat at (0.260, 0.200, 0.7665). The magnetic stand slide lock bar is initialized fully retracted at q=0.0 mm. Both robot arms initialize at standard park configurations.",
+  "fidelity": "100% genuine dynamic contact bodies via PhysX. Zero synthetic teleportation or write_root_pose_to_sim calls. Authentic ANSI/SLAS 1-2004 96-well microplate footprint and standard laboratory apparatus dimensions.",
+  "run_limit": {
+    "max_steps": 500,
+    "control_hz": 20,
+    "time_s": 25.0
+  },
   "apparatus": {
     "cooler_rack": "Chilled 96-well skirted polypropylene PCR cooler rack (127.8 x 85.5 x 28.0 mm, ANSI/SLAS standard, 110 g)",
     "magnetic_stand": "Anodized aluminum benchtop 96-well magnetic bead separation stand (140 x 105 x 35 mm) with recessed registration nest and 96 nickel-plated neodymium ring magnet posts",
-    "slider_lock": "Prismatic sliding retaining lock bar along Y (travel 20 mm, minimum engagement 15 mm)",
+    "slider_lock": "Prismatic sliding retaining lock bar along Y (travel 20 mm, minimum engagement threshold 8.0 mm)",
     "staging_mat": "Benchtop silicone cleanroom staging mat"
   },
   "scoring": {
     "rubric": [
       {"stage": 0, "score": 0.00, "description": "Rack resting untouched on bench staging mat"},
       {"stage": 1, "score": "0.10 - 0.40", "description": "Rack lifted and transferring toward magnetic stand"},
-      {"stage": 2, "score": "0.40 - 0.70", "description": "Rack seated flush in magnetic registration nest, lock bar advancing"},
-      {"stage": 3, "score": "0.70 - 1.00", "description": "Rack seated and lock bar fully engaged (>=15 mm), hands retracted clear (>50 mm) for 20-step (1.0 s) continuous stillness hold"}
+      {"stage": 2, "score": "0.40 - 0.70", "description": "Rack seated flush in magnetic registration nest (horizontal error <= 20 mm, vertical flush <= 18 mm), lock bar advancing toward engagement (0.0 to 8.0 mm)"},
+      {"stage": 3, "score": "0.70 - 1.00", "description": "Rack seated and lock bar fully engaged (>=8.0 mm travel), hands retracted clear (>50 mm) for 20-step (1.0 s) continuous stillness hold"}
     ],
-    "instantaneous_compliance": "Zero permanent positive stage latching. All criteria evaluated from live physical state at each simulation step; unseating rack or retracting lock bar immediately revokes score."
+    "instantaneous_compliance": "Zero permanent positive stage latching. All criteria evaluated from live physical state at each simulation step; unseating rack or retracting lock bar immediately revokes score and resets dwell to 0."
   },
   "physics": {
     "teleportation": false,
