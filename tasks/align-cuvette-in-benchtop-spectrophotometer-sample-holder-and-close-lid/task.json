@@ -33,5 +33,6 @@
     "0.75": "Cuvette seated and hinged sample-compartment lid closed flush (<= 8 deg)",
     "1.00": "All criteria met with robot hands retracted clear (> 40 mm) for 20-step stillness hold"
   },
-  "media": "M-6WZR4X"
+  "media": "M-6WZR4X",
+  "scores": "Dream-1: 0.00; demo_1: 1.00; demo_2: 1.00; ctrl_lift_only: 0.25; ctrl_seat_only: 0.50; ctrl_no_release: 0.75"
 }
