@@ -229,7 +229,9 @@ def _on_step(objects: dict[str, Any]):
     dx = abs(bar_pos[0] - BAR_TARGET_X)
     dy = abs(bar_pos[1] - BAR_TARGET_Y)
     dz = abs(bar_pos[2] - BAR_TARGET_Z)
-    is_seated = (dx <= 0.005 and dy <= 0.008 and dz <= 0.004)
+    bar_q = getattr(objects["workpiece_bar"], "quat_xyzw", np.array([0.0, 0.0, 0.0, 1.0]))
+    tilt_deg = float(np.degrees(np.arccos(np.clip(1.0 - 2.0 * (bar_q[0]**2 + bar_q[1]**2), -1.0, 1.0))))
+    is_seated = (dx <= 0.005 and dy <= 0.008 and dz <= 0.004 and tilt_deg <= 3.0)
 
     jaw_stroke = (jaw_pos[0] - MOVING_JAW_X0) * 1000.0  # in mm
     handle_stroke = (handle_pos[0] - HANDLE_X0) * 1000.0  # in mm
@@ -255,7 +257,9 @@ def score(objects: dict[str, Any]) -> float:
     dx = abs(bar_pos[0] - BAR_TARGET_X)
     dy = abs(bar_pos[1] - BAR_TARGET_Y)
     dz = abs(bar_pos[2] - BAR_TARGET_Z)
-    is_seated = (dx <= 0.005 and dy <= 0.008 and dz <= 0.004)
+    bar_q = getattr(objects["workpiece_bar"], "quat_xyzw", np.array([0.0, 0.0, 0.0, 1.0]))
+    tilt_deg = float(np.degrees(np.arccos(np.clip(1.0 - 2.0 * (bar_q[0]**2 + bar_q[1]**2), -1.0, 1.0))))
+    is_seated = (dx <= 0.005 and dy <= 0.008 and dz <= 0.004 and tilt_deg <= 3.0)
 
     jaw_pos = objects["moving_jaw"].pos
     handle_pos = objects["vise_handle"].pos
