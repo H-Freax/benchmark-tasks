@@ -260,7 +260,7 @@ def score(objects: dict[str, Any]) -> float:
 
     s = 0.0
     # 0.20: Bar lifted clear of staging rack
-    if bar_pos[2] > BAR_INIT_Z + 0.030:
+    if bar_pos[2] >= 0.805:
         s = 0.20
 
     # 0.50: Bar seated on parallels inside vise channel
@@ -293,15 +293,15 @@ def demo():
     seat_z = BAR_TARGET_Z + 0.010
 
     left = [
-        # Hover over staging rack
-        Waypoint(1.5, (RACK_XY[0], RACK_XY[1], carry_z), FINGER_OPEN, "left_hover", math.pi / 2),
-        # Descend to pinch grasp bar
-        Waypoint(1.0, (RACK_XY[0], RACK_XY[1], bar_pick_z), FINGER_OPEN, "left_descend", math.pi / 2),
-        Waypoint(0.8, (RACK_XY[0], RACK_XY[1], bar_pick_z), FINGER_CLOSED, "left_grasp", math.pi / 2),
-        # Lift bar clear
-        Waypoint(1.2, (RACK_XY[0], RACK_XY[1], carry_z), FINGER_CLOSED, "left_lift", math.pi / 2),
-        # Transfer over vise channel
-        Waypoint(1.5, (BAR_TARGET_X, BAR_TARGET_Y, carry_z), FINGER_CLOSED, "left_over_vise", math.pi / 2),
+        # 1. Hover over staging rack (t = 1.2s)
+        Waypoint(1.2, (RACK_XY[0], RACK_XY[1], carry_z), FINGER_OPEN, "left_hover", math.pi / 2),
+        # 2. Descend to pinch grasp bar (t = 0.8s)
+        Waypoint(0.8, (RACK_XY[0], RACK_XY[1], bar_pick_z), FINGER_OPEN, "left_descend", math.pi / 2),
+        Waypoint(0.6, (RACK_XY[0], RACK_XY[1], bar_pick_z), FINGER_CLOSED, "left_grasp", math.pi / 2),
+        # 3. Lift bar clear (t = 1.0s)
+        Waypoint(1.0, (RACK_XY[0], RACK_XY[1], carry_z), FINGER_CLOSED, "left_lift", math.pi / 2),
+        # 4. Transfer over vise channel (t = 1.2s)
+        Waypoint(1.2, (BAR_TARGET_X, BAR_TARGET_Y, carry_z), FINGER_CLOSED, "left_over_vise", math.pi / 2),
     ]
 
     if variant == "no_seat":
@@ -309,14 +309,14 @@ def demo():
         right = [Waypoint(16.0, (0.150, -0.220, carry_z), FINGER_OPEN, "right_park", 0.0)]
         return {"left": left, "right": right}
 
-    # Lower bar down flush onto parallels
+    # 5. Lower bar down flush onto parallels (t = 1.0s + 0.6s release)
     left += [
-        Waypoint(1.2, (BAR_TARGET_X, BAR_TARGET_Y, seat_z), FINGER_CLOSED, "left_seat", math.pi / 2),
-        Waypoint(0.8, (BAR_TARGET_X, BAR_TARGET_Y, seat_z), FINGER_OPEN, "left_release", math.pi / 2),
-        # Retract left arm clear
-        Waypoint(1.0, (BAR_TARGET_X, BAR_TARGET_Y + 0.040, carry_z), FINGER_OPEN, "left_lift_clear", math.pi / 2),
-        Waypoint(1.5, (0.150, 0.220, carry_z), FINGER_OPEN, "left_retract", 0.0),
-        Waypoint(8.0, (0.150, 0.220, carry_z), FINGER_OPEN, "left_park", 0.0),
+        Waypoint(1.0, (BAR_TARGET_X, BAR_TARGET_Y, seat_z), FINGER_CLOSED, "left_seat", math.pi / 2),
+        Waypoint(0.6, (BAR_TARGET_X, BAR_TARGET_Y, seat_z), FINGER_OPEN, "left_release", math.pi / 2),
+        # 6. Retract left arm clear (t = 0.8s lift + 1.0s retract + 6.0s park dwell)
+        Waypoint(0.8, (BAR_TARGET_X, BAR_TARGET_Y + 0.040, carry_z), FINGER_OPEN, "left_lift_clear", math.pi / 2),
+        Waypoint(1.0, (0.150, 0.220, carry_z), FINGER_OPEN, "left_retract", 0.0),
+        Waypoint(6.0, (0.150, 0.220, carry_z), FINGER_OPEN, "left_park", 0.0),
     ]
 
     # Right arm: Advance vise handle to clamp moving jaw
@@ -327,26 +327,26 @@ def demo():
         right = [Waypoint(16.0, (0.150, -0.220, carry_z), FINGER_OPEN, "right_park", 0.0)]
         return {"left": left, "right": right}
 
-    # Left duration until park: 1.5 + 1.0 + 0.8 + 1.2 + 1.5 + 1.2 + 0.8 + 1.0 = 9.0s
+    # Left duration until clear of vise: 1.2 + 0.8 + 0.6 + 1.0 + 1.2 + 1.0 + 0.6 + 0.8 = 7.2s
     right = [
         # Wait for left arm to seat the bar and retract clear
-        Waypoint(9.0, (0.150, -0.220, carry_z), FINGER_OPEN, "right_wait", 0.0),
-        # Approach vise handle
-        Waypoint(1.2, (handle_approach_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_approach_handle", 0.0),
-        # Stroke handle forward to clamp moving jaw
-        Waypoint(1.5, (handle_push_target_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_clamp_stroke", 0.0),
-        Waypoint(0.5, (handle_push_target_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_clamp_settle", 0.0),
+        Waypoint(7.4, (0.150, -0.220, carry_z), FINGER_OPEN, "right_wait", 0.0),
+        # Approach vise handle (t = 1.0s)
+        Waypoint(1.0, (handle_approach_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_approach_handle", 0.0),
+        # Stroke handle forward to clamp moving jaw (t = 1.2s)
+        Waypoint(1.2, (handle_push_target_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_clamp_stroke", 0.0),
+        Waypoint(0.4, (handle_push_target_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_clamp_settle", 0.0),
     ]
 
     if variant == "no_release":
         right.append(Waypoint(8.0, (handle_push_target_x, HANDLE_Y0, HANDLE_Z), FINGER_CLOSED, "right_hold_handle", 0.0))
         return {"left": left, "right": right}
 
-    # Retract right arm clear for stillness hold
+    # Retract right arm clear for stillness hold (t = 0.8s + 1.0s + 3.0s dwell)
     right += [
-        Waypoint(1.0, (handle_approach_x, HANDLE_Y0, HANDLE_Z), FINGER_OPEN, "right_back_off", 0.0),
-        Waypoint(1.2, (0.150, -0.220, carry_z), FINGER_OPEN, "right_retract", 0.0),
-        Waypoint(4.0, (0.150, -0.220, carry_z), FINGER_OPEN, "right_park_dwell", 0.0),
+        Waypoint(0.8, (handle_approach_x, HANDLE_Y0, HANDLE_Z), FINGER_OPEN, "right_back_off", 0.0),
+        Waypoint(1.0, (0.150, -0.220, carry_z), FINGER_OPEN, "right_retract", 0.0),
+        Waypoint(3.0, (0.150, -0.220, carry_z), FINGER_OPEN, "right_park_dwell", 0.0),
     ]
 
     return {"left": left, "right": right}
