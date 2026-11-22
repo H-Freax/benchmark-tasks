@@ -44,6 +44,7 @@ def test_rack_in_tank_perimeter_score():
         "degas_button": MockPart((task_module.BTN_REST_X, task_module.BTN_Y, task_module.BTN_Z)),
     }
     mk.MEMORY["rack_pos"] = np.array([task_module.TANK_CENTER_X, task_module.TANK_CENTER_Y, task_module.RACK_START_Z + 0.050])
+    mk.MEMORY["rack_lifted_from_stage"] = True
     assert task_module.score(objects) == 0.25
 
 

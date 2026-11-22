@@ -267,6 +267,10 @@ def _step_rules(objects: Dict[str, Any]):
     if rack_tilt_deg > 15.0:
         mk.MEMORY["rack_flooded_defect"] = True
 
+    # Lift detection: rack bottom lifted clear of table staging plane (Z >= RACK_START_Z + 0.020 m)
+    if rack_pos[2] >= (RACK_START_Z + 0.020):
+        mk.MEMORY["rack_lifted_from_stage"] = True
+
     # Check whether rack is within tank chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm)
     dx = abs(rack_pos[0] - TANK_CENTER_X)
     dy = abs(rack_pos[1] - TANK_CENTER_Y)
@@ -384,11 +388,11 @@ def score(objects: Dict[str, Any]) -> float:
     if mk.MEMORY.get("rack_seated_current", False):
         return 0.50
 
-    # 0.25 Stage: rack inside chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm)
+    # 0.25 Stage: rack lifted clear of staging plane AND transferred inside chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm)
     rack_pos = mk.MEMORY.get("rack_pos", np.array([0.0, 0.0, 0.0]))
     dx = abs(rack_pos[0] - TANK_CENTER_X)
     dy = abs(rack_pos[1] - TANK_CENTER_Y)
-    if dx <= 0.038 and dy <= 0.035 and rack_pos[2] < (RACK_START_Z + 0.080):
+    if mk.MEMORY.get("rack_lifted_from_stage", False) and dx <= 0.038 and dy <= 0.035 and rack_pos[2] < (RACK_START_Z + 0.080):
         return 0.25
 
     return 0.00

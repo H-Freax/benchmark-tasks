@@ -10,12 +10,12 @@
   - 230 x 190 x 80 mm brushed stainless steel chassis positioned at `(X=0.250, Y=-0.060, Z=0.748)` m on the table surface.
   - 150 x 120 x 45 mm internal fluid tank cavity centered at `(X=0.250, Y=-0.060, Z=0.783)` m filled with sonication water bath fluid (fluid resting surface at Z = 0.813 m; foam rack center resting on fluid at Z = 0.828 m).
   - Hinged transparent acrylic acoustic safety lid propped open at 70.0 degrees at rear pivot `(0.165, -0.060, 0.834)` m with counterbalance spring (`stiffness=0.10 N*m/rad`, Coulomb friction `0.08 N*m`).
-  - Tactile membrane DEGAS pushbutton on front console at `(0.405, -0.045, 0.783)` m with return spring (`stiffness=20.0 N/m`, damping `1.0 N*s/m`). Stroke limit: 8.0 mm; electrical contact threshold: `>= 3.0 mm`.
+  - Tactile membrane DEGAS pushbutton on front console at `(0.405, -0.045, 0.783)` m with return spring (`stiffness=20.0 N/m`, damping `1.0 N*s/m`). Stroke limit: 8.0 mm along (-1, 0, 0); electrical contact threshold: `>= 3.0 mm`.
 - **Floating Microtube Foam Rack**:
-  - Buoyant closed-cell EVA foam slab (`80 x 56 x 30` mm, mass 0.09 kg) holding 8 microcentrifuge tubes in a 2x4 array staged at `(X=0.250, Y=0.180, Z=0.763)` m.
+  - Buoyant closed-cell EVA foam slab (`80 x 56 x 30` mm, mass 0.09 kg) holding 8 standard 1.5 mL polypropylene microcentrifuge tubes (OD 11 mm x height 10 mm collar proud with 13 mm red snap-seal caps) arranged in a 2x4 array staged at `(X=0.250, Y=0.180, Z=0.763)` m.
 
 ## Scoring Progression
-1. **0.25**: Foam rack lifted and transferred inside bath chamber perimeter (`|dx| <= 38 mm`, `|dy| <= 35 mm`, `Z < 0.843 m`).
+1. **0.25**: Foam rack lifted vertically clear of staging plane (`Z >= 0.783 m`) and transferred inside bath chamber perimeter (`|dx| <= 38 mm`, `|dy| <= 35 mm`, `Z < 0.843 m`).
 2. **0.50**: Foam rack fully seated level inside tank well (`|dz| <= 12 mm` from fluid resting center `0.828 m`, tilt `<= 8.0 deg`).
 3. **0.75**: Acrylic lid closed flush (`angle <= 14.0 deg`) AND DEGAS membrane button depressed inward `>= 3.0 mm`.
 4. **1.00**: DEGAS cycle triggered, rack seated level right now, lid closed flush right now, both robotic arms retracted clear (`>= 50 mm`) for `>= 20` control steps (1.0 s at 20 Hz).
