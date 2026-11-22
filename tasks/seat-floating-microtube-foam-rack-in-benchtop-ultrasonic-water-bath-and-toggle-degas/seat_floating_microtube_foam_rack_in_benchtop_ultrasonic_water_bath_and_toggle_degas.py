@@ -10,29 +10,29 @@ Maps directly to:
 Total Workforce: >559,000 professional laboratory and life-sciences personnel.
 
 Apparatus:
-1. Benchtop ultrasonic sonicator bath (Branson CPX / Fisherbrand style):
+1. Benchtop ultrasonic sonicator bath (commercial model: Branson CPX1800H / Elmasonic Easy 30H style):
    - Exterior chassis: 230 mm (X) x 190 mm (Y) x 80 mm (Z) brushed stainless housing at (X=0.250, Y=-0.060, Z=TABLE_TOP).
    - Internal stainless fluid tank chamber cavity: 150 mm (X) x 120 mm (Y) x 45 mm deep, centered at (X=0.250, Y=-0.060).
-   - Stainless tank liquid floor at Z = TABLE_TOP + 35 mm; resting fluid plane top at Z = TABLE_TOP + 65.5 mm (world Z = 0.813 m); foam rack center resting on fluid surface at world Z = 0.828 m.
+   - Stainless tank liquid floor at Z = TABLE_TOP + 41 mm (0.7885 m); operational sonication water bath fluid surface at world Z = 0.8105 m (22 mm fluid depth); floating microtube rack Archimedes buoyant equilibrium center at world Z = 0.805 m (displacing 90 cm^3 / 20.1 mm draft with 9.9 mm dry freeboard).
    - Hinged transparent acrylic safety lid: revolute joint along rear rim (X=0.165, Y=-0.060, Z=TABLE_TOP + 86 mm) propped open at 70.0 degrees with counterbalance spring and friction.
-   - Front membrane control console: momentary tactile DEGAS pushbutton (prismatic slider along -X, 8.0 mm stroke, >= 3.0 mm actuation) on front console at (X=0.405, Y=-0.045, Z=TABLE_TOP + 35 mm).
-2. Floating microtube foam rack (buoyant EVA foam rack):
-   - Dimension: 80 mm (X) x 56 mm (Y) x 30 mm (Z), mass 0.09 kg, floating/resting staging platform at (X=0.250, Y=0.180, Z=TABLE_TOP + 15 mm).
-   - Loaded with 8 microcentrifuge tubes (nested in 2x4 array).
+   - Front membrane control console: momentary tactile SONICATE / START pushbutton (prismatic slider along -X, 8.0 mm stroke, >= 3.0 mm actuation) on front console at (X=0.405, Y=-0.045, Z=TABLE_TOP + 35 mm).
+2. Floating microtube foam rack (buoyant EVA foam rack, purchasable Heathrow Scientific / Bel-Art style):
+   - Dimension: 80 mm (X) x 56 mm (Y) x 30 mm (Z), loaded mass 0.090 kg (90 g), floating/resting staging platform at (X=0.250, Y=0.180, Z=TABLE_TOP + 15 mm).
+   - Loaded with 8 standard 1.5 mL polypropylene microcentrifuge tubes (nested in 2x4 array).
 
 Robotic Bimanual Sequence:
-1. Left arm reaches to the floating microtube foam rack in staging area (Y=+0.180), grasps body with parallel gripper, lifts vertically (Z >= 0.783 m), transfers laterally into ultrasonic bath tank, and seats it level on the interior tank fluid resting plane (Z ~ 0.828 m).
+1. Left arm reaches to the floating microtube foam rack in staging area (Y=+0.180), grasps upper perimeter rim with parallel gripper (grip elevation Z = 0.778 m staged, Z = 0.820 m in bath, maintaining >= 9.5 mm dry clearance above water surface), lifts vertically (Z >= 0.783 m), transfers laterally into ultrasonic bath tank, and seats it level at Archimedes buoyant equilibrium (Z ~ 0.805 m).
 2. Left arm maintains level posture throughout transfer. If tilt exceeds 15.0 degrees at any point, liquid floods the foam wells, locking score to 0.00 (catastrophic liquid flood defect).
-3. Right arm reaches to the propped-open acrylic lid (70.0 deg), swings it closed flush over the tank rim (angle <= 14.0 deg).
-4. Right arm reaches to front control panel and depresses the tactile DEGAS membrane button inward along -X by >= 3.0 mm.
-5. Both arms release and retract clear (TCP clearance >= 50 mm) for a continuous 20-step (1.0 s at 20 Hz) stillness hold while rack remains seated level inside tank, lid closed, and DEGAS registered.
+3. Right arm reaches to the propped-open acrylic lid (70.0 deg), swings it closed flush over the tank rim (angle <= 14.0 deg) to suppress acoustic aerosol emissions.
+4. Right arm reaches to front control panel and depresses the tactile SONICATE membrane button inward along -X by >= 3.0 mm to initiate ultrasonic cavitation.
+5. Both arms release and retract clear (TCP clearance >= 50 mm) for a continuous 20-step (1.0 s at 20 Hz) stillness hold while rack remains seated level inside tank, lid closed, and sonication registered.
 
 Scoring Stages (Strict Instantaneous Physics / Zero Permanent Positive Latches):
-- 0.00: Base / idle / or catastrophic rack-tip defect (> 15.0 deg tilt) / premature dry-run cavitation triggered.
+- 0.00: Base / idle / or catastrophic rack-tip defect (> 15.0 deg tilt) triggered.
 - 0.25: Foam rack lifted vertically (Z >= 0.783 m) and transferred inside bath chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm, Z < 0.843 m).
-- 0.50: Foam rack fully seated level on bath interior fluid resting plane (|dz| <= 12 mm from 0.828 m, tilt <= 8.0 deg).
-- 0.75: Acrylic lid closed flush over tank (angle <= 14.0 deg) AND tactile DEGAS button depressed inward >= 3.0 mm.
-- 1.00: DEGAS cycle triggered, rack seated level right now, lid closed flush right now, hands retracted clear >= 50 mm, and 20-step stillness dwell satisfied.
+- 0.50: Foam rack fully seated level on bath interior fluid resting plane (|dz| <= 12 mm from 0.805 m, tilt <= 8.0 deg).
+- 0.75: Acrylic lid closed flush over tank (angle <= 14.0 deg) AND tactile SONICATE button depressed inward >= 3.0 mm.
+- 1.00: Sonication cycle triggered, rack seated level right now, lid closed flush right now, hands retracted clear >= 50 mm, and 20-step stillness dwell satisfied.
 """
 
 from __future__ import annotations
@@ -168,10 +168,11 @@ def _bath_body_boxes() -> list[mk.BoxSpec]:
     boxes.append(mk.box((TANK_W_X, TANK_D_Y, 0.006),
                         at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.003),
                         color=STEEL_TANK))
-    # 3. Water bath fluid layer (translucent blue resting fluid plane, 24.5 mm depth, fluid surface at world Z = 0.813 m)
-    # Foam rack (height 0.030 m) resting on fluid surface has center Z = 0.813 + 0.015 = 0.828 m
-    boxes.append(mk.box((TANK_W_X - 0.006, TANK_D_Y - 0.006, 0.0245),
-                        at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.006 + 0.01225),
+    # 3. Water bath fluid layer (translucent blue resting fluid plane, 22.0 mm depth, fluid surface at world Z = 0.8105 m)
+    # Foam rack (height 0.030 m, mass 0.090 kg, area 44.8 cm^2, displaced volume 90 mL) floats at Archimedes equilibrium
+    # Submerged draft depth = 20.1 mm; resting center Z = 0.8105 - 0.0051 = 0.8054 m ~ 0.805 m
+    boxes.append(mk.box((TANK_W_X - 0.006, TANK_D_Y - 0.006, 0.022),
+                        at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.006 + 0.011),
                         color=WATER_BLUE))
     return boxes
 
@@ -190,8 +191,8 @@ def _lid_boxes() -> list[mk.BoxSpec]:
     return boxes
 
 
-def _degas_button_boxes() -> list[mk.BoxSpec]:
-    """Momentary DEGAS pushbutton on front console. 48x36 mm tactile pad."""
+def _sonicate_button_boxes() -> list[mk.BoxSpec]:
+    """Momentary SONICATE / START pushbutton on front console. 48x36 mm tactile pad."""
     boxes = []
     boxes.append(mk.box((0.024, 0.048, 0.036), at=(0.0, 0.0, 0.0), color=BUTTON_TEAL))
     return boxes
@@ -229,10 +230,10 @@ kit.hinge("lid_pivot", "bath_body", "bath_lid",
           lower_deg=0.0, upper_deg=LID_OPEN_DEG, start_deg=LID_OPEN_DEG,
           stiffness=0.10, rest_deg=LID_OPEN_DEG, damping=0.02, friction=0.08)
 
-# Tactile DEGAS Button on Front Console: prismatic slider along (-1, 0, 0) with return spring
-kit.part("degas_button", (BTN_REST_X, BTN_Y, BTN_Z), _degas_button_boxes(),
+# Tactile SONICATE / START Button on Front Console: prismatic slider along (-1, 0, 0) with return spring
+kit.part("sonicate_button", (BTN_REST_X, BTN_Y, BTN_Z), _sonicate_button_boxes(),
          mass=0.05, color=BUTTON_TEAL, solver_position_iterations=16)
-kit.slider("button_slider", "bath_body", "degas_button",
+kit.slider("button_slider", "bath_body", "sonicate_button",
            axis=(-1, 0, 0), lower=0.000, upper=0.008, start=0.000,
            stiffness=20.0, rest=0.000, damping=1.0, friction=0.01)
 
@@ -276,9 +277,9 @@ def _step_rules(objects: Dict[str, Any]):
     dy = abs(rack_pos[1] - TANK_CENTER_Y)
     rack_in_tank_xy = (dx <= 0.038 and dy <= 0.035)
 
-    # Target resting elevation on tank floor / water bed:
-    # Resting center settled at Z ~ 0.828 m
-    target_rack_z = 0.828
+    # Target resting elevation at Archimedes buoyant equilibrium:
+    # Resting center settled at Z ~ 0.805 m (fluid surface 0.8105 m, 20.1 mm draft)
+    target_rack_z = 0.805
     dz = abs(rack_pos[2] - target_rack_z)
     rack_seated_level = (rack_in_tank_xy and dz <= 0.012 and rack_tilt_deg <= 8.0)
     mk.MEMORY["rack_seated_current"] = rack_seated_level
@@ -292,7 +293,7 @@ def _step_rules(objects: Dict[str, Any]):
     lid_closed = (lid_angle_deg <= 14.0)
     mk.MEMORY["lid_closed_current"] = lid_closed
 
-    # 3. Measure DEGAS Button Depression Travel
+    # 3. Measure SONICATE Button Depression Travel
     try:
         btn_travel_m = kit.q(objects, "button_slider")
     except Exception:
@@ -301,13 +302,9 @@ def _step_rules(objects: Dict[str, Any]):
     btn_pressed = (btn_travel_m >= 0.003)
     mk.MEMORY["button_pressed_current"] = btn_pressed
 
-    # Premature DEGAS Defect: pressing DEGAS without rack seated level in tank trips cavitation dry-run error
-    if btn_pressed and not rack_seated_level:
-        mk.MEMORY["dry_run_cavitation_defect"] = True
-
-    # Degas cycle triggered ONLY when rack is seated in tank, lid is closed, and button is actively depressed
-    if rack_seated_level and lid_closed and btn_pressed and not mk.MEMORY.get("rack_flooded_defect") and not mk.MEMORY.get("dry_run_cavitation_defect"):
-        mk.MEMORY["degas_triggered"] = True
+    # Sonication cycle triggered ONLY when rack is seated in tank, lid is closed, and button is actively depressed
+    if rack_seated_level and lid_closed and btn_pressed and not mk.MEMORY.get("rack_flooded_defect"):
+        mk.MEMORY["sonication_triggered"] = True
 
     # 4. Check Hands Retraction Clearance
     tcp_list = mk.tcps() if hasattr(mk, "tcps") else []
@@ -321,7 +318,7 @@ def _step_rules(objects: Dict[str, Any]):
             LID_HINGE_Z + LID_LEN * math.sin(q_rad),
         ])
 
-    btn_obj = objects.get("degas_button")
+    btn_obj = objects.get("sonicate_button")
     btn_pos = None
     if btn_obj is not None and hasattr(btn_obj, "pos"):
         btn_pos = np.array([float(btn_obj.pos[0]), float(btn_obj.pos[1]), float(btn_obj.pos[2])])
@@ -338,10 +335,9 @@ def _step_rules(objects: Dict[str, Any]):
     else:
         hands_clear = True
 
-    # 5. Stillness Hold: degas triggered, no defects, rack seated level, lid closed, hands clear >= 20 steps
-    if (mk.MEMORY.get("degas_triggered") and
+    # 5. Stillness Hold: sonication triggered, no defects, rack seated level, lid closed, hands clear >= 20 steps
+    if (mk.MEMORY.get("sonication_triggered") and
             not mk.MEMORY.get("rack_flooded_defect") and
-            not mk.MEMORY.get("dry_run_cavitation_defect") and
             rack_seated_level and lid_closed and hands_clear):
         held = mk.MEMORY.get("hold_steps", 0) + 1
         mk.MEMORY["hold_steps"] = held
@@ -358,28 +354,28 @@ kit.on_step(_step_rules)
 
 
 def failed(objects: Dict[str, Any]) -> bool:
-    return bool(mk.MEMORY.get("rack_flooded_defect", False) or mk.MEMORY.get("dry_run_cavitation_defect", False))
+    return bool(mk.MEMORY.get("rack_flooded_defect", False))
 
 
 def score(objects: Dict[str, Any]) -> float:
     """Instantaneous live physical scoring (Strict Directive #856, Zero Permanent Positive Latches):
     0.00: Base / idle / catastrophic defect triggered.
     0.25: Foam rack lifted and transferred inside bath chamber perimeter.
-    0.50: Foam rack fully seated level in tank chamber well (tilt <= 8 deg, dz <= 12 mm).
-    0.75: Acrylic lid closed flush (<= 14 deg) AND DEGAS button actively depressed (or degas registered with lid closed).
-    1.00: DEGAS cycle triggered, rack seated level right now, lid closed flush right now, hands retracted clear >= 50 mm, held 20 steps (1.0 s).
+    0.50: Foam rack fully seated level in tank chamber well (tilt <= 8 deg, dz <= 12 mm from 0.805 m).
+    0.75: Acrylic lid closed flush (<= 14 deg) AND SONICATE button actively depressed (or sonication registered with lid closed).
+    1.00: Sonication cycle triggered, rack seated level right now, lid closed flush right now, hands retracted clear >= 50 mm, held 20 steps (1.0 s).
     """
     if failed(objects):
         return 0.00
 
-    # 1.00 Stage: degas registered, rack seated level, lid closed flush, stillness hold passed
+    # 1.00 Stage: sonication registered, rack seated level, lid closed flush, stillness hold passed
     if (mk.MEMORY.get("hold_passed", False) and
             mk.MEMORY.get("rack_seated_current", False) and
             mk.MEMORY.get("lid_closed_current", False)):
         return 1.00
 
-    # 0.75 Stage: degas triggered while rack seated and lid closed
-    if (mk.MEMORY.get("degas_triggered", False) and
+    # 0.75 Stage: SONICATE button actively depressed while rack seated level and lid closed
+    if ((mk.MEMORY.get("button_pressed_current", False) or mk.MEMORY.get("sonication_triggered", False)) and
             mk.MEMORY.get("rack_seated_current", False) and
             mk.MEMORY.get("lid_closed_current", False)):
         return 0.75
@@ -428,21 +424,22 @@ def demo() -> dict[str, list[Waypoint]]:
             yaw = plans[arm][-1].yaw if plans[arm] else 0.0
             add(arm, dt, pos, finger, label, yaw)
 
-    # Variant: premature_degas (Depress DEGAS button while bath is empty -> cavitation defect 0.0)
-    if variant == "premature_degas":
-        wait_until("left", 8.0, "idle")
-        add("right", 1.2, (0.435, BTN_Y, BTN_Z), FINGER_CLOSED, "approach DEGAS button")
-        add("right", 0.8, (BTN_REST_X + 0.015, BTN_Y, BTN_Z), FINGER_CLOSED, "align with button face")
-        add("right", 0.8, (BTN_REST_X - 0.007, BTN_Y, BTN_Z), FINGER_CLOSED, "press DEGAS button on empty tank")
-        add("right", 1.0, (BTN_REST_X - 0.007, BTN_Y, BTN_Z), FINGER_CLOSED, "hold button in defect pose")
+    # Variant: tilt_flood (Tilt rack > 15 deg during transfer -> liquid flood defect 0.0)
+    if variant == "tilt_flood":
+        add("left", 1.2, (RACK_START_X, RACK_START_Y, 0.880), FINGER_OPEN, "hover above foam rack")
+        add("left", 0.8, (RACK_START_X, RACK_START_Y, 0.778), FINGER_OPEN, "descend onto rack grip perimeter")
+        add("left", 0.6, (RACK_START_X, RACK_START_Y, 0.778), FINGER_CLOSED, "grasp foam rack securely")
+        add("left", 0.8, (RACK_START_X, RACK_START_Y, 0.890), FINGER_CLOSED, "lift foam rack clear")
+        add("left", 1.0, (TANK_CENTER_X, 0.060, 0.890), FINGER_CLOSED, "transfer across Y midpoint", yaw=0.45)
+        wait_until("left", 15.0, "hold flooded defect")
         return plans
 
     # Phase 1: Left arm retrieves floating microtube rack from staging area
-    # Staging pose: X = 0.250, Y = 0.180, Z = 0.7625 m
+    # Staging pose: X = 0.250, Y = 0.180, Z = 0.7625 m. Gripper grasps upper rim at Z = 0.778 m.
     add("left", 1.2, (RACK_START_X, RACK_START_Y, 0.880), FINGER_OPEN, "hover above foam rack")
-    add("left", 0.8, (RACK_START_X, RACK_START_Y, 0.780), FINGER_OPEN, "descend onto rack grip perimeter")
-    add("left", 0.6, (RACK_START_X, RACK_START_Y, 0.780), FINGER_CLOSED, "grasp foam rack securely")
-    add("left", 0.4, (RACK_START_X, RACK_START_Y, 0.780), FINGER_CLOSED, "settle grasp")
+    add("left", 0.8, (RACK_START_X, RACK_START_Y, 0.778), FINGER_OPEN, "descend onto rack grip perimeter")
+    add("left", 0.6, (RACK_START_X, RACK_START_Y, 0.778), FINGER_CLOSED, "grasp foam rack securely")
+    add("left", 0.4, (RACK_START_X, RACK_START_Y, 0.778), FINGER_CLOSED, "settle grasp")
 
     # Lift vertically to clear staging perimeter
     add("left", 0.8, (RACK_START_X, RACK_START_Y, 0.890), FINGER_CLOSED, "lift foam rack clear")
@@ -453,12 +450,12 @@ def demo() -> dict[str, list[Waypoint]]:
     add("left", 1.0, (TANK_CENTER_X, TANK_CENTER_Y, 0.890), FINGER_CLOSED, "align over tank center")
 
     # Descend level into tank cavity onto resting water bed
-    # Target rack Z center is 0.828 m -> TCP grip at 0.835 m
-    add("left", 1.0, (TANK_CENTER_X, TANK_CENTER_Y, 0.835), FINGER_CLOSED, "seat foam rack inside tank")
-    add("left", 0.5, (TANK_CENTER_X, TANK_CENTER_Y, 0.835), FINGER_CLOSED, "settle rack on bath floor")
+    # Equilibrium rack center is 0.805 m -> TCP grip at upper rim Z = 0.820 m (9.5 mm dry clearance above water surface 0.8105 m)
+    add("left", 1.0, (TANK_CENTER_X, TANK_CENTER_Y, 0.820), FINGER_CLOSED, "seat foam rack inside tank")
+    add("left", 0.5, (TANK_CENTER_X, TANK_CENTER_Y, 0.820), FINGER_CLOSED, "settle rack at buoyant equilibrium")
 
     # Release rack
-    add("left", 0.5, (TANK_CENTER_X, TANK_CENTER_Y, 0.835), FINGER_OPEN, "release foam rack")
+    add("left", 0.5, (TANK_CENTER_X, TANK_CENTER_Y, 0.820), FINGER_OPEN, "release foam rack")
     add("left", 0.8, (TANK_CENTER_X, TANK_CENTER_Y, 0.920), FINGER_OPEN, "retract left arm vertically")
     add("left", 1.2, LEFT_PARK, FINGER_OPEN, "park left arm")
 
@@ -477,11 +474,11 @@ def demo() -> dict[str, list[Waypoint]]:
     add("right", 0.6, (0.345, LID_HINGE_Y, 0.840), FINGER_CLOSED, "seat lid flush onto tank rim")
     add("right", 0.4, (0.345, LID_HINGE_Y, 0.840), FINGER_OPEN, "release lid handle")
 
-    # Phase 3: Right arm moves to front control panel and depresses DEGAS button inward
-    add("right", 1.2, (0.440, BTN_Y, BTN_Z), FINGER_CLOSED, "approach DEGAS button")
+    # Phase 3: Right arm moves to front control panel and depresses SONICATE button inward
+    add("right", 1.2, (0.440, BTN_Y, BTN_Z), FINGER_CLOSED, "approach SONICATE button")
     add("right", 0.8, (BTN_REST_X + 0.015, BTN_Y, BTN_Z), FINGER_CLOSED, "align with button face")
-    add("right", 0.8, (BTN_REST_X - 0.016, BTN_Y, BTN_Z), FINGER_CLOSED, "depress DEGAS button inward")
-    add("right", 0.8, (BTN_REST_X - 0.016, BTN_Y, BTN_Z), FINGER_CLOSED, "hold DEGAS button depressed")
+    add("right", 0.8, (BTN_REST_X - 0.016, BTN_Y, BTN_Z), FINGER_CLOSED, "depress SONICATE button inward")
+    add("right", 0.8, (BTN_REST_X - 0.016, BTN_Y, BTN_Z), FINGER_CLOSED, "hold SONICATE button depressed")
 
     # Variant: no_release (keep holding button)
     if variant == "no_release":
@@ -490,8 +487,8 @@ def demo() -> dict[str, list[Waypoint]]:
             wait_until(arm, end_t, "hold unreleased")
         return plans
 
-    # Phase 4: Release DEGAS button and park right arm clear
-    add("right", 0.6, (0.450, BTN_Y, BTN_Z), FINGER_OPEN, "retract from DEGAS button")
+    # Phase 4: Release SONICATE button and park right arm clear
+    add("right", 0.6, (0.450, BTN_Y, BTN_Z), FINGER_OPEN, "retract from SONICATE button")
     add("right", 0.6, (0.450, BTN_Y, 0.950), FINGER_OPEN, "elevate right arm clear of lid")
     add("right", 1.0, RIGHT_PARK, FINGER_OPEN, "park right arm")
 
