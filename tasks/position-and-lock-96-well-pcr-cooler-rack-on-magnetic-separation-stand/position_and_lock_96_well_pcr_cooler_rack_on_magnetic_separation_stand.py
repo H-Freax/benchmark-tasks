@@ -259,7 +259,7 @@ def score(objects: dict[str, ObjectState]) -> float:
         print(f"[STEP {m['step']:03d}] rx={rx:.4f}, ry={ry:.4f}, rz={rz:.4f} | dist_xy={dist_nest_xy*1000:.1f}mm, dist_z={dist_nest_z*1000:.1f}mm | slider={slider_travel*1000:.2f}mm | dwell={m['post_dwell']}", file=sys.stderr)
 
     # Physical milestones evaluated purely at current step:
-    rack_lifted = np.hypot(rx - RACK_INIT_X, ry - RACK_INIT_Y) > 0.030 or (rz - RACK_INIT_Z) > 0.020
+    rack_lifted = (rz - RACK_INIT_Z) >= 0.015
     rack_seated = (dist_nest_xy <= 0.020) and (dist_nest_z <= 0.018)
     slider_locked = (slider_travel >= LOCK_ENGAGED_MIN)
 
