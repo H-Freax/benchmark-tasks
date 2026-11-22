@@ -6,7 +6,12 @@
   "scorer": "task_score",
   "max_steps": 500,
   "occupational_relevance": {
-    "soc_codes": ["19-4031", "19-4021", "29-2010", "19-2031"],
+    "soc_codes": [
+      "19-4031",
+      "19-4021",
+      "29-2010",
+      "19-2031"
+    ],
     "titles": [
       "Chemical Technicians",
       "Biological Technicians",
@@ -27,5 +32,6 @@
     "0.50": "Cuvette seated squarely and upright inside spectrophotometer sample socket",
     "0.75": "Cuvette seated and hinged sample-compartment lid closed flush (<= 8 deg)",
     "1.00": "All criteria met with robot hands retracted clear (> 40 mm) for 20-step stillness hold"
-  }
+  },
+  "media": "M-6WZR4X"
 }
