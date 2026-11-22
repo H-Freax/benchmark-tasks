@@ -266,7 +266,7 @@ def _step_rules(objects: Dict[str, Any]):
     if rack_tilt_deg > 15.0:
         mk.MEMORY["rack_flooded_defect"] = True
 
-    # Check whether rack is within tank chamber perimeter
+    # Check whether rack is within tank chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm)
     dx = abs(rack_pos[0] - TANK_CENTER_X)
     dy = abs(rack_pos[1] - TANK_CENTER_Y)
     rack_in_tank_xy = (dx <= 0.038 and dy <= 0.035)
@@ -296,8 +296,8 @@ def _step_rules(objects: Dict[str, Any]):
     btn_pressed = (btn_travel_m >= 0.003)
     mk.MEMORY["button_pressed_current"] = btn_pressed
 
-    # Premature DEGAS Defect: pressing DEGAS without rack seated in tank trips cavitation dry-run error
-    if btn_pressed and not rack_in_tank_xy:
+    # Premature DEGAS Defect: pressing DEGAS without rack seated level in tank trips cavitation dry-run error
+    if btn_pressed and not rack_seated_level:
         mk.MEMORY["dry_run_cavitation_defect"] = True
 
     # Degas cycle triggered ONLY when rack is seated in tank, lid is closed, and button is actively depressed
@@ -383,11 +383,11 @@ def score(objects: Dict[str, Any]) -> float:
     if mk.MEMORY.get("rack_seated_current", False):
         return 0.50
 
-    # 0.25 Stage: rack inside chamber perimeter
+    # 0.25 Stage: rack inside chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm)
     rack_pos = mk.MEMORY.get("rack_pos", np.array([0.0, 0.0, 0.0]))
     dx = abs(rack_pos[0] - TANK_CENTER_X)
     dy = abs(rack_pos[1] - TANK_CENTER_Y)
-    if dx <= 0.038 and dy <= 0.038 and rack_pos[2] < (RACK_START_Z + 0.080):
+    if dx <= 0.038 and dy <= 0.035 and rack_pos[2] < (RACK_START_Z + 0.080):
         return 0.25
 
     return 0.00
