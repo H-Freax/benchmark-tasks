@@ -142,7 +142,7 @@ kit.part(
 )
 
 # Revolute hinge joint: rotates about world Y axis along rear edge of sample chamber
-# Starts open at 85 degrees (1.48 rad); closes down to 0 degrees flush
+# Starts open at 65 degrees (1.13 rad); closes down to 0 degrees flush
 kit.hinge(
     name="lid_hinge",
     parent="spectrophotometer",
@@ -150,8 +150,8 @@ kit.hinge(
     anchor=(LID_HINGE_X, LID_HINGE_Y, LID_HINGE_Z),
     axis=(0, 1, 0),
     lower_deg=0.0,
-    upper_deg=90.0,
-    start_deg=85.0,
+    upper_deg=75.0,
+    start_deg=65.0,
     stiffness=0.0,
     damping=0.5,
     friction=0.05,
@@ -207,9 +207,12 @@ def _update_mechanics(objects: dict):
     lid_deg = kit.q_deg(objects, "lid_hinge")
 
     # 1. Live Instantaneous State Evaluation (ZERO permanent positive latches!)
-    # Check cuvette position: seated squarely inside spectrophotometer sample socket
-    dist_xy = float(np.linalg.norm(cuvette_p[:2] - np.array([HOLDER_X, HOLDER_Y])))
-    cuvette_seated = bool(dist_xy < 0.020 and abs(cuvette_p[2] - CUVETTE_SEATED_Z) < 0.020)
+    # Check cuvette position: seated squarely inside 20x20 mm socket collar cavity
+    dx = abs(cuvette_p[0] - HOLDER_X)
+    dy = abs(cuvette_p[1] - HOLDER_Y)
+    dz = abs(cuvette_p[2] - CUVETTE_SEATED_Z)
+    cuvette_seated = bool(dx <= 0.008 and dy <= 0.008 and dz <= 0.008)
+    dist_rack_xy = float(np.linalg.norm(cuvette_p[:2] - np.array([RACK_X, RACK_Y])))
 
     # Check cuvette orientation: standing upright (local Z within 25 degrees of world +Z)
     cos_tilt = 1.0 - 2.0 * (cuvette_q[0] ** 2 + cuvette_q[1] ** 2)
@@ -289,9 +292,11 @@ def score(objects: dict) -> float:
     cuvette_p, cuvette_q = kit.pose(objects, "optical_cuvette")
     lid_deg = kit.q_deg(objects, "lid_hinge")
 
-    dist_chamber_xy = float(np.linalg.norm(cuvette_p[:2] - np.array([HOLDER_X, HOLDER_Y])))
+    dx = abs(cuvette_p[0] - HOLDER_X)
+    dy = abs(cuvette_p[1] - HOLDER_Y)
+    dz = abs(cuvette_p[2] - CUVETTE_SEATED_Z)
+    cuvette_seated = bool(dx <= 0.008 and dy <= 0.008 and dz <= 0.008)
     dist_rack_xy = float(np.linalg.norm(cuvette_p[:2] - np.array([RACK_X, RACK_Y])))
-    cuvette_seated = bool(dist_chamber_xy < 0.020 and abs(cuvette_p[2] - CUVETTE_SEATED_Z) < 0.020)
 
     cos_tilt = 1.0 - 2.0 * (cuvette_q[0] ** 2 + cuvette_q[1] ** 2)
     tilt_rad = math.acos(min(1.0, max(-1.0, cos_tilt)))

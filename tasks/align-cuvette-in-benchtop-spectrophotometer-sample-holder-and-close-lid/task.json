@@ -1,38 +1,25 @@
 {
-  "task": "align-cuvette-in-benchtop-spectrophotometer-sample-holder-and-close-lid",
-  "category": "Impact on jobs",
+  "title": "Align optical cuvette in benchtop spectrophotometer sample holder and close lid",
+  "category": "Other",
+  "keywords": [
+    "analytical chemistry",
+    "wet lab automation",
+    "spectrophotometer",
+    "optical cuvette",
+    "absorbance assay",
+    "UV-Vis spectroscopy",
+    "sample holder",
+    "laboratory research"
+  ],
   "instruction": "Transfer the optical cuvette from the staging rack into the spectrophotometer sample holder, align its optical windows along the beam path, close the sample-compartment lid, and clear hands.",
-  "scene": "station",
-  "scorer": "task_score",
-  "max_steps": 500,
-  "occupational_relevance": {
-    "soc_codes": [
-      "19-4031",
-      "19-4021",
-      "29-2010",
-      "19-2031"
-    ],
-    "titles": [
-      "Chemical Technicians",
-      "Biological Technicians",
-      "Clinical Laboratory Technologists and Technicians",
-      "Chemists"
-    ],
-    "employment_total": 575000,
-    "description": "Routine analytical chemistry, molecular biology, and clinical diagnostic sample analysis: transferring standard 10 mm pathlength optical cuvettes into benchtop UV-Vis spectrophotometers for quantitative absorbance, optical density (OD600), and kinetic assays, aligning polished optical windows along the optical beam path and sealing the hinged sample-compartment lid light-tight."
-  },
-  "physical_mechanism": {
-    "spectrophotometer": "Benchtop UV-Vis instrument chassis with recessed sample holder pocket and light beam passage along the Y axis",
-    "sample_lid": "Light-tight compartment cover attached via revolute hinge joint (0 to 75 deg travel)",
-    "optical_cuvette": "Standard 12.5 x 12.5 x 45.0 mm optical cuvette with opposing frosted handling sides along X and opposing polished clear optical windows along Y",
-    "cuvette_rack": "Countertop polypropylene staging rack"
-  },
-  "scoring": {
-    "0.25": "Cuvette lifted vertically clear of staging rack",
-    "0.50": "Cuvette seated squarely and upright inside spectrophotometer sample socket",
-    "0.75": "Cuvette seated and hinged sample-compartment lid closed flush (<= 8 deg)",
-    "1.00": "All criteria met with robot hands retracted clear (> 40 mm) for 20-step stillness hold"
-  },
-  "media": "M-6WZR4X",
-  "scores": "Dream-1: 0.00; demo_1: 1.00; demo_2: 1.00; ctrl_lift_only: 0.25; ctrl_seat_only: 0.50; ctrl_no_release: 0.75"
+  "context": "Routine analytical chemistry, molecular biology, and clinical diagnostic sample analysis (BLS SOC 19-4031: Chemical Technicians, >62,000 workers; BLS SOC 19-4021: Biological Technicians, >83,000 workers; BLS SOC 29-2010: Clinical Laboratory Technologists and Technicians, >342,000 workers; BLS SOC 19-2031: Chemists, >80,000 workers -> >567,000 professional laboratory and life-sciences personnel) operate benchtop UV-Vis spectrophotometers for quantitative absorbance, optical density (OD600), and kinetic assays. Standard analytical laboratory standard operating procedure (SOP) requires carefully transferring a standard 10 mm pathlength optical cuvette loaded with sample into the recessed instrument sample holder strictly by its upper frosted handling ribs, orienting the clear optical windows squarely along the light-beam path (+/- Y axis) without touching or contaminating optical faces, swinging the light-tight sample compartment cover down flush to seal out ambient stray light, and retracting robotic hands clear for accurate baseline calibration.",
+  "setup": "Benchtop UV-Vis spectrophotometer housing (240x200x110 mm chassis at (0.220, -0.040, 0.748) m on the table surface) with a recessed 18x18 mm sample socket pocket centered at (0.200, -0.040, 0.770) m with optical beam passage along Y, a light-tight hinged sample compartment lid propped open at 65.0 degrees at rear pivot (0.135, -0.040, 0.858) m with a USD revolute hinge joint, a standard 12.5x12.5x45.0 mm optical cuvette (mass 14.0 g) with frosted handling ribs along X and polished optical windows along Y staged upright at (0.200, 0.180, 0.770) m in a countertop polypropylene staging caddy.",
+  "scoring": "Stage progression: 0.25: cuvette lifted vertically clear of staging rack (Z >= 0.795 m); 0.50: cuvette seated squarely and upright inside spectrophotometer sample socket (|dx| <= 18 mm, |dy| <= 18 mm, Z <= 0.805 m, tilt <= 25.0 deg); 0.75: cuvette seated squarely inside socket and hinged sample lid closed flush (angle <= 8.0 deg); 1.00: cuvette seated and lid closed flush right now, both robotic manipulator arms retracted clear (> 40 mm clearance) for >= 20 control steps (1.0 s at 20 Hz). Zero permanent positive latches (instantaneous physical state evaluation).",
+  "run_limit": "500 steps (25.0 seconds at 20 Hz)",
+  "reset_notes": "Place the standard optical cuvette upright inside the staging rack well at (0.200, 0.180, 0.770) m. Prop open the hinged sample compartment lid to 65.0 degrees where hinge joint limits hold initial orientation.",
+  "fidelity": "100% genuine dynamic contact bodies and USD revolute hinge joint with rotational limits (0 to 75 deg). Pure contact mechanics without synthetic pose writes or artificial welds.",
+  "scores": "Dream-1: 0.00 (untrained zero-shot Dream-1 policy fails to coordinate bimanual cuvette transfer and lid closure within 500 steps; leaves cuvette staged and lid open); scripted demo: 1.00 (two complete seeds, 500 steps each).",
+  "no_video_reason": "Untrained zero-shot Dream-1 policy fails to coordinate bimanual cuvette transfer and lid closure within 500 steps (score: 0.00). Full-score bimanual execution demonstrated via scripted policy demo.mp4.",
+  "no_model_video_reason": "Untrained zero-shot Dream-1 policy fails to coordinate bimanual cuvette transfer and lid closure within 500 steps (score: 0.00). Full-score bimanual execution demonstrated via scripted policy demo.mp4.",
+  "media": "M-6WZR4X"
 }
