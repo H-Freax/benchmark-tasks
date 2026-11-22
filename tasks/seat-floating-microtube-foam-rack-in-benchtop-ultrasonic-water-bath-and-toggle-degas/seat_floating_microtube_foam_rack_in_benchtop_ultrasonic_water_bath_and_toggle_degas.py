@@ -13,25 +13,25 @@ Apparatus:
 1. Benchtop ultrasonic sonicator bath (Branson CPX / Fisherbrand style):
    - Exterior chassis: 230 mm (X) x 190 mm (Y) x 80 mm (Z) brushed stainless housing at (X=0.250, Y=-0.060, Z=TABLE_TOP).
    - Internal stainless fluid tank chamber cavity: 150 mm (X) x 120 mm (Y) x 45 mm deep, centered at (X=0.250, Y=-0.060).
-   - Stainless tank liquid floor at Z = TABLE_TOP + 35 mm; simulated liquid surface / rack resting deck at Z = TABLE_TOP + 50 mm.
-   - Hinged transparent acrylic safety lid: revolute joint along rear rim (X=0.165, Y=-0.060, Z=TABLE_TOP + 86 mm) propped open at 70 degrees.
-   - Top-deck membrane control console: momentary tactile DEGAS push button (prismatic slider along -Z, 8 mm stroke, >= 3.0 mm actuation) on front deck at (X=0.345, Y=-0.100, Z=TABLE_TOP + 86 mm).
+   - Stainless tank liquid floor at Z = TABLE_TOP + 35 mm; resting fluid plane top at Z = TABLE_TOP + 65.5 mm (world Z = 0.813 m); foam rack center resting on fluid surface at world Z = 0.828 m.
+   - Hinged transparent acrylic safety lid: revolute joint along rear rim (X=0.165, Y=-0.060, Z=TABLE_TOP + 86 mm) propped open at 70.0 degrees with counterbalance spring and friction.
+   - Front membrane control console: momentary tactile DEGAS pushbutton (prismatic slider along -X, 8.0 mm stroke, >= 3.0 mm actuation) on front console at (X=0.405, Y=-0.045, Z=TABLE_TOP + 35 mm).
 2. Floating microtube foam rack (buoyant EVA foam rack):
-   - Dimension: 80 mm (X) x 56 mm (Y) x 30 mm (Z), mass 0.09 kg, floating/resting staging platform at (X=0.250, Y=0.180, Z=TABLE_TOP).
+   - Dimension: 80 mm (X) x 56 mm (Y) x 30 mm (Z), mass 0.09 kg, floating/resting staging platform at (X=0.250, Y=0.180, Z=TABLE_TOP + 15 mm).
    - Loaded with 8 microcentrifuge tubes (nested in 2x4 array).
 
 Robotic Bimanual Sequence:
-1. Left arm reaches to the floating microtube foam rack in staging area (Y=+0.180), grasps body with parallel gripper, lifts vertically, transfers laterally into ultrasonic bath tank, and seats it level on the interior tank floor / fluid surface.
+1. Left arm reaches to the floating microtube foam rack in staging area (Y=+0.180), grasps body with parallel gripper, lifts vertically (Z >= 0.783 m), transfers laterally into ultrasonic bath tank, and seats it level on the interior tank fluid resting plane (Z ~ 0.828 m).
 2. Left arm maintains level posture throughout transfer. If tilt exceeds 15.0 degrees at any point, liquid floods the foam wells, locking score to 0.00 (catastrophic liquid flood defect).
-3. Right arm reaches to the propped-open acrylic lid (70 deg), swings it closed flush over the tank rim (angle <= 14.0 deg).
-4. Right arm reaches to top deck control panel and depresses the tactile DEGAS membrane button downward >= 3.0 mm.
+3. Right arm reaches to the propped-open acrylic lid (70.0 deg), swings it closed flush over the tank rim (angle <= 14.0 deg).
+4. Right arm reaches to front control panel and depresses the tactile DEGAS membrane button inward along -X by >= 3.0 mm.
 5. Both arms release and retract clear (TCP clearance >= 50 mm) for a continuous 20-step (1.0 s at 20 Hz) stillness hold while rack remains seated level inside tank, lid closed, and DEGAS registered.
 
 Scoring Stages (Strict Instantaneous Physics / Zero Permanent Positive Latches):
-- 0.00: Base / idle / or catastrophic rack-tip defect (> 15 deg tilt) triggered.
-- 0.25: Foam rack lifted and transferred inside bath chamber perimeter (|dx| < 35 mm, |dy| < 35 mm).
-- 0.50: Foam rack fully seated level on bath interior floor (dz <= 12 mm from resting plane, tilt <= 8 deg).
-- 0.75: Acrylic lid closed flush over tank (angle <= 14 deg) AND tactile DEGAS button depressed downward >= 3 mm.
+- 0.00: Base / idle / or catastrophic rack-tip defect (> 15.0 deg tilt) / premature dry-run cavitation triggered.
+- 0.25: Foam rack lifted vertically (Z >= 0.783 m) and transferred inside bath chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm, Z < 0.843 m).
+- 0.50: Foam rack fully seated level on bath interior fluid resting plane (|dz| <= 12 mm from 0.828 m, tilt <= 8.0 deg).
+- 0.75: Acrylic lid closed flush over tank (angle <= 14.0 deg) AND tactile DEGAS button depressed inward >= 3.0 mm.
 - 1.00: DEGAS cycle triggered, rack seated level right now, lid closed flush right now, hands retracted clear >= 50 mm, and 20-step stillness dwell satisfied.
 """
 
