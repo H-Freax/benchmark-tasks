@@ -2,14 +2,14 @@
 
 On the station table:
 - Precision benchtop drill press vise with cast body, fixed jaw, moving jaw on prismatic slider,
-  and a quick-acting cam-action push-lever clamp mechanism.
+  and a quick-acting rapid-action push-lever sliding clamp mechanism.
 - Two ground steel parallels resting inside the vise channel on the bed.
 - Rectangular steel workpiece bar (100 x 28 x 25 mm, 0.55 kg) on the staging rack.
 
 The task:
 1. Left arm grasps the steel workpiece bar, lifts it, transfers it over the vise jaws,
    and seats it flush down onto the parallels registering against the fixed jaw and lateral end stop.
-2. Right arm grasps the cam-clamp lever handle and pushes it forward to drive the moving jaw closed against the bar,
+2. Right arm grasps the push-lever clamp handle and pushes it forward to drive the moving jaw closed against the bar,
    achieving a solid mechanical clamp.
 3. Both arms retract clear (TCP >= 60 mm, collision hull >= 20 mm) and hold stationary for 1.0 s.
 
@@ -135,12 +135,12 @@ kit.part(
 kit.slider("jaw_slide", "vise_base", "moving_jaw", (1, 0, 0),
            0.0, JAW_TRAVEL_MAX, start=0.0, friction=0.5)
 
-# 3. Cam-action Vise Clamp Push Lever / Handle (Physically coupled to moving jaw)
+# 3. Rapid-Action Push-Lever Clamp Handle / Handle (Physically coupled to moving jaw)
 def _handle_boxes():
     return [
         # Center hub
         mk.box((0.020, 0.020, 0.020), at=(0.0, 0.0, 0.0), color=BLACK_OXIDE),
-        # Cam clamp push lever / T-bar handle along Y
+        # Push clamp lever / T-bar handle along Y
         mk.box((0.012, 0.070, 0.014), at=(0.0, 0.0, 0.0), color=STEEL_GREY),
         # Knurled ball knobs on ends of lever
         mk.box((0.016, 0.016, 0.016), at=(0.0, 0.035, 0.0), color=BRASS_GOLD),
