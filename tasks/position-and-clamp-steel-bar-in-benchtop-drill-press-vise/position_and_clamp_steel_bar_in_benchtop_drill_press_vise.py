@@ -104,7 +104,7 @@ def _vise_base_boxes():
         mk.box((0.004, JAW_W - 0.004, JAW_H - 0.004), at=(0.035 - JAW_T / 2 + 0.002, 0.0, VISE_BASE_H + JAW_H / 2), color=GROUND_STEEL),
         # Lateral end stop bracket on -Y flank
         mk.box((0.050, 0.008, JAW_H), at=(0.025, -JAW_W / 2 - 0.004, VISE_BASE_H + JAW_H / 2), color=BLACK_OXIDE),
-        # Lead screw thrust housing at -X
+        # Transmission thrust housing at -X
         mk.box((0.030, 0.050, VISE_BASE_H + 0.010), at=(-0.075, 0.0, (VISE_BASE_H + 0.010) / 2), color=CAST_IRON),
         # Two precision parallels resting on the bed
         mk.box((PARALLEL_W, PARALLEL_L, PARALLEL_H), at=(0.020, 0.0, VISE_BASE_H + PARALLEL_H / 2), color=GROUND_STEEL),

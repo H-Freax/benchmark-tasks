@@ -12,7 +12,7 @@
 Industrial metalworking benchtop drill press vise apparatus (180 x 120 mm cast iron base slab, 25 mm height above station table) fitted with:
 1. Precision ground fixed jaw block with hardened steel jaw face plate (100 mm width, 35 mm height) and lateral workpiece end stop.
 2. Two precision hardened ground steel parallels (90 x 8 x 16 mm) resting flat inside the vise bed channel.
-3. Prismatic moving jaw slider (100 mm width, 35 mm height, 0.85 kg) with hardened steel face plate, stroked by an integrated lead screw.
+3. Prismatic moving jaw slider (100 mm width, 35 mm height, 0.85 kg) with hardened steel face plate, stroked by an integrated rapid-action push-lever cam transmission.
 4. Heavy rapid-action cam clamp push lever handle rigidly bonded to the moving jaw at the front (-X) of the vise body.
 5. Workpiece staging rack on the +Y table flank with locating side rails holding a raw rectangular steel workpiece bar (100 x 28 x 25 mm, 0.55 kg).
 
