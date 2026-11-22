@@ -168,9 +168,10 @@ def _bath_body_boxes() -> list[mk.BoxSpec]:
     boxes.append(mk.box((TANK_W_X, TANK_D_Y, 0.006),
                         at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.003),
                         color=STEEL_TANK))
-    # 3. Water bath fluid layer (translucent blue resting fluid plane)
-    boxes.append(mk.box((TANK_W_X - 0.006, TANK_D_Y - 0.006, 0.018),
-                        at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.015),
+    # 3. Water bath fluid layer (translucent blue resting fluid plane, 24.5 mm depth, fluid surface at world Z = 0.813 m)
+    # Foam rack (height 0.030 m) resting on fluid surface has center Z = 0.813 + 0.015 = 0.828 m
+    boxes.append(mk.box((TANK_W_X - 0.006, TANK_D_Y - 0.006, 0.0245),
+                        at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.006 + 0.01225),
                         color=WATER_BLUE))
     return boxes
 
