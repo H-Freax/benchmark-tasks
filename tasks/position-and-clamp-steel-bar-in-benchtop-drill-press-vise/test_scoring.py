@@ -62,8 +62,8 @@ class TestViseScoring(unittest.TestCase):
     def test_bar_clamped_score_085(self):
         objs = self._mock_objects(
             bar_pos=[task.BAR_TARGET_X, task.BAR_TARGET_Y, task.BAR_TARGET_Z],
-            jaw_x=task.MOVING_JAW_X0 + 0.016,
-            handle_x=task.HANDLE_X0 + 0.016,
+            jaw_x=task.MOVING_JAW_X0 + 0.017,
+            handle_x=task.HANDLE_X0 + 0.017,
         )
         mk.MEMORY["bar_lifted"] = True
         mk.MEMORY["bar_seated"] = True
@@ -73,8 +73,8 @@ class TestViseScoring(unittest.TestCase):
     def test_full_hold_score_100(self):
         objs = self._mock_objects(
             bar_pos=[task.BAR_TARGET_X, task.BAR_TARGET_Y, task.BAR_TARGET_Z],
-            jaw_x=task.MOVING_JAW_X0 + 0.016,
-            handle_x=task.HANDLE_X0 + 0.016,
+            jaw_x=task.MOVING_JAW_X0 + 0.017,
+            handle_x=task.HANDLE_X0 + 0.017,
         )
         mk.MEMORY["bar_lifted"] = True
         mk.MEMORY["bar_seated"] = True

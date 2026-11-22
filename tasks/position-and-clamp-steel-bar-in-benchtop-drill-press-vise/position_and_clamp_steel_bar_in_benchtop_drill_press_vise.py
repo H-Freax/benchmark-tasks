@@ -221,6 +221,11 @@ def _on_step(objects: dict[str, Any]):
     handle_pos = objects["vise_handle"].pos
 
     # Live instantaneous physical state checks (Zero permanent positive latches!)
+    # Geometric Registration Proof:
+    # - Fixed jaw face at X = 0.3050 m; bar thickness = 28.0 mm -> bar center target X = 0.2910 m, front face at X = 0.2770 m.
+    # - Lateral end stop inner face at Y = 0.020 - 0.054 + 0.004 = -0.0300 m; bar length = 100.0 mm -> bar center target Y = 0.0200 m, end at Y = -0.0300 m (flush contact).
+    # - Moving jaw initial face at X = 0.2600 m -> gap = 45.0 mm. Contact with 28 mm bar occurs at stroke = 17.0 mm. Stroke >= 16.5 mm ensures firm physical clamp.
+    # - Parallels height = 16.0 mm -> bar bottom at SEAT_Z = 0.7885 m, center target Z = 0.8010 m.
     dx = abs(bar_pos[0] - BAR_TARGET_X)
     dy = abs(bar_pos[1] - BAR_TARGET_Y)
     dz = abs(bar_pos[2] - BAR_TARGET_Z)
@@ -228,7 +233,7 @@ def _on_step(objects: dict[str, Any]):
 
     jaw_stroke = (jaw_pos[0] - MOVING_JAW_X0) * 1000.0  # in mm
     handle_stroke = (handle_pos[0] - HANDLE_X0) * 1000.0  # in mm
-    is_clamped = is_seated and (jaw_stroke >= 14.0 and handle_stroke >= 14.0)
+    is_clamped = is_seated and (jaw_stroke >= 16.5 and handle_stroke >= 16.5)
 
     clear = hands_clear(objects)
     if is_clamped and clear:
@@ -256,7 +261,7 @@ def score(objects: dict[str, Any]) -> float:
     handle_pos = objects["vise_handle"].pos
     jaw_stroke = (jaw_pos[0] - MOVING_JAW_X0) * 1000.0
     handle_stroke = (handle_pos[0] - HANDLE_X0) * 1000.0
-    is_clamped = is_seated and (jaw_stroke >= 14.0 and handle_stroke >= 14.0)
+    is_clamped = is_seated and (jaw_stroke >= 16.5 and handle_stroke >= 16.5)
 
     s = 0.0
     # 0.20: Bar lifted clear of staging rack

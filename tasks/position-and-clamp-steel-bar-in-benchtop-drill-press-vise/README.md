@@ -23,5 +23,5 @@ The operator must transfer the steel workpiece bar from the stock rack, seat it 
 - **0.00**: Initial state or dropped off bench.
 - **0.20**: Steel workpiece bar lifted clear of staging rack (z >= 0.805 m).
 - **0.50**: Workpiece bar seated flush on precision parallels inside the vise channel (dx <= 5 mm, dy <= 8 mm, dz <= 4 mm).
-- **0.85**: Cam clamp lever pushed forward and moving jaw clamped tightly against the workpiece bar (effective stroke >= 14 mm).
+- **0.85**: Cam clamp lever pushed forward and moving jaw clamped tightly against the workpiece bar (effective stroke >= 16.5 mm (moving jaw face contacts 28 mm bar at 17.0 mm stroke)).
 - **1.00**: Both robot arms retracted clear (TCP >= 60 mm, collision hull >= 20 mm) for a sustained 20-step (1.0 s at 20 Hz) stillness hold.
