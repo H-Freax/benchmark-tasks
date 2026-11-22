@@ -168,11 +168,12 @@ def _bath_body_boxes() -> list[mk.BoxSpec]:
     boxes.append(mk.box((TANK_W_X, TANK_D_Y, 0.006),
                         at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.003),
                         color=STEEL_TANK))
-    # 3. Water bath fluid layer (translucent blue resting fluid plane, 22.0 mm depth, fluid surface at world Z = 0.8105 m)
-    # Foam rack (height 0.030 m, mass 0.090 kg, area 44.8 cm^2, displaced volume 90 mL) floats at Archimedes equilibrium
-    # Submerged draft depth = 20.1 mm; resting center Z = 0.8105 - 0.0051 = 0.8054 m ~ 0.805 m
-    boxes.append(mk.box((TANK_W_X - 0.006, TANK_D_Y - 0.006, 0.022),
-                        at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.006 + 0.011),
+    # 3. Water bath fluid bed (translucent blue compliant fluid resting bed at Archimedes buoyant equilibrium)
+    # The loaded foam rack (height 0.030 m, mass 0.090 kg, area 44.8 cm^2) floats with 20.1 mm submerged draft.
+    # To place the buoyant equilibrium rack center at world Z = 0.805 m (rack bottom at Z = 0.7904 m, 9.9 mm dry freeboard),
+    # the fluid resting bed provides vertical support at Z = 0.7904 m (0.0019 m above tank floor top at 0.7885 m).
+    boxes.append(mk.box((TANK_W_X - 0.006, TANK_D_Y - 0.006, 0.002),
+                        at=(0.0, 0.0, (BATH_H - TANK_DEPTH) + 0.006 + 0.001),
                         color=WATER_BLUE))
     return boxes
 
