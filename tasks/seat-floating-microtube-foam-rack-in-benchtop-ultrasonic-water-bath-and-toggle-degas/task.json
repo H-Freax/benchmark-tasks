@@ -1,0 +1,23 @@
+{
+  "title": "Seat floating microtube foam rack in benchtop ultrasonic water bath and toggle DEGAS",
+  "category": "Other",
+  "keywords": [
+    "analytical chemistry",
+    "wet lab automation",
+    "ultrasonic water bath",
+    "sample sonication",
+    "degas mode",
+    "floating microtube rack",
+    "microcentrifuge tube",
+    "laboratory research"
+  ],
+  "instruction": "Transfer the floating microtube foam rack into the ultrasonic bath tank, close the hinged acrylic lid flush, and depress DEGAS.",
+  "context": "Biological, chemical, pharmaceutical, and clinical laboratory personnel (BLS SOC 19-4021: Biological Technicians, >82,000 workers; BLS SOC 19-4031: Chemical Technicians, >67,000 workers; BLS SOC 19-4010: Agricultural & Food Science Technicians, >34,000 workers; BLS SOC 29-2010: Clinical Laboratory Technologists & Technicians, >342,000 workers; BLS SOC 19-1021: Biochemists & Biophysicists, >34,000 workers -> >559,000 professional laboratory and life-sciences personnel) operate benchtop ultrasonic sonicator baths (e.g. Branson CPX, Fisherbrand Elmasonic) for sample sonication, liposome preparation, cell lysis, and mobile phase solvent degassing. Standard analytical laboratory standard operating procedure (SOP) requires carefully transferring a buoyant floating foam microtube rack loaded with sample tubes into the liquid sonication tank keeping it level to prevent well flooding, swinging the hinged acrylic safety lid down flush over the tank rim to suppress acoustic aerosol emissions, and depressing the front membrane DEGAS button to initiate ultrasonic cavitation. Running the ultrasonic cycle without samples in the bath or tilting the buoyant rack beyond 15 degrees spills fluid into tube wells, corrupting sample integrity.",
+  "setup": "Benchtop ultrasonic bath (230x190x80 mm brushed stainless chassis at (0.250, -0.060, 0.748) m) with a 150x120x45 mm internal fluid tank well centered at (0.250, -0.060, 0.783) m, a hinged transparent acrylic safety cover propped open at 70 degrees at pivot (0.165, -0.060, 0.834) m, a front tactile membrane DEGAS pushbutton at (0.405, -0.045, 0.783) m with 8 mm stroke limit (>= 3.0 mm required for actuation), and a buoyant floating microtube foam rack (80x56x30 mm loaded with 8 microcentrifuge tubes) staged at (0.250, 0.180, 0.763) m.",
+  "scoring": "Stage progression: 0.25: foam rack lifted and transferred inside bath chamber perimeter (|dx| <= 38 mm, |dy| <= 35 mm); 0.50: foam rack seated level inside tank well (|dz| <= 12 mm from resting plane, tilt <= 8 deg); 0.75: acrylic lid closed flush (angle <= 14 deg) and DEGAS membrane button depressed inward >= 3 mm; 1.00: DEGAS cycle triggered, rack seated level right now, lid closed flush right now, both robotic arms retracted clear (>= 50 mm) for >= 20 control steps (1.0 s). Fluid flood defect: tilting rack > 15 deg during handling or transfer irreversibly locks score to 0.0. Dry-run defect: depressing DEGAS without rack in tank irreversibly locks score to 0.0.",
+  "run_limit": "450 steps (22.5 seconds at 20 Hz)",
+  "reset_notes": "Place the floating microtube foam rack level in the staging area at (0.250, 0.180, 0.763) m. Prop open the hinged acrylic cover to 70 degrees. Release the DEGAS membrane button to its outward rest position.",
+  "fidelity": "100% genuine dynamic contact bodies, USD revolute hinge with counterbalance return spring and Coulomb friction, and USD prismatic slider joint with spring return. Pure contact mechanics without synthetic pose writes or artificial welds.",
+  "scores": "Dream-1: 0.0; scripted demo: 1.0 (two complete seeds, 450 steps each).",
+  "media": ""
+}
