@@ -8,7 +8,7 @@
 ## Setup & Apparatus
 - **Benchtop Ultrasonic Bath**:
   - 230 x 190 x 80 mm brushed stainless steel chassis positioned at `(X=0.250, Y=-0.060, Z=0.748)` m on the table surface.
-  - 150 x 120 x 45 mm internal fluid tank cavity centered at `(X=0.250, Y=-0.060, Z=0.783)` m filled with sonication water bath fluid (fluid resting surface at Z = 0.813 m; foam rack center resting on fluid at Z = 0.828 m).
+  - 150 x 120 x 45 mm internal fluid tank cavity centered at `(X=0.250, Y=-0.060, Z=0.783)` m filled with sonication water bath fluid (simulated as a viscous compliant fluid contact plane with fluid resting surface at Z = 0.813 m; foam rack center resting in buoyant equilibrium on fluid at Z = 0.828 m).
   - Hinged transparent acrylic acoustic safety lid propped open at 70.0 degrees at rear pivot `(0.165, -0.060, 0.834)` m with counterbalance spring (`stiffness=0.10 N*m/rad`, Coulomb friction `0.08 N*m`).
   - Tactile membrane DEGAS pushbutton on front console at `(0.405, -0.045, 0.783)` m with return spring (`stiffness=20.0 N/m`, damping `1.0 N*s/m`). Stroke limit: 8.0 mm along (-1, 0, 0); electrical contact threshold: `>= 3.0 mm`.
 - **Floating Microtube Foam Rack**:

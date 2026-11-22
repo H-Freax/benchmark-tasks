@@ -18,7 +18,8 @@
   "run_limit": "450 steps (22.5 seconds at 20 Hz)",
   "reset_notes": "Place the floating microtube foam rack level in the staging area at (0.250, 0.180, 0.763) m. Prop open the hinged acrylic cover to 70.0 degrees where counterbalance spring holds equilibrium. Release the DEGAS membrane button to its outward rest position at X = 0.405 m.",
   "fidelity": "100% genuine dynamic contact bodies, USD revolute hinge with counterbalance return spring (stiffness 0.10 N*m/rad, Coulomb friction 0.08 N*m) and USD prismatic slider joint with spring return (stiffness 20.0 N/m, damping 1.0 N*s/m). Pure contact mechanics without synthetic pose writes or artificial welds.",
-  "scores": "Dream-1: 0.00 (model policy fails to coordinate bimanual foam rack transfer, lid closure, and button actuation, leaving rack staged and lid open); scripted demo: 1.00 (two complete seeds, 450 steps each).",
-  "no_model_video_reason": "Zero-shot untrained Dream-1 policy does not coordinate bimanual foam rack transfer, lid closure, and button actuation within 450 steps (score: 0.00). Full-score bimanual execution demonstrated and recorded via scripted policy demo.mp4.",
+  "scores": "Dream-1: 0.00 (untrained zero-shot Dream-1 policy fails to coordinate bimanual foam rack transfer, lid closure, and button actuation within 450 steps; leaves rack staged and lid open); scripted demo: 1.00 (two complete seeds, 450 steps each).",
+  "no_video_reason": "Untrained zero-shot Dream-1 policy fails to coordinate bimanual foam rack transfer, lid closure, and button actuation within 450 steps (score: 0.00). Full-score bimanual execution demonstrated via scripted policy demo.mp4.",
+  "no_model_video_reason": "Untrained zero-shot Dream-1 policy fails to coordinate bimanual foam rack transfer, lid closure, and button actuation within 450 steps (score: 0.00). Full-score bimanual execution demonstrated via scripted policy demo.mp4.",
   "media": "M-N65EW7"
 }
