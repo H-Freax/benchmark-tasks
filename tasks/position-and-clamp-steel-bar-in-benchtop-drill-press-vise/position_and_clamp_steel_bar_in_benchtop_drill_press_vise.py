@@ -2,16 +2,16 @@
 
 On the station table:
 - Precision benchtop drill press vise with cast body, fixed jaw, moving jaw on prismatic slider,
-  and a lead screw with a dual-wing turn handle.
+  and a quick-acting cam-action push-lever clamp mechanism.
 - Two ground steel parallels resting inside the vise channel on the bed.
 - Rectangular steel workpiece bar (100 x 28 x 25 mm, 0.55 kg) on the staging rack.
 
 The task:
 1. Left arm grasps the steel workpiece bar, lifts it, transfers it over the vise jaws,
    and seats it flush down onto the parallels registering against the fixed jaw and lateral end stop.
-2. Right arm grasps the vise handle and pushes it forward to drive the moving jaw closed against the bar,
+2. Right arm grasps the cam-clamp lever handle and pushes it forward to drive the moving jaw closed against the bar,
    achieving a solid mechanical clamp.
-3. Both arms retract clear (TCP >= 40 mm, collision hull >= 20 mm) and hold stationary for 1.0 s.
+3. Both arms retract clear (TCP >= 60 mm, collision hull >= 20 mm) and hold stationary for 1.0 s.
 
 100% pure PhysX dynamic contact physics (zero synthetic pose writing / zero teleportation).
 """
@@ -135,16 +135,18 @@ kit.part(
 kit.slider("jaw_slide", "vise_base", "moving_jaw", (1, 0, 0),
            0.0, JAW_TRAVEL_MAX, start=0.0, friction=0.5)
 
-# 3. Vise Screw Turn Handle / Wing Nut
+# 3. Cam-action Vise Clamp Push Lever / Handle (Physically coupled to moving jaw)
 def _handle_boxes():
     return [
         # Center hub
         mk.box((0.020, 0.020, 0.020), at=(0.0, 0.0, 0.0), color=BLACK_OXIDE),
-        # T-bar / Wing handle wings along Y
+        # Cam clamp push lever / T-bar handle along Y
         mk.box((0.012, 0.070, 0.014), at=(0.0, 0.0, 0.0), color=STEEL_GREY),
-        # Ball knobs on ends of wing handle
+        # Knurled ball knobs on ends of lever
         mk.box((0.016, 0.016, 0.016), at=(0.0, 0.035, 0.0), color=BRASS_GOLD),
         mk.box((0.016, 0.016, 0.016), at=(0.0, -0.035, 0.0), color=BRASS_GOLD),
+        # Rigid connecting rod / push transmission linkage linking handle to moving jaw
+        mk.box((0.060, 0.014, 0.014), at=(0.030, 0.0, 0.0), color=STEEL_GREY),
     ]
 
 kit.part(
@@ -155,8 +157,9 @@ kit.part(
     color=STEEL_GREY,
     solver_position_iterations=16,
 )
-kit.slider("handle_slide", "vise_base", "vise_handle", (1, 0, 0),
-           0.0, JAW_TRAVEL_MAX, start=0.0, friction=0.5)
+# Rigid mechanical transmission bond coupling lever handle directly to the moving jaw:
+# When the robot pushes the handle, the entire moving jaw assembly translates forward with it!
+kit.bond("handle_to_jaw_bond", "moving_jaw", "vise_handle", break_force=1e6)
 
 # 4. Workpiece Staging Rack
 def _rack_boxes():
@@ -210,41 +213,23 @@ def hands_clear(objects) -> bool:
 # --- Simulation Hooks & State ---
 def on_reset():
     mk.MEMORY.clear()
-    mk.MEMORY["bar_lifted"] = False
-    mk.MEMORY["bar_seated"] = False
-    mk.MEMORY["clamped"] = False
-    mk.MEMORY["hands_cleared"] = False
     mk.MEMORY["stillness_steps"] = 0
-    mk.MEMORY["score"] = 0.0
 
 def _on_step(objects: dict[str, Any]):
     bar_pos = objects["workpiece_bar"].pos
     jaw_pos = objects["moving_jaw"].pos
     handle_pos = objects["vise_handle"].pos
 
-    # 1. Workpiece bar lifted clear of staging rack
-    if bar_pos[2] > BAR_INIT_Z + 0.030:
-        mk.MEMORY["bar_lifted"] = True
-
-    # 2. Workpiece seated on parallels inside vise channel
+    # Live instantaneous physical state checks (Zero permanent positive latches!)
     dx = abs(bar_pos[0] - BAR_TARGET_X)
     dy = abs(bar_pos[1] - BAR_TARGET_Y)
     dz = abs(bar_pos[2] - BAR_TARGET_Z)
+    is_seated = (dx <= 0.005 and dy <= 0.008 and dz <= 0.004)
 
-    seated = (dx <= 0.010 and dy <= 0.018 and dz <= 0.006)
-    if seated:
-        mk.MEMORY["bar_seated"] = True
-
-    # 3. Clamping engagement: moving jaw stroked closed onto workpiece bar (jaw_stroke >= 14 mm)
     jaw_stroke = (jaw_pos[0] - MOVING_JAW_X0) * 1000.0  # in mm
     handle_stroke = (handle_pos[0] - HANDLE_X0) * 1000.0  # in mm
+    is_clamped = is_seated and (jaw_stroke >= 14.0 and handle_stroke >= 14.0)
 
-    # Require moving jaw forward displacement to firmly clamp the bar against fixed jaw
-    is_clamped = (jaw_stroke >= 14.0 or (handle_stroke >= 14.0 and jaw_pos[0] >= MOVING_JAW_X0 + 0.012)) and mk.MEMORY.get("bar_seated", False)
-    if is_clamped:
-        mk.MEMORY["clamped"] = True
-
-    # 4. Arms retracted clear
     clear = hands_clear(objects)
     if is_clamped and clear:
         mk.MEMORY["stillness_steps"] = mk.MEMORY.get("stillness_steps", 0) + 1
@@ -255,22 +240,39 @@ kit.on_step(_on_step)
 
 def score(objects: dict[str, Any]) -> float:
     M = mk.MEMORY
-    s = 0.0
 
-    # 0.20: Bar lifted from rack
-    if M.get("bar_lifted", False):
+    # Catastrophic fail check: dropped off table
+    bar_pos = objects["workpiece_bar"].pos
+    if bar_pos[2] < TOP - 0.050:
+        return 0.00
+
+    # Live instantaneous physical evaluation
+    dx = abs(bar_pos[0] - BAR_TARGET_X)
+    dy = abs(bar_pos[1] - BAR_TARGET_Y)
+    dz = abs(bar_pos[2] - BAR_TARGET_Z)
+    is_seated = (dx <= 0.005 and dy <= 0.008 and dz <= 0.004)
+
+    jaw_pos = objects["moving_jaw"].pos
+    handle_pos = objects["vise_handle"].pos
+    jaw_stroke = (jaw_pos[0] - MOVING_JAW_X0) * 1000.0
+    handle_stroke = (handle_pos[0] - HANDLE_X0) * 1000.0
+    is_clamped = is_seated and (jaw_stroke >= 14.0 and handle_stroke >= 14.0)
+
+    s = 0.0
+    # 0.20: Bar lifted clear of staging rack
+    if bar_pos[2] > BAR_INIT_Z + 0.030:
         s = 0.20
 
     # 0.50: Bar seated on parallels inside vise channel
-    if M.get("bar_seated", False):
+    if is_seated:
         s = 0.50
 
     # 0.85: Vise closed and clamped firmly on bar
-    if M.get("clamped", False):
+    if is_clamped:
         s = 0.85
 
-    # 1.00: Full mechanical clamp + hands clear for 20 steps (1.0 s)
-    if M.get("clamped", False) and M.get("stillness_steps", 0) >= 20:
+    # 1.00: Full mechanical clamp + hands clear for 20 continuous steps (1.0 s)
+    if is_clamped and M.get("stillness_steps", 0) >= 20:
         s = 1.00
 
     return s
