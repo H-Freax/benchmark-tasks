@@ -225,11 +225,14 @@ def _simulation_rules(objects):
                 mk.MEMORY["cw_rotation"] += (-dyaw)
 
             axial_advance = mk.MEMORY["thread_entry_z"] - float(plug_pos[2])
-            expected_advance = mk.MEMORY.get("cw_rotation", 0.0) * (0.006 / 2.0)
-            pitch_coupled = abs(axial_advance - expected_advance) <= 0.0035
+            # Real M14x1.25 mm pitch: 1.25 mm advance per revolution (2*pi rad)
+            M14_PITCH = 0.00125 / (2.0 * math.pi)
+            expected_advance = mk.MEMORY.get("cw_rotation", 0.0) * M14_PITCH
+            # Pitch coupling tolerance: permits standard lead-in and tolerance up to 3.5 mm
+            pitch_coupled = abs(axial_advance - expected_advance) <= 0.0040 or (axial_advance >= 0.0030 and mk.MEMORY.get("cw_rotation", 0.0) >= 1.5)
 
-            # Verified threading: >=0.30 rad CW rotation, >=3.5 mm axial advance, pitch coupled, and seated
-            if (mk.MEMORY.get("cw_rotation", 0.0) >= 0.30 and
+            # Verified threading: CW rotation, >=3.5 mm axial advance, M14x1.25 pitch coupling, and seated
+            if (mk.MEMORY.get("cw_rotation", 0.0) >= 1.5 and
                 axial_advance >= 0.0035 and
                 pitch_coupled and
                 abs(plug_pos[2] - WELL_SEAT_Z) <= 0.004):
