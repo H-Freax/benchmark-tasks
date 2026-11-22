@@ -56,8 +56,15 @@ SHAKER_TOP_Z = TOP + SHAKER_H  # 0.800 m
 NEST_CENTER_X = SHAKER_X
 NEST_CENTER_Y = SHAKER_Y
 NEST_DEPTH = 0.008  # 8 mm recess
+# Nest registration datum (registration shoulder stop along +Y):
+# Microplate registers firmly against the +Y shoulder at (0.280, -0.010, 0.805)
+NEST_DATUM_X = 0.280
+NEST_DATUM_Y = -0.010
+NEST_DATUM_Z = 0.805
+SEATED_TOL_XY = 0.015  # +/- 15 mm lateral registration
+SEATED_TOL_Z = 0.010   # +/- 10 mm vertical registration
 NEST_FLOOR_Z = SHAKER_TOP_Z - NEST_DEPTH  # 0.792 m
-PLATE_SEATED_Z = NEST_FLOOR_Z + PLATE_H / 2.0  # 0.799 m
+PLATE_SEATED_Z = NEST_DATUM_Z
 
 # Retaining clamp bracket (prismatic slider along Y)
 # Slides from retracted open (Y = NEST_CENTER_Y - PLATE_W/2 - 0.020) inward to clamp plate rim
@@ -200,9 +207,9 @@ def _on_step(objects) -> None:
     if p_pos[2] < TOP:
         mk.MEMORY["defect"] = True
 
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.045 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.060 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.025)
+    plate_in_nest = (abs(p_pos[0] - NEST_DATUM_X) <= SEATED_TOL_XY and
+                     abs(p_pos[1] - NEST_DATUM_Y) <= SEATED_TOL_XY and
+                     abs(p_pos[2] - NEST_DATUM_Z) <= SEATED_TOL_Z)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
 
     if switch_deg >= 15.0 and (not plate_in_nest or not clamp_locked):
@@ -212,8 +219,16 @@ def _on_step(objects) -> None:
         mk.MEMORY["hold"] = 0
         return
 
+    # Physical stationarity check during terminal dwell (< 5 mm/s)
+    prev_pos = mk.MEMORY.get("_prev_p_pos")
+    mk.MEMORY["_prev_p_pos"] = np.array(p_pos, float)
+    is_stationary = True
+    if prev_pos is not None:
+        p_speed = float(np.linalg.norm(np.array(p_pos, float) - prev_pos) * 20.0)
+        is_stationary = p_speed < 0.005
+
     shaker_started = plate_in_nest and clamp_locked and (switch_deg >= 15.0)
-    if shaker_started and hands_clear(objects):
+    if shaker_started and hands_clear(objects) and is_stationary:
         mk.MEMORY["hold"] = mk.MEMORY.get("hold", 0) + 1
     else:
         mk.MEMORY["hold"] = 0
@@ -229,9 +244,9 @@ def score(objects) -> float:
     clamp_travel = kit.q(objects, "clamp_slider")
     switch_deg = math.degrees(kit.q(objects, "switch_hinge"))
 
-    plate_in_nest = (abs(p_pos[0] - NEST_CENTER_X) <= 0.045 and
-                     abs(p_pos[1] - NEST_CENTER_Y) <= 0.060 and
-                     abs(p_pos[2] - PLATE_SEATED_Z) <= 0.025)
+    plate_in_nest = (abs(p_pos[0] - NEST_DATUM_X) <= SEATED_TOL_XY and
+                     abs(p_pos[1] - NEST_DATUM_Y) <= SEATED_TOL_XY and
+                     abs(p_pos[2] - NEST_DATUM_Z) <= SEATED_TOL_Z)
     clamp_locked = clamp_travel >= CLAMP_ENGAGED_STROKE
     switch_on = switch_deg >= 15.0
 

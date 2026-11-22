@@ -72,21 +72,18 @@ def test_scoring_logic():
     assert abs(task.score(st1) - 0.15) < 1e-4, f"Expected 0.15, got {task.score(st1)}"
 
     # 3. Stage 2: Plate seated flush in nest
-    dx = task.NEST_CENTER_X - task.PAD_X
-    dy = task.NEST_CENTER_Y - task.PAD_Y
-    dz = task.PLATE_SEATED_Z - task.PLATE_INIT_Z
-    st2 = task.kit.fake_states(moved={"microplate": ((task.NEST_CENTER_X, task.NEST_CENTER_Y, task.PLATE_SEATED_Z), (0,0,0,1))})
+    st2 = task.kit.fake_states(moved={"microplate": ((task.NEST_DATUM_X, task.NEST_DATUM_Y, task.NEST_DATUM_Z), (0,0,0,1))})
     task._on_step(st2)
     assert abs(task.score(st2) - 0.35) < 1e-4, f"Expected 0.35, got {task.score(st2)}"
 
-    # 4. Stage 3: Plate seated and retaining clamp engaged (travel >= 12 mm)
-    st3 = task.kit.fake_states(q={"clamp_slider": 0.015}, moved={"microplate": ((task.NEST_CENTER_X, task.NEST_CENTER_Y, task.PLATE_SEATED_Z), (0,0,0,1))})
+    # 4. Stage 3: Plate seated and retaining clamp engaged (travel >= 4 mm)
+    st3 = task.kit.fake_states(q={"clamp_slider": 0.015}, moved={"microplate": ((task.NEST_DATUM_X, task.NEST_DATUM_Y, task.NEST_DATUM_Z), (0,0,0,1))})
     task._on_step(st3)
     assert abs(task.score(st3) - 0.50) < 1e-4, f"Expected 0.50, got {task.score(st3)}"
 
     # 5. Stage 4: Shaker started while clamped (switch tilt >= 15 deg)
     st4 = task.kit.fake_states(q={"clamp_slider": 0.015, "switch_hinge": 20.0},
-                               moved={"microplate": ((task.NEST_CENTER_X, task.NEST_CENTER_Y, task.PLATE_SEATED_Z), (0,0,0,1))}, deg=True)
+                               moved={"microplate": ((task.NEST_DATUM_X, task.NEST_DATUM_Y, task.NEST_DATUM_Z), (0,0,0,1))}, deg=True)
     task._on_step(st4)
     assert abs(task.score(st4) - 0.75) < 1e-4, f"Expected 0.75, got {task.score(st4)}"
 

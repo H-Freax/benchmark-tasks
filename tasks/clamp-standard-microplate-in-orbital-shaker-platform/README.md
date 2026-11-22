@@ -28,16 +28,16 @@ Before powering on the shaker, technicians must seat the microplate flush within
    - Recessed Nest: 128 mm x 86 mm x 8 mm recess with raised rear and side registration stops centered at `(X=0.280, Y=-0.060)`.
 3. **Spring-Loaded Retaining Clamp Bracket**:
    - Anodized red safety bracket mounted on a prismatic slider (`axis=(0, 1, 0)`).
-   - Features spring-return behavior (`stiffness=2000.0 N/m`, `damping=30.0`, `friction=2.0 N`) requiring deliberate gripper retention or positive detent travel.
+   - Features spring-return behavior (`stiffness=100.0 N/m`, `damping=5.0`, `friction=0.5 N`) requiring deliberate gripper retention or positive detent travel.
 4. **Front Panel Power Rocker Switch**:
    - Revolute switch (`axis=(0, 1, 0)`) with spring return and detent engagement at 25 degrees.
 
 ## Task Choreography & Scoring
 - **0.15**: Microplate lifted clear of the staging pad (`> 25 mm` Z rise or `> 40 mm` lateral displacement).
-- **0.35**: Microplate transferred and seated flush in the recessed orbital shaker nest (`<= 45 mm` X, `<= 60 mm` Y, `<= 25 mm` Z).
+- **0.35**: Microplate transferred and seated flush in the recessed orbital shaker nest against registration stops (`<= 15 mm` XY, `<= 10 mm` Z).
 - **0.50**: Spring retaining clamp bracket advanced and locked across the plate rim (stroke `>= 4 mm`).
 - **0.75**: Front panel power switch toggled while plate is securely clamped (`>= 15 deg` tilt).
-- **1.00**: Shaker started, both grippers retracted `> 50 mm` clear, and apparatus held in a continuous 20-step (1.0 s) stillness dwell.
+- **1.00**: Shaker started, both grippers retracted `> 50 mm` clear, and apparatus held stationary (`< 5 mm/s`) in a continuous 20-step (1.0 s) stillness dwell.
 
 ### Empirical Benchmark Scores
 | Condition | Task Score | Description |
