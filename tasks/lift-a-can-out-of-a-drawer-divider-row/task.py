@@ -47,6 +47,7 @@ SUPPORT_TOL = .002
 GOAL_TOL = .015
 STILL_TOL = .002
 STILL_FRAMES = 10
+HOLD_FRAMES = int(round(SUCCESS_HOLD_S * CONTROL_HZ))
 START_TOL = .005
 RESET_JUMP = .10
 HAND_CLEARANCE = .030
@@ -80,6 +81,7 @@ _previous_bottom = None
 _armed = False
 _off_table_latch = False
 _lifted = False
+_hold_steps = 0
 _step = 0
 _hands = None
 _hand_reason = 'not read'
@@ -233,12 +235,12 @@ def _view(objects):
 
 
 def success(objects):
-    global _previous, _previous_bottom, _armed, _off_table_latch, _lifted, _step, _hands, _hand_reason
+    global _previous, _previous_bottom, _armed, _off_table_latch, _lifted, _hold_steps, _step, _hands, _hand_reason
     s = objects.get('soup_can'); valid = _valid_state(s)
     jumped = valid and _previous is not None and np.linalg.norm(s.pos-_previous) > RESET_JUMP
     reset = jumped and _nominal(objects)
     if reset:
-        _history.clear(); _armed = False; _off_table_latch = False; _lifted = False
+        _history.clear(); _armed = False; _off_table_latch = False; _lifted = False; _hold_steps = 0
         _previous = None; _previous_bottom = None; _step = 0
     if _step == 0:
         _armed = bool(_nominal(objects))
@@ -256,11 +258,13 @@ def success(objects):
         _previous = np.asarray(s.pos, dtype=float).copy()
         _previous_bottom = float(s.low[2])
     value = _view(objects)
+    _hold_steps = _hold_steps + 1 if value == .75 else 0
+    reported = 1.0 if value == .75 and _hold_steps >= HOLD_FRAMES else value
     critical = valid and (_tilt(s)>=MAX_TILT_DEG or s.low[2]>TABLE_Z+.005 or
                          np.linalg.norm(s.pos[:2]-START_XY)>.005 or _off_table_latch or _hand_near_slot())
     if TASK_DEBUG and (_step==1 or _step%20==0 or critical):
-        print('task_progress '+json.dumps(dict(step=_step, score=value, armed=_armed,
-              off_table=_off_table_latch, lifted=_lifted, grippers=_hand_reason,
+        print('task_progress '+json.dumps(dict(step=_step, score=reported, armed=_armed,
+              off_table=_off_table_latch, lifted=_lifted, hold_steps=_hold_steps, grippers=_hand_reason,
               released=bool(valid and _released(s)), can_pos=None if not valid else s.pos.tolist(),
               tilt_deg=None if not valid else _tilt(s),
               can_low=None if not valid else s.low.tolist(),
@@ -270,7 +274,8 @@ def success(objects):
 
 
 def score(objects):
-    return float(_view(objects))
+    value = float(_view(objects))
+    return 1.0 if value == .75 and _hold_steps >= HOLD_FRAMES else value
 
 
 def distance(objects):

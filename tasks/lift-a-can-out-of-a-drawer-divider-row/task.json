@@ -15,5 +15,5 @@
   "reset_notes": "Restore the can upright to its stated row midpoint and reset both arms. Fixed drawer boards remain in place. A fresh episode clears history; an in-place reset is recognized only after a can-position jump greater than 100 mm into the complete nominal layout. Slow physical restoration does not clear an off-countertop latch.",
   "fidelity": "The can is represented in simulation by a rigid cylinder with the stated dimensions and mass; the drawer floor and countertop are coplanar.",
   "scores": "Dream-1 run: 0.0 (800/800 steps, max_steps); demo: 1.0 (279 steps, success)",
-  "media": "M-MP9CWN"
+  "media": "M-HMM6S8"
 }

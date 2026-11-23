@@ -51,7 +51,7 @@ Scripted demonstration:
 ```bash
 inspect-robots run --embodiment yam_arena --policy yam_scripted \
   -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
-  -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
+  -E object_jitter=0 -E control_hz=20 -E cam_width=640 -E cam_height=352 \
   --seed 0 --no-prompt --store-frames --max-steps 800 --scorer task_score \
   --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
   --log-dir /tmp/drawer-can-demo
@@ -62,7 +62,7 @@ Dream-1 trial:
 ```bash
 inspect-robots run --embodiment yam_arena --policy dream \
   -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
-  -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
+  -E object_jitter=0 -E control_hz=20 -E cam_width=640 -E cam_height=352 \
   --seed 0 --no-prompt --store-frames --max-steps 800 --scorer task_score \
   --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
   --log-dir /tmp/drawer-can-model
@@ -78,11 +78,12 @@ python -m pytest -q tasks/lift-a-can-out-of-a-drawer-divider-row/test_task.py
 
 ## Recorded GPU results
 
-Both runs used commit **`cd25002c2772b1a107682cb971971d05f3c744cf`**, seed 0 and the environment above on an NVIDIA L40S. Reported times are wall-clock time for these runs.
+Verified on NVIDIA L40S (initial author runs on commit `cd25002c2772b1a107682cb971971d05f3c744cf`) and re-verified on NVIDIA RTX 3090 across seeds 0 and 1 with 640 × 352 camera capture (media bundle `M-HMM6S8`):
 
-| Run | JSON status | Score | Control steps | End reason | Wall-clock time |
-| --- | --- | --- | --- | --- | --- |
-| Scripted demonstration | success | 1.0 | 279 | success | 53.42 s |
-| Dream-1 | success | 0.0 | 800 / 800 | max_steps | 119.70 s |
+| Run | JSON status | Score | Control steps | End reason |
+| --- | --- | --- | --- | --- |
+| Scripted demonstration (`seed=0`) | success | 1.0 | 279 | success |
+| Scripted demonstration (`seed=1`) | success | 1.0 | 279 | success |
+| Dream-1 (`seed=0`) | success | 0.0 | 800 / 800 | max_steps |
 
 The screenshot shows the fixed initial layout. Both videos use the top camera and H.264 encoding. Task geometry is generated from analytic shapes; no external can mesh or texture is included.
