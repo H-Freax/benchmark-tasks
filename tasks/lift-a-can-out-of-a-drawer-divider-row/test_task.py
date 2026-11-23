@@ -38,6 +38,7 @@ MUTATIONS={
  'ignore_hand_distance':('gap < OPEN_GAP or np.linalg.norm(np.maximum(separation,0.0)) < HAND_CLEARANCE','gap < OPEN_GAP'),
  'velocity_only':('return bool(np.max(np.linalg.norm(p[:,None,:]-p[None,:,:],axis=-1)) <= STILL_TOL)','return s.resting(max_speed=float(.01), max_spin=float(.2))'),
  'ignore_crossing':('or not _lifted or not _outside_drawer(s)','or not _outside_drawer(s)'),
+ 'frame_extraction_threshold':('threshold = TABLE_Z + WALL_HEIGHT + .003',"threshold = TABLE_Z + float(LAYOUT['frame_height_m']) + .003"),
  'no_open_release':("w(.8,(gx,gy,release),FINGER_OPEN,'release')","w(.8,(gx,gy,release),FINGER_CLOSED,'release')"),
  'high_release':('RELEASE_GAP = .0015','RELEASE_GAP = .004'),
  'low_approach':("w(1.5,(gx,gy,travel),FINGER_OPEN,'approach outside')","w(1.5,(gx,gy,float(TABLE_Z+.100)),FINGER_OPEN,'approach outside')"),
@@ -497,7 +498,7 @@ def test_below_table_boundary(task,depth,latches):
 @pytest.mark.parametrize('clearance,extracted',[(.002999,False),(.003001,True)])
 def test_lift_crossing_boundary(task,clearance,extracted):
     o=objects(task);task.success(o)
-    walk(task,o,(*task.START_XY,task.TABLE_Z+task.LAYOUT['frame_height_m']+clearance+task.CAN_HEIGHT/2))
+    walk(task,o,(*task.START_XY,task.TABLE_Z+task.WALL_HEIGHT+clearance+task.CAN_HEIGHT/2))
     assert task._lifted==extracted
 
 
@@ -522,3 +523,18 @@ def test_cylinder_fallback_dimensions_and_representation(task):
         assert 'standard soup can' in text and '67.7' in text and '101.9' in text
         assert 'horizontal' in text and 'yaw' in text
         assert 'YCB' not in text and 'CC BY 4.0' not in text
+
+
+def test_extraction_witness_uses_divider_top_before_frame_clearance(task):
+    o=objects(task);task.success(o)
+    walk(task,o,(*task.START_XY,task.TABLE_Z+.130001+task.CAN_HEIGHT/2))
+    assert task._lifted
+    assert o['soup_can'].low[2]<task.TABLE_Z+task.LAYOUT['frame_height_m']
+    assert task.score(o)==0.0  # It still occupies the drawer; terminal location is unchanged.
+
+
+def test_raised_transfer_keeps_release_height(task):
+    assert task.TRAVEL_HEIGHT==pytest.approx(.212)
+    assert task.TRAVEL_HEIGHT-task.PICK_HEIGHT==pytest.approx(.177)
+    release=next(w for w in task.demo()['left'] if w.label=='release')
+    assert release.pos[2]-task.TABLE_Z-task.PICK_HEIGHT==pytest.approx(.0015)

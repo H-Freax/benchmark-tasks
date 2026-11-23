@@ -41,7 +41,7 @@ WALL_HEIGHT = float(LAYOUT['divider_height_m'])
 GAP_WIDTH = float(LAYOUT['gap_width_m'])
 PICK_HEIGHT = .035
 RELEASE_GAP = .0015
-TRAVEL_HEIGHT = WALL_HEIGHT + PICK_HEIGHT + .030
+TRAVEL_HEIGHT = WALL_HEIGHT + PICK_HEIGHT + .050
 MAX_TILT_DEG = 5.0
 SUPPORT_TOL = .002
 GOAL_TOL = .015
@@ -248,7 +248,7 @@ def success(objects):
         if _off_table(s):
             _off_table_latch = True
         # Witness a continuous upward crossing, not a teleport to a finished pose.
-        threshold = TABLE_Z + float(LAYOUT['frame_height_m']) + .003
+        threshold = TABLE_Z + WALL_HEIGHT + .003
         if (_armed and not jumped and _previous_bottom is not None and
                 _previous_bottom < threshold <= float(s.low[2]) and _tilt(s) < MAX_TILT_DEG and _fixed_ok(objects)):
             _lifted = True

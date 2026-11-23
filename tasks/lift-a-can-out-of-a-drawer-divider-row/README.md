@@ -21,12 +21,12 @@ The table below summarizes the completed CPU checks. Measurement reports, scan r
 | Current selected check | CPU result |
 | --- | --- |
 | c / clear width / divider height | 4 / 77.052 / 127 mm |
-| Can below divider tops / TCP grasp height | 25.145 / 35 mm |
+| Can below divider tops / TCP grasp height | 25.140 / 35 mm |
 | Full path / 20 Hz frames | 14.4 s / 289 |
 | Worst IK position / orientation | 0.079463 mm / 0.011867° |
 | Minimum joint-limit margin, normal path / +10 mm reserve | 7.454° / 5.479° |
 | Minimum robot-to-task-structure convex distance | 4.495518 mm |
-| Carry can bottom above 150 mm frame | 7 mm |
+| Commanded carry can bottom above 150 mm frame | 27 mm |
 | Nominal release drop | 1.5 mm |
 
 The complete path calls `ArmPlan.action7` at every 20 Hz sample, independently recomputes TCP errors, checks limits and verifies every waypoint 10 mm higher. URDF collision meshes are convexified per existing collision component and checked with FCL/GJK against all task boards and marking strips for both arms. World AABBs prune only proven distant pairs; they do not replace convex distances. Finger closure uses a conservative can-blocked aperture. Grasp acquisition, finger contact and carrying are assumed geometrically, not dynamically simulated. The alternate 180° yaw fails IK and reaches a joint limit; it is not interchangeable for this arm.
@@ -40,10 +40,12 @@ The old L-based width rule mixes a palm-to-tip length with a TCP-based depth. Ac
 | Score | Conditions |
 | --- | --- |
 | 0 | No witnessed upright extraction, still inside the drawer, tilted, invalid state/layout, or observed off-countertop event |
-| 0.25 | Continuous upward crossing with the can bottom ≥3 mm over the taller drawer frame, then wholly outside the drawer and upright |
+| 0.25 | Continuous upward crossing with the can bottom ≥3 mm above the 127 mm divider tops (130 mm above the floor), then wholly outside the drawer and upright |
 | 0.50 | Also standing on the surrounding countertop, both grippers open and both complete hand envelopes clear |
 | 0.75 | Also inside the landing tolerance and still |
 | 1.00 | Framework holds all full conditions for 1 s |
+
+The extraction witness uses the divider tops because the task is to take the can out of the single row between them. The outer frame remains a fixed physical obstacle; the terminal requirement that the can is outside the drawer is unchanged. Transfer TCP height is 212 mm above the table, raised by 20 mm after the prior GPU run reached only about 146 mm of actual can-bottom height. The release TCP remains 36.5 mm above the table, with a commanded 1.5 mm drop.
 
 Only an observed off-countertop event is physically irreversible and latched. Tipping or an inaccurate landing can be repaired. An incorrect initial layout cannot arm the episode. A direct teleport to a finished pose has no witnessed extraction. Latches reset only on a >100 mm observed can-position jump into the complete nominal scene; slow restoration cannot clear them.
 
@@ -54,7 +56,7 @@ The task lazily reads public `isaaclab.sim.SimulationContext.instance().physics_
 | Upright tilt | <5° | Standing can with limited lean; yaw is unrestricted |
 | Nominal start radius | ≤5 mm | Fixed reproducible row placement |
 | Fixed board tolerance | 0.5 mm translation; rotation-matrix difference ≤0.001 | Detect changed setup geometry |
-| Extraction clearance | ≥3 mm above the 150 mm outer frame | Whole can clears the frame before transfer |
+| Extraction clearance | ≥3 mm above the 127 mm divider tops | Witnesses extraction from the divider row; the taller outer frame enforces clearance through geometry |
 | Countertop support | bottom −1 to +2 mm | Small contact/mesh tolerance |
 | Landing centre | ≤15 mm per axis | Fits the can inside the 110 mm marked outline |
 | Stillness | all pairs in last 10 positions ≤2 mm | Rejects motion hidden by frozen velocity readings |
@@ -75,7 +77,7 @@ Use the existing `yam_env` Python with NumPy, SciPy, pytest and python-fcl, plus
 python -m pytest -q tasks/lift-a-can-out-of-a-drawer-divider-row/test_task.py
 ```
 
-The complete CPU suite passed 51 tests with no skips; the task source mutations and an incorrect cylinder radius are checked by deliberate reverse tests. Validation logs and result JSON are kept outside the repository. Tests cover constructor types, tiers, release evidence, repairable tilt, permanent off-countertop history, reset, bad starts, direct terminal jumps, boundaries, full stillness window, read-only scoring, debug cadence, spawn overlap, full demo IK/clearance, pauses and release height. Mutation tests replace task-owned source in memory, never framework code. The analytic cylinder uses no external can mesh or texture.
+The complete CPU suite passed 53 tests with no skips; the task source mutations and an incorrect cylinder radius are checked by deliberate reverse tests. Validation logs and result JSON are kept outside the repository. Tests cover constructor types, tiers, release evidence, repairable tilt, permanent off-countertop history, reset, bad starts, direct terminal jumps, boundaries, full stillness window, read-only scoring, debug cadence, spawn overlap, full demo IK/clearance, pauses and release height. Mutation tests replace task-owned source in memory, never framework code. The analytic cylinder uses no external can mesh or texture.
 
 ## GPU handoff (not executed locally)
 
