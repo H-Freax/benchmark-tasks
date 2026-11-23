@@ -20,6 +20,23 @@ from yam_arena.urdf import quat_xyzw_to_matrix
 HERE = Path(__file__).resolve().parent
 CAN = json.loads((HERE / 'assets' / 'can_info.json').read_text())
 LAYOUT = json.loads((HERE / 'assets' / 'drawer_info.json').read_text())
+
+try:
+    from isaaclab_arena.assets.registries import AssetRegistry
+except ModuleNotFoundError:
+    AssetRegistry = None
+
+
+class UprightSoupCan:
+    registry_name = CAN['registry_name']
+    name = registry_name
+    tags = ['object', 'graspable']
+    usd_path = str(HERE / 'assets' / CAN['wrapper_file'])
+
+
+if AssetRegistry is not None and not AssetRegistry().is_registered(UprightSoupCan.registry_name, ensure_loaded=False):
+    AssetRegistry().register(UprightSoupCan, UprightSoupCan.registry_name)
+
 SCENE = 'station'
 TABLE_Z = float(TABLE_TOP[SCENE])
 SCORE_OVER = 'end'
@@ -260,7 +277,10 @@ def success(objects):
         print('task_progress '+json.dumps(dict(step=_step, score=value, armed=_armed,
               off_table=_off_table_latch, lifted=_lifted, grippers=_hand_reason,
               released=bool(valid and _released(s)), can_pos=None if not valid else s.pos.tolist(),
-              tilt_deg=None if not valid else _tilt(s))), flush=True)
+              tilt_deg=None if not valid else _tilt(s),
+              can_low=None if not valid else s.low.tolist(),
+              can_high=None if not valid else s.high.tolist(),
+              can_quat=None if not valid else s.quat_xyzw.tolist())), flush=True)
     return bool(value == .75)
 
 

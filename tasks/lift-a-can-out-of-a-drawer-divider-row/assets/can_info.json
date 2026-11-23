@@ -1,45 +1,48 @@
 {
-  "registry_name": "tomato_soup_can_ycb_robolab",
-  "source_sha256": "15af4c13ead2a71c89cb5264c4689919166aacadc8800ab4cf966e34be51c10f",
+  "registry_name": "lift_a_can_out_of_a_drawer_divider_row_upright_soup_can",
+  "source_sha256": "f0d454d8f42b518a7cd378adf0a43b45e9222ea60dc14d703192b7f5eda2f1b0",
   "native_size_m": [
-    0.06785399466753006,
-    0.0677499994635582,
-    0.10203700512647629
+    0.0676593789236386,
+    0.06771425811094955,
+    0.10185499917294827
   ],
   "native_bounds_m": [
     [
-      -0.03392699733376503,
-      -0.0338749997317791,
-      -0.051018502563238144
+      -0.033829800326456105,
+      -0.03385665817879159,
+      -0.05092699890746921
     ],
     [
-      0.03392699733376503,
-      0.0338749997317791,
-      0.051018502563238144
+      0.0338295785971825,
+      0.033857599932157964,
+      0.05092800026547906
     ]
   ],
-  "native_mesh_volume_m3": 0.00031917303019889185,
+  "native_mesh_volume_m3": 0.00031936060052955786,
   "native_uniform_mesh_com_m": [
-    -0.00013622754669567535,
-    0.00026308841243466707,
-    -0.00102156263149696
+    -6.272363716177049e-05,
+    -0.0002790948383853244,
+    0.000981166480228313
   ],
-  "density_estimate_kg_m3": 1409.8935232674726,
+  "density_estimate_kg_m3": 1409.0654493161942,
   "license": "CC BY 4.0",
   "citation": "B. Calli et al., The YCB Object and Model Set: Towards Common Benchmarks for Manipulation Research, ICAR 2015.",
-  "native_extent_m": 0.06785399466753006,
+  "native_extent_m": 0.06771425811094955,
   "scale": 1.0,
   "mass_kg": 0.44999998807907104,
-  "resting_center_above_table_m": 0.051018502563238144,
-  "grasp_band_height_m": 0.029939001193270087,
-  "max_horizontal_feret_m": 0.06840262157935655,
-  "source_url": "https://omniverse-content-staging.s3-us-west-2.amazonaws.com/Assets/Isaac/6.2/Isaac/IsaacLab/Arena/assets/object_library/srl_robolab_assets/objects/ycb/tomato_soup_can.usd",
-  "com_note": "Uniform filled-mesh geometric estimate from signed tetrahedra. Native Arena asset retains automatic PhysX mass properties; no override to its centre of mass.",
-  "source_release": "Arena release/0.3.1 registry; bytes from public Isaac 6.2 staging mirror; target runtime hash verification pending",
+  "resting_center_above_table_m": 0.050927499586474134,
+  "grasp_band_height_m": 0.029955009372047845,
+  "max_horizontal_feret_m": 0.0683283604803503,
+  "source_url": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.1/Isaac/Props/YCB/Axis_Aligned_Physics/005_tomato_soup_can.usd",
+  "com_note": "Uniform filled-mesh geometric estimate from signed tetrahedra. The wrapper moves the rigid-body frame to its unrotated root, removes the referenced root rigid/mass APIs to avoid nested rigid bodies, and preserves source mesh/colliders. PhysX derives mass properties for the configured 450 g total mass.",
+  "source_release": "Arena release/0.3.1 tomato_soup_can registry; official Isaac 6.1 production asset",
   "measured_grasp_band_size_m": [
-    0.06596599891781807,
-    0.06486600264906883,
-    0.029939001193270087
+    0.06645596832507916,
+    0.06635763973688391,
+    0.029955009372047845
   ],
-  "grasp_band_selection": "Mesh vertices 20 to 50 mm above the native can bottom; 1466 vertices"
+  "grasp_band_selection": "Mesh vertices 20 to 50 mm above the upright can bottom; 1619 vertices",
+  "wrapper_file": "upright_soup_can.usda",
+  "wrapper_rotation_x_deg": 90.0,
+  "source_geometry_sha256": "4a7100b168edfbaf951d0f3cb70111936881f925d3d0253bd79905dc3cac60a0"
 }
