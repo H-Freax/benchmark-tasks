@@ -1,114 +1,88 @@
 # Lift a can out of a drawer divider row
 
-Take the upright soup can out of a deep kitchen drawer and leave it standing in the marked area beside the drawer. The hand turns to align with the row and directly grips the can inside the narrow slot. No cord, handle or tool is provided.
+Take the upright soup can out of the deep kitchen drawer and leave it standing in the marked area beside the drawer. The hand must fit between the dividers to grip the can directly. No cord, handle or tool is provided.
 
-The supplemental CPU scan and the complete commanded demonstration pass geometric checks. A successful physical grasp and achieved simulation score remain pending GPU validation. `scores` is `pending`; no media is included.
+## Scene and reproduction
 
-## Scene
+The two bamboo dividers represent **Lipper International model 8897 deep drawer dividers**. The [manufacturer specification](https://www.lipperinternational.com/products/bamboo-deep-drawer-dividers-set-of-two/) gives a thickness of 0.625 in, height of 5 in and adjustable length of 18.125–22 in: **15.875 × 127 × 460.375–558.8 mm**. The chosen length is 460.375 mm. These product dimensions come from the manufacturer's published specification and have not been physically measured. The drawer dimensions and layout below are scenario choices.
 
-The two fixed bamboo boards represent **Lipper International 8897 deep drawer dividers**. The [manufacturer specification](https://www.lipperinternational.com/products/bamboo-deep-drawer-dividers-set-of-two/) gives 0.625 in thickness, 5 in height and adjustable length 18.125–22 in: **15.875 × 127 × 460.375–558.8 mm**. The selected length is 460.375 mm. Fixed planar envelopes omit the spring tensioner and end pads; this task does not operate the dividers or drawer slides.
+One **standard soup can**, diameter **67.7 mm**, height **101.9 mm** and mass **450 g**, stands at world **(0.160, +0.100) m**. Its exact simulated dimensions are diameter 67.66 mm and height 101.86 mm. The can is represented by a rigid cylinder with the stated dimensions and mass. The drawer floor and countertop are coplanar. The can starts 1 mm above the floor and settles.
 
-The drawer dimensions are scenario choices, not product specifications: interior **460.375 × 300 × 150 mm**, four 18 mm plywood frame boards and a 12 mm floor. The floor's top is the station table reference plane. Its fixed solid overlaps the top 12 mm of the built-in table collider, modelling a recessed open drawer next to a countertop without raising the can. No dynamic object starts embedded. Static overlapping solids and their coincident support surfaces need a GPU contact check.
+The drawer interior is **460.375 × 300 × 150 mm**, with four 18 mm plywood frame boards and a 12 mm floor. Two fixed bamboo boards span its full internal length and form a **77.052 mm** clear row. The row axis is **7.971604°** from world +x. The can is at its longitudinal midpoint, **230.188 mm** from each end frame's inner face, **70 mm** from the near side's inner face and **230 mm** from the opposite side's inner face. This places the row toward one side of the drawer and leaves the robot base outside the frame.
 
-The can is at world (0.160, +0.100) m, at the longitudinal midpoint of the 77.052 mm clear row. The row axis is 7.971604° from +x, or 60° from the left-base-to-can line. The left hand's yaw is −82.028396°. Both dividers span the entire internal drawer length and meet the end frames. The can centre is 230.188 mm from each end frame, 70 mm from the near side's inner face and 230 mm from the opposite side's inner face. This places the row toward one side of a normal-width drawer, keeping the robot base outside the drawer. The 70 mm distance contains the half slot, divider thickness and 15.599 mm unused lane beside that divider. The outer frame blocks entry through the ends. The marked countertop landing centre is (0.240, +0.280) m, on the left arm's side; the right arm remains at READY.
+For exact board placement, the local origin is the row midpoint at world (0.160, +0.100) m on the station tabletop. Local u follows the row, v is perpendicular to it, and z is up. All values in this table are millimetres; sizes follow (u, v, z).
 
-A red analytic Cylinder represents a **standard soup can**, diameter **67.7 mm** and height **101.9 mm** (exact radius 33.83 mm and height 101.86 mm), with the unchanged configured mass of 450 g. This fallback is used because the standard library asset is available only in a horizontal pose while framework Asset placement supports yaw rotation only. The cylinder omits label texture, rolled rims and scan irregularities. Its analytic dimensions, volume and uniform centre of mass are in `assets/can_info.json`; `assets/drawer_info.json` distinguishes manufacturer and chosen dimensions. The three entering waypoints command the full 93.9 mm gripper opening.
+| Object | Size | Local centre |
+| --- | --- | --- |
+| Bamboo divider, near | 460.375 × 15.875 × 127 | (0, −46.463522, 63.5) |
+| Bamboo divider, far | 460.375 × 15.875 × 127 | (0, +46.463522, 63.5) |
+| Plywood end frame, negative u | 18 × 336 × 150 | (−239.1875, −80, 75) |
+| Plywood end frame, positive u | 18 × 336 × 150 | (+239.1875, −80, 75) |
+| Plywood side frame, near | 460.375 × 18 × 150 | (0, −239, 75) |
+| Plywood side frame, far | 460.375 × 18 × 150 | (0, +79, 75) |
+| Plywood floor | 496.375 × 336 × 12 | (0, −80, −6) |
 
-## Feasibility evidence
+All seven boards are fixed. The divider tensioners and end pads are omitted; the task does not operate drawer slides. The pale landing outline is a **110 mm square** centred at world **(0.240, +0.280) m**. Its four fixed strips follow world x and y: two 2 × 110 × 0.5 mm strips centred at (0.186, 0.280) and (0.294, 0.280) m, and two 106 × 2 × 0.5 mm strips centred at (0.240, 0.226) and (0.240, 0.334) m. Their centres are 0.25 mm above the countertop. The left arm works on the positive-y side; the right arm starts in its raised ready pose. There are no other task objects. Dimensions and layout are also recorded in `assets/can_info.json` and `assets/drawer_info.json`.
 
-The table below summarizes the completed CPU checks. Measurement reports, scan results and their scripts are archived outside the repository. The collision test reads the real URDF meshes directly and reconstructs each convex collision component in `test_task.py`; it does not depend on archived files.
+## Scoring and physical trials
 
-| Current selected check | CPU result |
-| --- | --- |
-| c / clear width / divider height | 4 / 77.052 / 127 mm |
-| Can below divider tops / TCP grasp height | 25.140 / 35 mm |
-| Full path / 20 Hz frames | 14.4 s / 289 |
-| Worst IK position / orientation | 0.079463 mm / 0.011867° |
-| Minimum joint-limit margin, normal path / +10 mm reserve | 7.454° / 5.479° |
-| Minimum robot-to-task-structure convex distance | 4.495518 mm |
-| Commanded carry can bottom above 150 mm frame | 27 mm |
-| Nominal release drop | 1.5 mm |
-
-The complete path calls `ArmPlan.action7` at every 20 Hz sample, independently recomputes TCP errors, checks limits and verifies every waypoint 10 mm higher. URDF collision meshes are convexified per existing collision component and checked with FCL/GJK against all task boards and marking strips for both arms. World AABBs prune only proven distant pairs; they do not replace convex distances. Finger closure uses a conservative can-blocked aperture. Grasp acquisition, finger contact and carrying are assumed geometrically, not dynamically simulated. The alternate 180° yaw fails IK and reaches a joint limit; it is not interchangeable for this arm.
-
-The old L-based width rule mixes a palm-to-tip length with a TCP-based depth. Actual palm entry begins at about 70.501 mm above TCP; the selected 92 mm descent depth includes the palm, while the wrist remains above the dividers. Actual full collision geometry is checked regardless of that classification. The selected gap uses the 73.052 mm wrist/palm envelope from the successful grasp plus 4 mm. The fingers' transverse span is 67.999 mm, leaving about 4.5 mm per side at the limiting pose.
-
-## Scoring
-
-`SCORE_OVER="end"`. Highest tier only; `score()` and `distance()` read state without updating history. `success()` updates history once per 20 Hz control step. The framework alone awards 1.0 after a one-second successful hold.
+Record the trial at 20 Hz with calibrated top and side views. Use a ruler or callipers to establish the floor, divider tops, landing centre and gripper opening. Measure can tilt from vertical and hand clearance using a conservative envelope around the fingers and palm. Track the can centre over the last ten frames. Award the highest satisfied tier at the end:
 
 | Score | Conditions |
 | --- | --- |
-| 0 | No witnessed upright extraction, still inside the drawer, tilted, invalid state/layout, or observed off-countertop event |
-| 0.25 | Continuous upward crossing with the can bottom ≥3 mm above the 127 mm divider tops (130 mm above the floor), then wholly outside the drawer and upright |
-| 0.50 | Also standing on the surrounding countertop, both grippers open and both complete hand envelopes clear |
-| 0.75 | Also inside the landing tolerance and still |
-| 1.00 | Framework holds all full conditions for 1 s |
+| 0 | No witnessed upright extraction, the can remains in the drawer, final tilt is at least 5°, the setup is invalid, or an off-countertop event was observed |
+| 0.25 | A continuous upright lift raises the can bottom at least 3 mm above the 127 mm divider tops, then the can is wholly outside the drawer and upright |
+| 0.50 | Also standing on the countertop, bottom from −1 to +2 mm relative to its surface; both grippers open by at least 85 mm and both complete hand envelopes at least 30 mm away |
+| 0.75 | Also within 15 mm on each world axis of the landing centre, with every pair of can-centre positions in the last ten frames within 2 mm |
+| 1.00 | All full-score conditions persist for one second |
 
-The extraction witness uses the divider tops because the task is to take the can out of the single row between them. The outer frame remains a fixed physical obstacle; the terminal requirement that the can is outside the drawer is unchanged. Transfer TCP height is 212 mm above the table, raised by 20 mm after the prior GPU run reached only about 146 mm of actual can-bottom height. The release TCP remains 36.5 mm above the table, with a commanded 1.5 mm drop.
+The extraction height is **130 mm above the floor** because the task is to remove the can from the row between the dividers. The fixed outer frame physically constrains the transfer. Divider contact does not affect the score. The can must be wholly outside the drawer before any nonzero terminal tier applies. Tilt and inaccurate placement can be repaired.
 
-Only an observed off-countertop event is physically irreversible and latched. Tipping or an inaccurate landing can be repaired. An incorrect initial layout cannot arm the episode. A direct teleport to a finished pose has no witnessed extraction. Latches reset only on a >100 mm observed can-position jump into the complete nominal scene; slow restoration cannot clear them.
+An observed can extent outside countertop bounds **x=[−0.19, 0.91] m, y=[−0.65, 0.65] m**, or a bottom more than **10 mm** below the surface, permanently yields zero for that trial. Before ten frames are available, stillness requires speed below **10 mm/s** and spin below **0.2 rad/s**. Invalid or missing object readings yield zero; unavailable hand readings prevent release credit. A direct jump to a finished pose without a continuous upward crossing earns zero.
 
-The task lazily reads public `isaaclab.sim.SimulationContext.instance().physics_sim_view` articulation views. Finger positions and link transforms determine opening and conservative collision-envelope separation. If either hand reading is missing, release credit fails closed at a maximum 0.25. Local scorer tests substitute synthetic observations in the task-owned adapter; they do not validate this task's GPU readback or patch the framework.
+Start with the can centre within 5 mm of the stated pose and tilt below 5°. Fixed-board centres must match within 0.5 mm, with rotation-matrix entries within 0.001 of the stated orientation. Restore the can upright at the row midpoint and reset the arms for each trial. A fresh episode clears trial history; an in-place reset requires a can-position jump greater than 100 mm back into the complete nominal layout. Slow restoration does not clear an off-countertop event.
 
-| Threshold (开发估计) | Value | Physical basis |
-| --- | --- | --- |
-| Upright tilt | <5° | Standing can with limited lean; yaw is unrestricted |
-| Nominal start radius | ≤5 mm | Fixed reproducible row placement |
-| Fixed board tolerance | 0.5 mm translation; rotation-matrix difference ≤0.001 | Detect changed setup geometry |
-| Extraction clearance | ≥3 mm above the 127 mm divider tops | Witnesses extraction from the divider row; the taller outer frame enforces clearance through geometry |
-| Countertop support | bottom −1 to +2 mm | Small contact/mesh tolerance |
-| Landing centre | ≤15 mm per axis | Fits the can inside the 110 mm marked outline |
-| Stillness | all pairs in last 10 positions ≤2 mm | Rejects motion hidden by frozen velocity readings |
-| Unfilled window fallback | speed <10 mm/s; spin <0.2 rad/s | Explicit early-frame settling check |
-| Hand release | both joint gaps ≥85 mm; hand AABB separation ≥30 mm | Positive open-and-withdraw evidence; conservative mesh envelopes |
-| Off countertop | full world AABB within table bounds; bottom ≥−10 mm | Detects escaped/fallen bodies; latched |
-| In-place reset | >100 mm jump and nominal full layout | Distinguishes reset from physical repair |
-| IK / geometric reserve | <0.5 mm; <0.1°; ≥3 mm; +10 mm reachable | Feasibility tolerances |
-| Release drop | 1.5 mm, at most 2 mm | `table_z + release_gap + (pick_tcp_z - table_z)` |
+## Run and score
 
-Every lowering follows a stationary alignment waypoint. All numeric configuration fields sent to framework constructors are builtin Python floats. `TASK_DEBUG` alone enables `task_progress`: step 1, every 20 steps, and every step while the can is lifted, displaced, tilted, off the countertop or the hand is approaching the row. Debug includes release-readback reason, extracted flag, pose and score.
+Use Isaac Sim **6.1**, Isaac Lab-Arena **0.3.1** and `yam_arena`. The limit is **800 control steps at 20 Hz (40 seconds)**. Run these commands from the repository root.
 
-## Local tests
+Scripted demonstration:
 
-Use the existing `yam_env` Python with NumPy, SciPy, pytest and python-fcl, plus the real `yam_arena` checkout installed. From the repository root:
+```bash
+inspect-robots run --embodiment yam_arena --policy yam_scripted \
+  -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
+  -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
+  --seed 0 --no-prompt --store-frames --max-steps 800 --scorer task_score \
+  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
+  --log-dir /tmp/drawer-can-demo
+```
+
+Dream-1 trial:
+
+```bash
+inspect-robots run --embodiment yam_arena --policy dream \
+  -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
+  -E object_jitter=0 -E control_hz=20 -E cam_width=320 -E cam_height=176 \
+  --seed 0 --no-prompt --store-frames --max-steps 800 --scorer task_score \
+  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
+  --log-dir /tmp/drawer-can-model
+```
+
+Read the result JSON `status`, `results.metrics.task_score` and the trial's termination reason. The command's exit code alone does not establish the result.
+
+Run local tests in the configured `yam_env` environment:
 
 ```bash
 python -m pytest -q tasks/lift-a-can-out-of-a-drawer-divider-row/test_task.py
 ```
 
-The complete CPU suite passed 53 tests with no skips; the task source mutations and an incorrect cylinder radius are checked by deliberate reverse tests. Validation logs and result JSON are kept outside the repository. Tests cover constructor types, tiers, release evidence, repairable tilt, permanent off-countertop history, reset, bad starts, direct terminal jumps, boundaries, full stillness window, read-only scoring, debug cadence, spawn overlap, full demo IK/clearance, pauses and release height. Mutation tests replace task-owned source in memory, never framework code. The analytic cylinder uses no external can mesh or texture.
+## Recorded GPU results
 
-## GPU handoff (not executed locally)
+Both runs used commit **`cd25002c2772b1a107682cb971971d05f3c744cf`**, seed 0 and the environment above on an NVIDIA L40S. Reported times are wall-clock time for these runs.
 
-First use the existing Isaac Sim 6.1 / Isaac Lab-Arena 0.3.1 + yam_arena environment for a 200-step scripted smoke:
+| Run | JSON status | Score | Control steps | End reason | Wall-clock time |
+| --- | --- | --- | --- | --- | --- |
+| Scripted demonstration | success | 1.0 | 279 | success | 53.42 s |
+| Dream-1 | success | 0.0 | 800 / 800 | max_steps | 119.70 s |
 
-```bash
-TASK_DEBUG=1 inspect-robots run --embodiment yam_arena --policy yam_scripted \
-  -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
-  -E scene=station -E object_jitter=0 -E control_hz=20 \
-  -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 200 \
-  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
-  --store-frames --log-dir /tmp/drawer-can-smoke
-```
-
-Read the result JSON **status**, not the CLI exit code. The smoke stops during placement and need not achieve full score. Check the can's analytic size and 1 mm spawn gap, 127 mm dividers, 77.052 mm clear slot, 150 mm frame, first `armed=true`, no initial overlaps, recorded divider/frame contact behavior, no joint-limit saturation, tilt <5°, hand readback `ok`, and actual can-bottom clearance ≥3 mm while crossing the outer frame. Confirm the cylinder is 67.66 mm in diameter and 101.86 mm high. Debug must print every critical step.
-
-Then run the complete scripted trial:
-
-```bash
-TASK_DEBUG=1 inspect-robots run --embodiment yam_arena --policy yam_scripted \
-  -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
-  -E scene=station -E object_jitter=0 -E control_hz=20 \
-  -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 800 \
-  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
-  --store-frames --log-dir /tmp/drawer-can-demo
-```
-
-The 14.4 s plan plus a default 3 s policy hold fits the 800-step (40 s) run limit. Inspect result JSON status and score, actual release drop ≤2 mm, final bottom tolerance, both open joint gaps ≥85 mm, both hand envelopes ≥30 mm away, centre ±15 mm, ten-frame motion ≤2 mm and a one-second full-success hold. Inspect the actual termination frame, since success may end the rollout before the final waypoint. Wall-clock runtime is unmeasured. No Dream-1, upload or PR command is part of this handoff.
-
-## Limits and assets
-
-No local GPU physics, contact, friction, tracking, camera visibility, cylinder collision handling, derived inertia/COM, readback integration, success-hold integration or achieved score is certified. Geometric checks sample at 20 Hz; continuous swept volume, robot self-collision, arm-to-arm distance and station camera-stand clearance are not certified. Source API defaults use contact offsets that may create forces before mesh surfaces touch; clearance must be inspected dynamically. No contact parameters are changed. Divider/frame contact history is not scored; the geometric clearance checks describe the scripted path. Alternative physical extraction strategies are not prohibited by scoring.
-
-YAM collision geometry used in verification is the framework's bundled **MIT** robot model; no robot mesh is copied. Drawer boards and marking strips are original analytic fixed geometry. No CC0 model is used.
+The screenshot shows the fixed initial layout. Both videos use the top camera and H.264 encoding. Task geometry is generated from analytic shapes; no external can mesh or texture is included.

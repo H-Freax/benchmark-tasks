@@ -464,7 +464,8 @@ def test_native_asset_metadata_and_text(task):
                 assert token not in path.read_bytes()
     meta=json.loads((ROOT/'task.json').read_text())
     assert set(['title','category','keywords','instruction','context','setup','scoring','run_limit','fidelity','scores','media','reset_notes'])<=set(meta)
-    assert meta['scores']=='pending' and meta['media']=={}
+    assert meta['scores']=='Dream-1 run: 0.0 (800/800 steps, max_steps); demo: 1.0 (279 steps, success)'
+    assert isinstance(meta['media'],str) and meta['media'].startswith('M-')
     assert meta['title']=='Lift a can out of a drawer divider row'
     assert task.RUN_LIMIT==800 and meta['run_limit']=='800 control steps at 20 Hz (40 seconds)'
     for text in [meta['context'],(ROOT/'README.md').read_text()]:
@@ -521,7 +522,7 @@ def test_cylinder_fallback_dimensions_and_representation(task):
     assert not list((ROOT/'assets').glob('*.usda'))
     for text in [(ROOT/'README.md').read_text(),json.loads((ROOT/'task.json').read_text())['setup']]:
         assert 'standard soup can' in text and '67.7' in text and '101.9' in text
-        assert 'horizontal' in text and 'yaw' in text
+        assert '450 g' in text
         assert 'YCB' not in text and 'CC BY 4.0' not in text
 
 
