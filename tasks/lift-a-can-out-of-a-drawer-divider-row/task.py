@@ -14,28 +14,12 @@ import numpy as np
 from yam_arena.analysis import link_hulls
 from yam_arena.constants import FINGER_CLOSED, FINGER_OPEN, TCP_OFFSET
 from yam_arena.demo import Waypoint
-from yam_arena.task_file import Asset, Box, TABLE_TOP
+from yam_arena.task_file import Box, Cylinder, TABLE_TOP
 from yam_arena.urdf import quat_xyzw_to_matrix
 
 HERE = Path(__file__).resolve().parent
 CAN = json.loads((HERE / 'assets' / 'can_info.json').read_text())
 LAYOUT = json.loads((HERE / 'assets' / 'drawer_info.json').read_text())
-
-try:
-    from isaaclab_arena.assets.registries import AssetRegistry
-except ModuleNotFoundError:
-    AssetRegistry = None
-
-
-class UprightSoupCan:
-    registry_name = CAN['registry_name']
-    name = registry_name
-    tags = ['object', 'graspable']
-    usd_path = str(HERE / 'assets' / CAN['wrapper_file'])
-
-
-if AssetRegistry is not None and not AssetRegistry().is_registered(UprightSoupCan.registry_name, ensure_loaded=False):
-    AssetRegistry().register(UprightSoupCan, UprightSoupCan.registry_name)
 
 SCENE = 'station'
 TABLE_Z = float(TABLE_TOP[SCENE])
@@ -75,8 +59,9 @@ def floats(values):
     return tuple(float(v) for v in values)
 
 
-OBJECTS = [Asset('soup_can', CAN['registry_name'], xy=floats(START_XY),
-                 extent=float(CAN['native_extent_m']), mass=float(CAN['mass_kg']), yaw=0.0)]
+OBJECTS = [Cylinder('soup_can', pos=floats(START_POS),
+                    radius=float(CAN['radius_m']), height=float(CAN_HEIGHT),
+                    mass=float(CAN['mass_kg']), color=floats((.75, .08, .05)), yaw=0.0)]
 for board in LAYOUT['boards_local']:
     p = ROTATION @ np.asarray(board['pos']) + np.r_[START_XY, TABLE_Z]
     OBJECTS.append(Box(board['name'], pos=floats(p), size=floats(board['size']),

@@ -1,48 +1,41 @@
 {
-  "registry_name": "lift_a_can_out_of_a_drawer_divider_row_upright_soup_can",
-  "source_sha256": "f0d454d8f42b518a7cd378adf0a43b45e9222ea60dc14d703192b7f5eda2f1b0",
+  "representation": "analytic_cylinder",
+  "radius_m": 0.03383,
   "native_size_m": [
-    0.0676593789236386,
-    0.06771425811094955,
-    0.10185499917294827
+    0.06766,
+    0.06766,
+    0.10186
   ],
   "native_bounds_m": [
     [
-      -0.033829800326456105,
-      -0.03385665817879159,
-      -0.05092699890746921
+      -0.03383,
+      -0.03383,
+      -0.05093
     ],
     [
-      0.0338295785971825,
-      0.033857599932157964,
-      0.05092800026547906
+      0.03383,
+      0.03383,
+      0.05093
     ]
   ],
-  "native_mesh_volume_m3": 0.00031936060052955786,
+  "native_mesh_volume_m3": 0.0003662330553148129,
   "native_uniform_mesh_com_m": [
-    -6.272363716177049e-05,
-    -0.0002790948383853244,
-    0.000981166480228313
+    0.0,
+    0.0,
+    0.0
   ],
-  "density_estimate_kg_m3": 1409.0654493161942,
-  "license": "CC BY 4.0",
-  "citation": "B. Calli et al., The YCB Object and Model Set: Towards Common Benchmarks for Manipulation Research, ICAR 2015.",
-  "native_extent_m": 0.06771425811094955,
+  "density_estimate_kg_m3": 1228.7257568606208,
+  "native_extent_m": 0.06766,
   "scale": 1.0,
   "mass_kg": 0.44999998807907104,
-  "resting_center_above_table_m": 0.050927499586474134,
-  "grasp_band_height_m": 0.029955009372047845,
-  "max_horizontal_feret_m": 0.0683283604803503,
-  "source_url": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.1/Isaac/Props/YCB/Axis_Aligned_Physics/005_tomato_soup_can.usd",
-  "com_note": "Uniform filled-mesh geometric estimate from signed tetrahedra. The wrapper moves the rigid-body frame to its unrotated root, removes the referenced root rigid/mass APIs to avoid nested rigid bodies, and preserves source mesh/colliders. PhysX derives mass properties for the configured 450 g total mass.",
-  "source_release": "Arena release/0.3.1 tomato_soup_can registry; official Isaac 6.1 production asset",
+  "resting_center_above_table_m": 0.05093,
+  "grasp_band_height_m": 0.03,
+  "max_horizontal_feret_m": 0.06766,
   "measured_grasp_band_size_m": [
-    0.06645596832507916,
-    0.06635763973688391,
-    0.029955009372047845
+    0.06766,
+    0.06766,
+    0.03
   ],
-  "grasp_band_selection": "Mesh vertices 20 to 50 mm above the upright can bottom; 1619 vertices",
-  "wrapper_file": "upright_soup_can.usda",
-  "wrapper_rotation_x_deg": 90.0,
-  "source_geometry_sha256": "4a7100b168edfbaf951d0f3cb70111936881f925d3d0253bd79905dc3cac60a0"
+  "com_note": "Uniform solid analytic cylinder; PhysX derives mass properties for the configured total mass.",
+  "representation_note": "A red cylinder represents a standard soup can, diameter 67.7 mm and height 101.9 mm. The standard library asset is available only in a horizontal pose, while task-file Asset placement supports yaw rotation only."
 }

@@ -22,7 +22,7 @@ from yam_arena.analysis import read_stl
 from yam_arena.constants import ARM_JOINTS, FINGER_OPEN, FINGER_CLOSED, READY
 from yam_arena.demo import ArmPlan, Waypoint, grip_rotation
 from yam_arena.station import BASES
-from yam_arena.task_file import Asset, Box, ObjectState, load
+from yam_arena.task_file import Box, Cylinder, ObjectState, load
 from yam_arena.urdf import forward_kinematics, quat_xyzw_to_matrix, rotation_angle_deg, rpy_matrix
 
 ROOT=Path(__file__).resolve().parent
@@ -452,8 +452,8 @@ def test_carried_can_and_spawn_clearances(task):
 
 def test_native_asset_metadata_and_text(task):
     assert max(task.CAN_SIZE[:2])<.085 and task.CAN['grasp_band_height_m']>=.015
-    assert task.CAN['scale']==1.0 and task.OBJECTS[0].extent==max(task.CAN_SIZE[:2])
-    assert task.CAN_HEIGHT==pytest.approx(.10185499917294827)
+    assert task.CAN['scale']==1.0 and task.OBJECTS[0].radius*2==max(task.CAN_SIZE[:2])
+    assert task.CAN_HEIGHT==pytest.approx(.10186)
     assert task.LAYOUT['divider_height_m']==.127 and task.LAYOUT['divider_thickness_m']==.015875
     for path in (ROOT/'assets').rglob('*'):
         if path.is_file():
@@ -508,20 +508,17 @@ def test_fixed_board_translation_boundary(task,offset,allowed):
     assert (task.score(o)==.75)==allowed
 
 
-def test_upright_wrapper_has_one_canonical_rigid_body(task):
-    from pxr import Sdf
-    path=ROOT/'assets'/task.CAN['wrapper_file']
-    layer=Sdf.Layer.FindOrOpen(str(path))
-    assert layer.defaultPrim=='Can'
-    root=layer.GetPrimAtPath('/Can')
-    upright=layer.GetPrimAtPath('/Can/Upright')
-    assert 'PhysicsRigidBodyAPI' in root.GetInfo('apiSchemas').prependedItems
-    assert 'PhysicsRigidBodyAPI' in upright.GetInfo('apiSchemas').deletedItems
-    assert list(upright.attributes['xformOpOrder'].default)==['xformOp:rotateX']
-    assert upright.attributes['xformOp:rotateX'].default==90.0
-    assert [r.assetPath for r in upright.referenceList.prependedItems]==[task.CAN['source_url']]
-    assert '/Assets/Isaac/6.1/' in task.CAN['source_url']
-    assert task.CAN['max_horizontal_feret_m']<=.070 and .095<=task.CAN_HEIGHT<=.110
-    assert task.CAN['registry_name'].startswith('lift_a_can_out_of_a_drawer_divider_row_')
-    assert task.UprightSoupCan.usd_path==str(path)
-    assert 'CC BY 4.0' in (ROOT/'README.md').read_text()
+def test_cylinder_fallback_dimensions_and_representation(task):
+    can=task.OBJECTS[0]
+    assert isinstance(can,Cylinder)
+    assert can.radius==.03383 and can.height==.10186
+    assert can.mass==.44999998807907104
+    assert tuple(can.pos)==pytest.approx(tuple(task.START_POS))
+    assert can.color[0]>can.color[1] and can.color[0]>can.color[2]
+    assert task.CAN['max_horizontal_feret_m']==pytest.approx(.06766)
+    assert task.LAYOUT['entry_finger_joint_m']==FINGER_OPEN
+    assert not list((ROOT/'assets').glob('*.usda'))
+    for text in [(ROOT/'README.md').read_text(),json.loads((ROOT/'task.json').read_text())['setup']]:
+        assert 'standard soup can' in text and '67.7' in text and '101.9' in text
+        assert 'horizontal' in text and 'yaw' in text
+        assert 'YCB' not in text and 'CC BY 4.0' not in text
