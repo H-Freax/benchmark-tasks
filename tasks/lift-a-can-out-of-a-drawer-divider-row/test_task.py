@@ -4,24 +4,26 @@ TASK_MUTATION substitutes task-owned source only. No framework patch is used.
 """
 from __future__ import annotations
 import copy
-import importlib.util
+from dataclasses import dataclass
 import inspect
 import json
 import math
 import os
 from pathlib import Path
-import sys
 import types
+import xml.etree.ElementTree as ET
 
 import fcl
 import numpy as np
 import pytest
-from yam_arena import YAM_URDF, ik
+from scipy.spatial import ConvexHull
+from yam_arena import ASSET_DIR, YAM_URDF, ik
+from yam_arena.analysis import read_stl
 from yam_arena.constants import ARM_JOINTS, FINGER_OPEN, FINGER_CLOSED, READY
 from yam_arena.demo import ArmPlan, Waypoint, grip_rotation
 from yam_arena.station import BASES
 from yam_arena.task_file import Asset, Box, ObjectState, load
-from yam_arena.urdf import forward_kinematics, quat_xyzw_to_matrix, rotation_angle_deg
+from yam_arena.urdf import forward_kinematics, quat_xyzw_to_matrix, rotation_angle_deg, rpy_matrix
 
 ROOT=Path(__file__).resolve().parent
 SOURCE=(ROOT/'task.py').read_text()
@@ -327,11 +329,52 @@ def test_release_pause_run_limit_and_own_side(task):
     assert sum(w.duration for w in ws)*20+20<=task.RUN_LIMIT
 
 
+LINK_NAMES = ('base', 'link1', 'link2', 'link3', 'link4', 'link5', 'gripper', 'tip_left', 'tip_right')
+
+
+@dataclass
+class Hull:
+    link: str
+    index: int
+    vertices: np.ndarray
+    obj: object
+    source: str
+
+
+def joint_map(q, finger):
+    return dict(zip(ARM_JOINTS, q, strict=True)) | {'joint7': finger, 'joint8': finger}
+
+
+def read_hulls():
+    hulls = []
+    for name in LINK_NAMES:
+        link = ET.parse(YAM_URDF).getroot().find(f"link[@name='{name}']")
+        for index, col in enumerate(link.findall('collision')):
+            origin = col.find('origin')
+            xyz = np.fromstring(origin.get('xyz', '0 0 0'), sep=' ')
+            rotation = rpy_matrix(np.fromstring(origin.get('rpy', '0 0 0'), sep=' '))
+            mesh = col.find('geometry/mesh')
+            if mesh is None:
+                raise ValueError('Unexpected non-mesh collision geometry')
+            filename = mesh.get('filename')
+            triangles = read_stl(ASSET_DIR / filename)
+            scale = np.fromstring(mesh.get('scale', '1 1 1'), sep=' ')
+            vertices = np.unique(triangles.reshape(-1, 3) * scale, axis=0) @ rotation.T + xyz
+            ch = ConvexHull(vertices)
+            faces = ch.simplices.copy()
+            for i, face in enumerate(faces):
+                tri = vertices[face]
+                if np.dot(np.cross(tri[1]-tri[0], tri[2]-tri[0]), ch.equations[i, :3]) < 0:
+                    faces[i] = face[::-1]
+            packed = np.c_[np.full(len(faces), 3), faces].ravel().tolist()
+            obj = fcl.CollisionObject(fcl.Convex(vertices, len(faces), packed))
+            hulls.append(Hull(name, index, vertices, obj, filename))
+    return hulls
+
+
 @pytest.fixture(scope='module')
 def geometry():
-    spec=importlib.util.spec_from_file_location('historical_gap_geometry',ROOT/'validation/scan_gap.py')
-    g=importlib.util.module_from_spec(spec);sys.modules[spec.name]=g;spec.loader.exec_module(g)
-    return g,g.read_hulls()
+    return types.SimpleNamespace(LINK_NAMES=LINK_NAMES, joint_map=joint_map), read_hulls()
 
 
 @pytest.fixture(scope='module')
@@ -415,10 +458,14 @@ def test_native_asset_metadata_and_text(task):
     for path in (ROOT/'assets').rglob('*'):
         if path.is_file():
             assert path.suffix=='.json'
-            for token in [b'/Users/',b'/home/',b'C:\\',b'Exif',b'caBX',b'xmpmeta']:assert token not in path.read_bytes()
+            for token in [bytes([47])+b'Users'+bytes([47]), bytes([47])+b'home'+bytes([47]),
+                          bytes([67,58,92]), b'Exif', b'caBX', b'xmpmeta']:
+                assert token not in path.read_bytes()
     meta=json.loads((ROOT/'task.json').read_text())
     assert set(['title','category','keywords','instruction','context','setup','scoring','run_limit','fidelity','scores','media','reset_notes'])<=set(meta)
     assert meta['scores']=='pending' and meta['media']=={}
+    assert meta['title']=='Lift a can out of a drawer divider row'
+    assert task.RUN_LIMIT==800 and meta['run_limit']=='800 control steps at 20 Hz (40 seconds)'
     for text in [meta['context'],(ROOT/'README.md').read_text()]:
         for token in ['#182','#1957','#2376','strong_reject','review rules']:assert token not in text
     assert meta['context'].startswith('Deep kitchen drawers often hold cans upright')

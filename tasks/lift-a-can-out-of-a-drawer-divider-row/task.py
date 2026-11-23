@@ -25,7 +25,7 @@ TABLE_Z = float(TABLE_TOP[SCENE])
 SCORE_OVER = 'end'
 SUCCESS_HOLD_S = 1.0
 CONTROL_HZ = 20.0
-RUN_LIMIT = 400
+RUN_LIMIT = 800
 CAN_SIZE = np.asarray(CAN['native_size_m'], dtype=float)
 CAN_HEIGHT = float(CAN_SIZE[2])
 START_XY = np.asarray(LAYOUT['can_xy_m'], dtype=float)

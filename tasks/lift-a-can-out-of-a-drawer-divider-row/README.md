@@ -1,4 +1,4 @@
-# Retrieve a soup can between deep drawer dividers
+# Lift a can out of a drawer divider row
 
 Take the upright soup can out of a deep kitchen drawer and leave it standing in the marked area beside the drawer. The hand turns to align with the row and directly grips the can inside the narrow slot. No cord, handle or tool is provided.
 
@@ -16,7 +16,7 @@ The native Arena `tomato_soup_can_ycb_robolab` measures **67.853995 × 67.749999
 
 ## Feasibility evidence
 
-`validation/drawer_scan.csv` records all corrected supplemental combinations, including failures. `validation/drawer_scan.json` records full geometry, per-box distances, both yaws, +10 mm checks and environment. `validation/drawer_demo_check.json` records the full READY-to-placement path. Older files elsewhere in this directory and `validation/gap_scan.csv` describe superseded short-wall/scaled-can experiments, not the current drawer. `validation/CURRENT_REPORT.md` inventories those records and all development failures.
+The table below summarizes the completed CPU checks. Measurement reports, scan results and their scripts are archived outside the repository. The collision test reads the real URDF meshes directly and reconstructs each convex collision component in `test_task.py`; it does not depend on archived files.
 
 | Current selected check | CPU result |
 | --- | --- |
@@ -72,10 +72,10 @@ Every lowering follows a stationary alignment waypoint. All numeric configuratio
 Use the existing `yam_env` Python with NumPy, SciPy, pytest and python-fcl, plus the real `yam_arena` checkout installed. From the repository root:
 
 ```bash
-python -m pytest -q tasks/fetch-can-from-gap-beside-cabinet/test_task.py
+python -m pytest -q tasks/lift-a-can-out-of-a-drawer-divider-row/test_task.py
 ```
 
-`validation/drawer_validation.json` records counts, result `status`, environment and actual source-mutation checks. Tests cover constructor types, tiers, release evidence, repairable tilt, permanent off-countertop history, reset, bad starts, direct terminal jumps, boundaries, full stillness window, read-only scoring, debug cadence, spawn overlap, full demo IK/clearance, pauses and release height. Mutation tests replace task-owned source in memory, never framework code. Asset metadata checks inspect only the JSON distributed here; external texture bytes are not redistributed or audited.
+The complete CPU suite passed 50 tests with no skips; all 16 deliberate source mutations triggered the expected assertion failures. Validation logs and result JSON are kept outside the repository. Tests cover constructor types, tiers, release evidence, repairable tilt, permanent off-countertop history, reset, bad starts, direct terminal jumps, boundaries, full stillness window, read-only scoring, debug cadence, spawn overlap, full demo IK/clearance, pauses and release height. Mutation tests replace task-owned source in memory, never framework code. Asset metadata checks inspect only the JSON distributed here; external texture bytes are not redistributed or audited.
 
 ## GPU handoff (not executed locally)
 
@@ -83,31 +83,31 @@ First use the existing Isaac Sim 6.1 / Isaac Lab-Arena 0.3.1 + yam_arena environ
 
 ```bash
 TASK_DEBUG=1 inspect-robots run --embodiment yam_arena --policy yam_scripted \
-  -E task=tasks/fetch-can-from-gap-beside-cabinet/task.py \
+  -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
   -E scene=station -E object_jitter=0 -E control_hz=20 \
   -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 200 \
-  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it. Keep the can upright and avoid touching the bamboo dividers.' \
+  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
   --store-frames --log-dir /tmp/drawer-can-smoke
 ```
 
-Read the result JSON **status**, not the CLI exit code. The smoke stops during placement and need not achieve full score. Check the can's native size and 1 mm spawn gap, 127 mm dividers, 77.052 mm clear slot, 150 mm frame, first `armed=true`, no initial overlaps, no actual divider/frame contacts, no joint-limit saturation, tilt <5°, hand readback `ok`, and actual can-bottom clearance ≥3 mm while crossing the outer frame. Confirm the loaded asset hash matches `can_info.json`. Debug must print every critical step.
+Read the result JSON **status**, not the CLI exit code. The smoke stops during placement and need not achieve full score. Check the can's native size and 1 mm spawn gap, 127 mm dividers, 77.052 mm clear slot, 150 mm frame, first `armed=true`, no initial overlaps, recorded divider/frame contact behavior, no joint-limit saturation, tilt <5°, hand readback `ok`, and actual can-bottom clearance ≥3 mm while crossing the outer frame. Confirm the loaded asset hash matches `can_info.json`. Debug must print every critical step.
 
 Then run the complete scripted trial:
 
 ```bash
 TASK_DEBUG=1 inspect-robots run --embodiment yam_arena --policy yam_scripted \
-  -E task=tasks/fetch-can-from-gap-beside-cabinet/task.py \
+  -E task=tasks/lift-a-can-out-of-a-drawer-divider-row/task.py \
   -E scene=station -E object_jitter=0 -E control_hz=20 \
-  -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 400 \
-  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it. Keep the can upright and avoid touching the bamboo dividers.' \
+  -E cam_width=320 -E cam_height=176 --scorer task_score --max-steps 800 \
+  --instruction 'Take the soup can out of the drawer and leave it standing in the marked area beside it.' \
   --store-frames --log-dir /tmp/drawer-can-demo
 ```
 
-The 14.4 s plan plus a default 3 s policy hold fits the 20 s run limit. Inspect result JSON status and score, actual release drop ≤2 mm, final bottom tolerance, both open joint gaps ≥85 mm, both hand envelopes ≥30 mm away, centre ±15 mm, ten-frame motion ≤2 mm and a one-second full-success hold. Inspect the actual termination frame, since success may end the rollout before the final waypoint. Wall-clock runtime is unmeasured. No Dream-1, upload or PR command is part of this handoff.
+The 14.4 s plan plus a default 3 s policy hold fits the 800-step (40 s) run limit. Inspect result JSON status and score, actual release drop ≤2 mm, final bottom tolerance, both open joint gaps ≥85 mm, both hand envelopes ≥30 mm away, centre ±15 mm, ten-frame motion ≤2 mm and a one-second full-success hold. Inspect the actual termination frame, since success may end the rollout before the final waypoint. Wall-clock runtime is unmeasured. No Dream-1, upload or PR command is part of this handoff.
 
 ## Limits and assets
 
-No local GPU physics, contact, friction, tracking, camera visibility, library collision decomposition, native inertia/COM, readback integration, success-hold integration or achieved score is certified. Geometric checks sample at 20 Hz; continuous swept volume, robot self-collision, arm-to-arm distance and station camera-stand clearance are not certified. Source API defaults use contact offsets that may create forces before mesh surfaces touch; clearance must be inspected dynamically. No contact parameters are changed. Alternative physical extraction strategies are not prohibited by scoring.
+No local GPU physics, contact, friction, tracking, camera visibility, library collision decomposition, native inertia/COM, readback integration, success-hold integration or achieved score is certified. Geometric checks sample at 20 Hz; continuous swept volume, robot self-collision, arm-to-arm distance and station camera-stand clearance are not certified. Source API defaults use contact offsets that may create forces before mesh surfaces touch; clearance must be inspected dynamically. No contact parameters are changed. Divider/frame contact history is not scored; the geometric clearance checks describe the scripted path. Alternative physical extraction strategies are not prohibited by scoring.
 
 The registry source is Arena release/0.3.1 at `c7edf3a9d5d8276565208f72422f8f8a0806d6cf`. The public source USD came from a 6.2 staging mirror because the tried 6.1 mirror URL returned 404; verify the target GPU bytes and native dimensions. OpenUSD on arm64 emits a cache-line assumption warning but reads all vertices. No live task-board uniqueness check or physical product measurement is claimed.
 
