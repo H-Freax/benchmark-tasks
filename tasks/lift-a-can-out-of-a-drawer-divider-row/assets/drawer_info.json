@@ -20,7 +20,7 @@
   "longitudinal_offset_m": 0.0,
   "gap_width_m": 0.07705204470558671,
   "c_m": 0.004,
-  "entry_finger_joint_m": -0.03616991070503016,
+  "entry_finger_joint_m": -0.04695,
   "contact_finger_joint_m": -0.03416991070503016,
   "boards_local": [
     {
