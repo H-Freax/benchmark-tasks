@@ -1,21 +1,24 @@
-"""On the station table: an unwired 4-outlet NEMA 5-15R power strip (Woods / GE 222 x 54 x 30 mm ivory housing, 360 g
-free-standing on a charcoal desk mat at x = 0.245, y = -0.020) has four grounded 3-slot outlets along its top face at
-34.0 mm pitch (Outlet 1 at y_rel = +42 mm, Outlet 2 at +8 mm, Outlet 3 at -26 mm, and end Outlet 4 at -60 mm; strip ends
-at y_rel = +124 mm and -98 mm). Outlets 1 and 2 hold two seated appliance plugs (blue monitor plug and grey lamp plug)
-that must remain plugged in. Outlet 3 holds a bulky white AC wall-wart power brick (TP-Link 12V-style, 36 mm X x 54 mm Y
-x 40 mm Z, 105 g) whose off-center prongs sit 10 mm from its +Y face so its 44 mm -Y body overhang completely covers
-end Outlet 4.
+"""On the station table: an unwired 4-outlet longitudinal NEMA 5-15R power strip (CyberPower CSB404 form factor,
+214 x 50 x 35 mm ivory housing, 380 g free-standing inside a 4.5 mm desk-mat alignment frame at x = 0.245, y = -0.020)
+has four grounded 3-slot longitudinal outlets along its top face at 32.0 mm pitch (Outlet 1 at y_rel = +36 mm, Outlet 2
+at +4 mm, Outlet 3 at -28 mm, and end Outlet 4 at -60 mm; strip spans y_rel = -86 mm to +128 mm; each outlet has two
+polarized blade slots at x_rel = +/-6.35 mm, y_slot = y_outlet + 5.2 mm and a round ground bore at x_rel = 0, y_slot =
+y_outlet - 6.7 mm). Outlets 1 and 2 hold two connected 3-prong appliance plugs (blue monitor cord and grey lamp cord,
+routed +X off the front desk edge) that must remain connected throughout. Outlet 3 holds a white 2-prong Class II AC
+wall-wart adapter (TP-Link T120150-2B1 12V 1.5A, 34 mm X x 62 mm Y x 38 mm Z, 105 g) whose blades sit 14 mm from its +Y
+top face so its 48 mm -Y body overhang spans y_rel = -76 to -14 mm, completely covering end Outlet 4.
 
-To the robot's right at (x = 0.245, y = -0.185) on an olive-slate mat, a black appliance cord's molded 3-prong NEMA 5-15P
-plug (36 mm X x 24 mm Y x 38 mm Z, 64 g) rests prongs-down on a 18.5 mm teal desktop cord cradle so its 16.0 mm ground
-pin hangs 2.5 mm clear of the mat.
+To the robot's right at (x = 0.245, y = -0.185) on an olive-slate mat, a black 6 ft 18 AWG SVT appliance cord's molded
+3-prong NEMA 5-15P plug (34 mm X x 24 mm Y x 38 mm Z, 64 g) rests prongs-down on a 18.5 mm teal desktop cord cradle
+(plug_cord_cradle.stl) with a loose +X S-curve slack loop routed off the front desk edge.
 
-The task: plug the black cord on the right into the power strip, leaving everything already on the strip plugged in.
-Because the bulky white wall-wart in Outlet 3 covers Outlet 4, the robot must steady the free-standing power strip while
-unplugging the wall-wart from Outlet 3, reseat the wall-wart into end Outlet 4 (uncovering Outlet 3), and seat the black
-cord's 3-prong plug flush into Outlet 3 without unseating Outlets 1 or 2 or dragging/tipping the strip, then let go.
+The task: plug the black cord on the right into the power strip so all four cords end up plugged in; keep the blue and
+grey plugs connected throughout, though you may unplug and move the white adapter. Steadying the free-standing strip,
+moving the white adapter from Outlet 3 to end Outlet 4 (where its 48 mm overhang extends 22 mm harmlessly past the
+-86 mm strip end, uncovering Outlet 3), and seating both the adapter and the black plug flush (<= 1.5 mm face gap, zero
+exposed blade metal) earns 1.0 after releasing >= 3.0 cm clear for 1.0 s.
 
-Requires -E object_jitter=0: the power strip, pre-seated plugs, bulky wall-wart, and cord holder match the desk layout.
+Requires -E object_jitter=0: the power strip, pre-seated cords, overhanging adapter, and cord cradle follow the desk layout.
 """
 
 from __future__ import annotations
@@ -35,7 +38,6 @@ import gripkit  # noqa: E402
 import mechkit  # noqa: E402
 from closedloop import placeholder_demo  # noqa: E402
 from mechkit import (  # noqa: E402
-    Joint,
     Mech,
     MechState,
     box,
@@ -68,11 +70,13 @@ PLUG_GREY = (0.44, 0.47, 0.52)
 WART_WHITE = (0.93, 0.94, 0.96)
 WART_LABEL = (0.58, 0.62, 0.68)
 PLUG_BLACK = (0.17, 0.18, 0.20)
+CORD_IVORY = (0.82, 0.80, 0.75)
+CLIP_SLATE = (0.25, 0.27, 0.31)
 BRASS = (0.86, 0.71, 0.24)
 HOLDER_TEAL = (0.20, 0.54, 0.56)
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Desk layout & 1:1 NEMA 5-15R / NEMA 5-15P / Wall-Wart dimensions (station frame, m)
+# Desk layout & 1:1 CyberPower CSB404 longitudinal NEMA 5-15R / TP-Link T120150-2B1 dimensions (station frame, m)
 MAT_H = 0.004
 MAT_TOP = TOP + MAT_H
 
@@ -82,35 +86,38 @@ STRIP_MAT_SIZE = (0.160, 0.280, MAT_H)
 CORD_MAT_XY = (0.245, -0.185)
 CORD_MAT_SIZE = (0.140, 0.090, MAT_H)
 
-STRIP_H = 0.030
-STRIP_W_X = 0.050
-STRIP_Y_MIN = -0.098
-STRIP_Y_MAX = +0.124  # Total length = 222.0 mm (4-outlet strip with generous +Y switch deck & -Y end deck so wall-wart sits rock-solid!)
-STRIP_MASS_KG = 0.360
+STRIP_H = 0.035          # Exact CyberPower CSB404 height: 35.0 mm (1.38 in)
+STRIP_W_X = 0.050        # Exact CyberPower CSB404 width:  50.0 mm (1.97 in)
+STRIP_Y_MIN = -0.086
+STRIP_Y_MAX = +0.128     # Exact CyberPower CSB404 length: 214.0 mm (8.44 in)
+STRIP_MASS_KG = 0.380
 
-# Four NEMA 5-15R outlet centers along y_rel of POWER_STRIP (34.0 mm standard pitch):
+# Four longitudinal NEMA 5-15R outlet centers along y_rel of POWER_STRIP (32.0 mm pitch):
 OUTLET_Y = (
-    +0.042,  # Outlet 1 (Monitor plug — stays seated)
-    +0.008,  # Outlet 2 (Lamp plug — stays seated)
-    -0.026,  # Outlet 3 (Wall-wart starts here, blocking Outlet 4; Black plug ends here!)
-    -0.060,  # Outlet 4 (End outlet — Wall-wart moves here so its -44 mm overhang sits stably on the -98 mm strip end!)
+    +0.036,  # Outlet 1 (Blue monitor cord — must remain connected throughout)
+    +0.004,  # Outlet 2 (Grey lamp cord — must remain connected throughout)
+    -0.028,  # Outlet 3 (White wall-wart starts here covering Outlet 4; Black cord ends here!)
+    -0.060,  # Outlet 4 (End outlet 26 mm from -86 mm strip end — Wall-wart moves here, overhanging 22 mm past end!)
 )
 
-# NEMA 5-15P 3-prong offsets relative to each outlet center (polarized blades at x = -4.5 mm, y = +/-6.35 mm;
-# longer round ground pin at x = +6.5 mm, y = 0.0 mm):
-BLADE_X = -0.0045
-BLADE_DY = 0.00635
-GROUND_X = +0.0065
-SEAT_CLEARANCE_Z = 0.0003  # Seated plug underside sits at z_strip = +30.0 mm!
+# Standard longitudinal NEMA WD 6 / 5-15 offsets relative to each outlet center (0, yc):
+#   - Two parallel flat blades across X at x = +/-6.35 mm, y = yc + 5.2 mm
+#   - Round ground pin along -Y at x = 0.0 mm, y = yc - 6.7 mm (11.9 mm center-to-center from blades)
+BLADE_DX = 0.00635
+BLADE_Y_OFF = +0.0052
+GROUND_Y_OFF = -0.0067
+SEAT_CLEARANCE_Z = 0.0002   # Seated plug underside rests dead flush on z_strip = +35.0 mm!
+FLUSH_FACE_GAP_MAX = 0.0015  # <= 1.5 mm no-go feeler gauge: zero exposed brass blade metal in sim & real trials!
+DISTURB_GAP_MAX = 0.0015     # > 1.5 mm lift on Outlet 1 or Outlet 2 exposes blade metal -> latches existing_unplugged!
 
-# Weighted silicone desktop cord holder supporting the black plug prongs-down symmetrically at (0.245, -0.150)
+# Printable teal desktop cord cradle (plug_cord_cradle.stl) staging the black plug prongs-down at (0.245, -0.185)
 NEW_PLUG_STOW_XY = (0.245, -0.185)
 HOLDER_XY = (0.245, -0.185)
-NEW_PLUG_SPAWN_Z = MAT_TOP + 0.0185  # Symmetric side shoulders rest on 18.5 mm cradle rails; 16 mm ground pin hangs 2.5 mm clear!
+NEW_PLUG_SPAWN_Z = MAT_TOP + 0.0185  # Side shoulders rest on 18.5 mm rails; 16.0 mm ground pin hangs 2.5 mm clear!
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Mats & Weighted Silicone Desktop Cable Holder
+# Mats, Printable Cord Cradle, and Routed +X Off-Workspace Cable Guides
 STRIP_MAT = Mech(
     "strip_mat",
     pos=(STRIP_XY[0], STRIP_XY[1], TOP),
@@ -118,13 +125,13 @@ STRIP_MAT = Mech(
     friction=1.0,
     shapes=(
         box((0.0, 0.0, MAT_H / 2.0), STRIP_MAT_SIZE, CHARCOAL),
-        # Low 4.5 mm molded silicone desk-mat corner cleats prevent lateral skating while still letting strip lift/tip if unbraced!
-        box((-0.0305, -0.075, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
-        box((+0.0305, -0.075, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
-        box((-0.0305, +0.095, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
-        box((+0.0305, +0.095, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
-        box((0.0, -0.1015, MAT_H + 0.00225), (0.050, 0.005, 0.0045), CHARCOAL),
-        box((0.0, +0.1395, MAT_H + 0.00225), (0.050, 0.005, 0.0045), CHARCOAL),
+        # Low 4.5 mm alignment cleats (strip_cleat_frame.stl) prevent lateral skating while allowing tip/lift if unbraced!
+        box((-0.0285, -0.062, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
+        box((+0.0285, -0.062, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
+        box((-0.0285, +0.096, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
+        box((+0.0285, +0.096, MAT_H + 0.00225), (0.005, 0.036, 0.0045), CHARCOAL),
+        box((0.0, -0.0895, MAT_H + 0.00225), (0.048, 0.005, 0.0045), CHARCOAL),
+        box((0.0, +0.1375, MAT_H + 0.00225), (0.048, 0.005, 0.0045), CHARCOAL),
     ),
 )
 
@@ -142,60 +149,87 @@ CORD_HOLDER = Mech(
     mass=None,
     friction=0.30,
     shapes=(
-        # Low base floor (z = 0..1.5 mm) + +/-X support ledges (-X at -14.5 mm, +X at +15.0 mm -> >4 mm clear of all 3 prongs!)
-        box((0.0, 0.0, 0.00075), (0.046, 0.044, 0.0015), HOLDER_TEAL),
-        box((-0.0145, 0.0, 0.00925), (0.005, 0.026, 0.0185), HOLDER_TEAL),
-        box((+0.0150, 0.0, 0.00925), (0.005, 0.026, 0.0185), HOLDER_TEAL),
+        # Low 1.5 mm base + +/-X support ledges at +/-15.5 mm (>4.5 mm clear of +/-6.35 mm blades & central ground pin!)
+        box((0.0, 0.0, 0.00075), (0.048, 0.046, 0.0015), HOLDER_TEAL),
+        box((-0.0155, 0.0, 0.00925), (0.005, 0.028, 0.0185), HOLDER_TEAL),
+        box((+0.0155, 0.0, 0.00925), (0.005, 0.028, 0.0185), HOLDER_TEAL),
+    ),
+)
+
+# Visual representation of the 5 routed cords & front-edge desk cable clips running forward (+X -> x = 0.47 m) away from arms
+CORD_ROUTING = Mech(
+    "cord_routing",
+    pos=(0.0, 0.0, MAT_TOP),
+    mass=None,
+    friction=0.5,
+    shapes=(
+        # Strip's own 1.2 m (4 ft) 14 AWG SJT ivory supply cord routed +X from +Y switch end to unplugged floor drop
+        dataclasses.replace(box((0.360, STRIP_XY[1] + 0.133, 0.008), (0.220, 0.008, 0.008), CORD_IVORY), collide=False),
+        dataclasses.replace(box((0.350, STRIP_XY[1] + 0.133, 0.008), (0.016, 0.018, 0.014), CLIP_SLATE), collide=False),
+        # Outlet 1 blue 1.8 m (6 ft) 18 AWG SVT cord & Outlet 2 grey 1.8 m (6 ft) 18 AWG SJT cord routed straight +X
+        dataclasses.replace(box((0.370, STRIP_XY[1] + OUTLET_Y[0], 0.006), (0.200, 0.0065, 0.0065), PLUG_BLUE), collide=False),
+        dataclasses.replace(box((0.370, STRIP_XY[1] + OUTLET_Y[1], 0.006), (0.200, 0.0065, 0.0065), PLUG_GREY), collide=False),
+        dataclasses.replace(box((0.360, STRIP_XY[1] + 0.020, 0.007), (0.016, 0.056, 0.012), CLIP_SLATE), collide=False),
+        # Wall-wart 1.5 m (5 ft) 22 AWG DC barrel cable slack loop routed +X through clip at (0.360, -0.086)
+        dataclasses.replace(box((0.370, -0.086, 0.004), (0.200, 0.0045, 0.0045), PLUG_BLACK), collide=False),
+        dataclasses.replace(box((0.360, -0.086, 0.006), (0.014, 0.016, 0.010), CLIP_SLATE), collide=False),
+        # Staged black 1.8 m (6 ft) 18 AWG SVT appliance cord S-curve slack loop routed +X from cradle through clip at (0.380, -0.175)
+        dataclasses.replace(box((0.370, -0.180, 0.005), (0.200, 0.0065, 0.0065), PLUG_BLACK), collide=False),
+        dataclasses.replace(box((0.380, -0.180, 0.007), (0.016, 0.020, 0.012), CLIP_SLATE), collide=False),
     ),
 )
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Free-Standing 4-Outlet Power Strip with Real 3-Cavity NEMA 5-15R Sockets
+# Free-Standing 4-Outlet Power Strip (CyberPower CSB404: 214 x 50 x 35 mm) with True Longitudinal NEMA 5-15R Cavities
 def _power_strip_shapes() -> tuple:
-    """184 x 54 x 30 mm 4-outlet power strip built from exact non-overlapping walls around 4 x 3-slot NEMA 5-15R cavities.
-    Each outlet at yc in OUTLET_Y has:
-    - Two blade cavities: x in [-0.0068, -0.0022] (4.6 mm), y in [yc +/- 0.00635 - 0.0042 .. + 0.0042] (8.4 mm), z = 11..30 mm
-    - One ground cavity:  x in [+0.0033, +0.0097] (6.4 mm), y in [yc - 0.0032 .. yc + 0.0032] (6.4 mm), z = 11..30 mm"""
+    """214 x 50 x 35 mm longitudinal 4-outlet power strip built from non-overlapping walls around 4 x 3-slot NEMA 5-15R
+    receptacles at yc in OUTLET_Y:
+    - Two parallel blade slots: x in [-0.0108, -0.0019] and [+0.0019, +0.0108] (separated by 3.8 mm central bridge!),
+      y in [yc - 0.0003, yc + 0.0107] (11.0 mm), z = 10..35 mm (25 mm deep -> 16 mm pins never bottom out!)
+    - Longitudinal ground bore: x in [-0.0056, +0.0056] (11.2 mm), y in [yc - 0.0121, yc - 0.0013] (10.8 mm), z = 10..35 mm"""
     y_mid = 0.5 * (STRIP_Y_MIN + STRIP_Y_MAX)
     y_len = STRIP_Y_MAX - STRIP_Y_MIN
+    wall_h = STRIP_H - 0.010  # 25.0 mm upper cavity walls above 10.0 mm solid floor
+    wall_zc = 0.010 + 0.5 * wall_h
+
     parts = [
-        # Solid lower chassis floor (z = 0..8 mm, full 54 x 222 mm footprint -> 22 mm deep cavities so 16 mm pins never bottom out!)
-        box((0.0, y_mid, 0.0040), (0.054, y_len, 0.0080), STRIP_IVORY),
-        # Outer -X rail (-0.027..-0.0105 m -> 5.1 mm clear of -0.0054 blade!), central divider (+0.0005 width 0.0018 -> 3.8 mm clear of both blade & ground!), +X rail (+0.0135..+0.027 m -> 4.8 mm clear of +0.0087 ground!)
-        box((-0.01875, y_mid, 0.0190), (0.0165, y_len, 0.0220), STRIP_IVORY),
-        box((+0.00050, y_mid, 0.0190), (0.0018, y_len, 0.0220), STRIP_IVORY),
-        box((+0.02025, y_mid, 0.0190), (0.0135, y_len, 0.0220), STRIP_IVORY),
-        # Left (+Y = +0.064..+0.124 m) switch deck + illuminated red rocker bezel + +Y cord strain-relief boot
-        box((0.0, +0.094, 0.0190), (0.024, 0.060, 0.0220), STRIP_IVORY),
-        dataclasses.replace(box((0.0, +0.084, 0.0306), (0.012, 0.020, 0.0012), SWITCH_RED), collide=False),
-        box((0.0, +0.130, 0.012), (0.014, 0.012, 0.012), PLUG_GREY),
-        # Right (-Y = -0.098..-0.074 m) solid end deck supporting seated wall-wart
-        box((0.0, -0.086, 0.0190), (0.024, 0.024, 0.0220), STRIP_IVORY),
+        # Solid 10 mm lower chassis floor (50 x 214 mm)
+        box((0.0, y_mid, 0.0050), (STRIP_W_X, y_len, 0.0100), STRIP_IVORY),
+        # Outer -X and +X side rails (|x| in [0.0108, 0.0250], width 14.2 mm each)
+        box((-0.0179, y_mid, wall_zc), (0.0142, y_len, wall_h), STRIP_IVORY),
+        box((+0.0179, y_mid, wall_zc), (0.0142, y_len, wall_h), STRIP_IVORY),
+        # Left (+Y = +0.056..+0.128 m) switch deck + illuminated red reset/off rocker + +Y strain-relief boot
+        box((0.0, +0.092, wall_zc), (0.0216, 0.072, wall_h), STRIP_IVORY),
+        dataclasses.replace(box((0.0, +0.084, STRIP_H + 0.0006), (0.012, 0.022, 0.0012), SWITCH_RED), collide=False),
+        box((0.0, +0.133, 0.014), (0.014, 0.010, 0.012), CORD_IVORY),
+        # Right (-Y = -0.086..-0.073 m) solid end deck supporting seated wall-wart
+        box((0.0, -0.0795, wall_zc), (0.0216, 0.013, wall_h), STRIP_IVORY),
     ]
 
-    # >= 4.2 mm per-side PhysX clearance around every blade & ground pin while blocking reversed/shifted plugs!
-    blade_cuts = []
-    ground_cuts = []
-    for yc in OUTLET_Y:
-        blade_cuts.append((yc - BLADE_DY - 0.0068, yc + BLADE_DY + 0.0068))
-        ground_cuts.append((yc - 0.0062, yc + 0.0062))
-        parts.append(dataclasses.replace(box((BLADE_X, yc - BLADE_DY, 0.0301), (0.0024, 0.0072, 0.0002), SLOT_DARK), collide=False))
-        parts.append(dataclasses.replace(box((BLADE_X, yc + BLADE_DY, 0.0301), (0.0024, 0.0072, 0.0002), SLOT_DARK), collide=False))
-        parts.append(dataclasses.replace(box((GROUND_X, yc, 0.0301), (0.0050, 0.0050, 0.0002), SLOT_DARK), collide=False))
+    for idx, yc in enumerate(OUTLET_Y):
+        # 1) Central 3.4 mm dielectric bridge between the two parallel blade slots (blocks 180-deg reversed ground pin!)
+        parts.append(box((0.0, yc + 0.0056, wall_zc), (0.0034, 0.0114, wall_h), STRIP_IVORY))
+        # 2) 0.8 mm transverse divider separating blade slots from ground bore (>= 3.8 mm per-side prong clearance!)
+        parts.append(box((0.0, yc - 0.0006, wall_zc), (0.0216, 0.0008, wall_h), STRIP_IVORY))
+        # 3) Side cheeks flanking the central ground bore (|x| in [0.0062, 0.0108], y in [yc - 0.0125, yc - 0.0010])
+        parts.append(box((-0.0085, yc - 0.00675, wall_zc), (0.0046, 0.0115, wall_h), STRIP_IVORY))
+        parts.append(box((+0.0085, yc - 0.00675, wall_zc), (0.0046, 0.0115, wall_h), STRIP_IVORY))
+        # 4) Inter-outlet solid bridge between this outlet's ground bore (yc - 0.0125) and next outlet's blade top (yc_next + 0.0113)
+        if idx < len(OUTLET_Y) - 1:
+            y_hi = yc - 0.0125
+            y_lo = OUTLET_Y[idx + 1] + 0.0113
+            parts.append(box((0.0, 0.5 * (y_lo + y_hi), wall_zc), (0.0216, y_hi - y_lo, wall_h), STRIP_IVORY))
+        else:
+            parts.append(box((0.0, -0.07275, wall_zc), (0.0216, 0.0005, wall_h), STRIP_IVORY))
+        if idx == 0:
+            parts.append(box((0.0, 0.5 * (0.0473 + 0.0560), wall_zc), (0.0216, 0.0560 - 0.0473, wall_h), STRIP_IVORY))
 
-    def _lane_bridges(xc: float, wx: float, cuts: list[tuple[float, float]]) -> None:
-        cuts_s = sorted(cuts)
-        cur = -0.074
-        for a, b in cuts_s:
-            if a - cur > 0.0008:
-                parts.append(box((xc, 0.5 * (cur + a), 0.0190), (wx, a - cur, 0.0220), STRIP_IVORY))
-            cur = max(cur, b)
-        if +0.064 - cur > 0.0008:
-            parts.append(box((xc, 0.5 * (cur + 0.064), 0.0190), (wx, +0.064 - cur, 0.0220), STRIP_IVORY))
+        # High-contrast dark receptacle slot visuals on top face
+        parts.append(dataclasses.replace(box((-BLADE_DX, yc + BLADE_Y_OFF, STRIP_H + 0.0001), (0.0024, 0.0072, 0.0002), SLOT_DARK), collide=False))
+        parts.append(dataclasses.replace(box((+BLADE_DX, yc + BLADE_Y_OFF, STRIP_H + 0.0001), (0.0024, 0.0072, 0.0002), SLOT_DARK), collide=False))
+        parts.append(dataclasses.replace(box((0.0, yc + GROUND_Y_OFF, STRIP_H + 0.0001), (0.0048, 0.0048, 0.0002), SLOT_DARK), collide=False))
 
-    _lane_bridges(-0.0054, 0.0096, blade_cuts)
-    _lane_bridges(+0.0074, 0.0116, ground_cuts)
     return tuple(parts)
 
 
@@ -209,40 +243,41 @@ POWER_STRIP = Mech(
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Chamfered 3-Prong NEMA 5-15P Prong Builder + Seated Plugs + Bulky Wall-Wart + Loose Black Cord Plug
-def _nema_5_15p_prongs() -> tuple:
-    """Two tapered flat brass blades (14.5 mm long at x = -4.5 mm, y = +/-6.35 mm) + longer conical-tip round ground pin
-    (16.0 mm long at x = +6.5 mm, y = 0.0 mm) so the ground pin enters first and self-centers the flat blades!"""
+# Chamfered Longitudinal NEMA 5-15P (3-Prong) & NEMA 1-15P (2-Prong Wall-Wart) Builders
+def _nema_blades_2prong() -> tuple:
+    """Two tapered flat brass blades (14.5 mm long at x = +/-6.35 mm, y = +5.2 mm)."""
     blades = []
-    for sy in (-BLADE_DY, +BLADE_DY):
+    for sx in (-BLADE_DX, +BLADE_DX):
+        cy = BLADE_Y_OFF
         pts = [
-            # Root at z = 0.0 (1.8 mm X x 6.0 mm Y)
-            (BLADE_X - 0.0009, sy - 0.0030, 0.0),
-            (BLADE_X + 0.0009, sy - 0.0030, 0.0),
-            (BLADE_X - 0.0009, sy + 0.0030, 0.0),
-            (BLADE_X + 0.0009, sy + 0.0030, 0.0),
-            # Shoulder at z = -0.0120 m
-            (BLADE_X - 0.0009, sy - 0.0030, -0.0120),
-            (BLADE_X + 0.0009, sy - 0.0030, -0.0120),
-            (BLADE_X - 0.0009, sy + 0.0030, -0.0120),
-            (BLADE_X + 0.0009, sy + 0.0030, -0.0120),
-            # Chamfered lead-in tip at z = -0.0145 m (0.8 mm X x 3.6 mm Y)
-            (BLADE_X - 0.0004, sy - 0.0018, -0.0145),
-            (BLADE_X + 0.0004, sy - 0.0018, -0.0145),
-            (BLADE_X - 0.0004, sy + 0.0018, -0.0145),
-            (BLADE_X + 0.0004, sy + 0.0018, -0.0145),
+            (sx - 0.00085, cy - 0.0021, 0.0),
+            (sx + 0.00085, cy - 0.0021, 0.0),
+            (sx - 0.00085, cy + 0.0021, 0.0),
+            (sx + 0.00085, cy + 0.0021, 0.0),
+            (sx - 0.00085, cy - 0.0021, -0.0120),
+            (sx + 0.00085, cy - 0.0021, -0.0120),
+            (sx - 0.00085, cy + 0.0021, -0.0120),
+            (sx + 0.00085, cy + 0.0021, -0.0120),
+            (sx - 0.00035, cy - 0.0012, -0.0145),
+            (sx + 0.00035, cy - 0.0012, -0.0145),
+            (sx - 0.00035, cy + 0.0012, -0.0145),
+            (sx + 0.00035, cy + 0.0012, -0.0145),
         ]
         blades.append(hull((0.0, 0.0, 0.0), pts, BRASS))
-    # Ground pin from z = -0.0160 m conical tip up to z = 0.0 m (Ø 4.4 mm shaft, Ø 1.8 mm lead-in tip)
-    gnd = lathe((GROUND_X, 0.0, -0.0160), [(0.0009, 0.0), (0.0022, 0.0025), (0.0022, 0.0160)], BRASS)
-    return (*blades, gnd)
+    return tuple(blades)
 
 
-def _std_plug_shapes(color: tuple[float, float, float], cord_dir_x: float = +1.0) -> tuple:
+def _nema_5_15p_prongs() -> tuple:
+    """3-prong grounded NEMA 5-15P: two flat blades + longer 16.0 mm conical-tip round ground pin at (0, -6.7 mm)."""
+    gnd = lathe((0.0, GROUND_Y_OFF, -0.0160), [(0.0009, 0.0), (0.0022, 0.0025), (0.0022, 0.0160)], BRASS)
+    return (*_nema_blades_2prong(), gnd)
+
+
+def _std_plug_shapes(color: tuple[float, float, float]) -> tuple:
     return (
         *_nema_5_15p_prongs(),
-        box((0.0, 0.0, 0.014), (0.030, 0.025, 0.028), color),
-        box((0.022 * cord_dir_x, 0.0, 0.014), (0.016, 0.010, 0.010), color),
+        box((0.0, 0.0, 0.014), (0.028, 0.024, 0.028), color),
+        box((+0.020, 0.0, 0.012), (0.014, 0.009, 0.009), color),
     )
 
 
@@ -251,7 +286,7 @@ PLUG_1 = Mech(
     pos=(STRIP_XY[0], STRIP_XY[1] + OUTLET_Y[0], MAT_TOP + STRIP_H + SEAT_CLEARANCE_Z),
     mass=0.048,
     friction=0.90,
-    shapes=_std_plug_shapes(PLUG_BLUE, cord_dir_x=+1.0),
+    shapes=_std_plug_shapes(PLUG_BLUE),
 )
 
 PLUG_2 = Mech(
@@ -259,23 +294,24 @@ PLUG_2 = Mech(
     pos=(STRIP_XY[0], STRIP_XY[1] + OUTLET_Y[1], MAT_TOP + STRIP_H + SEAT_CLEARANCE_Z),
     mass=0.048,
     friction=0.90,
-    shapes=_std_plug_shapes(PLUG_GREY, cord_dir_x=+1.0),
+    shapes=_std_plug_shapes(PLUG_GREY),
 )
 
 
 def _wall_wart_shapes() -> tuple:
-    """TP-Link 12V-style bulky AC wall-wart brick (36 mm X x 54 mm Y x 40 mm Z, 105 g):
-    Prong origin (0, 0, 0) sits 10 mm inside the +Y face, so y_wart spans [-0.044, +0.010 m]!
-    When seated in Outlet 3 (y_rel = -0.026 m), the brick spans y_rel = [-0.070, -0.016 m], completely covering
-    Outlet 4 (y_rel = -0.060 m)! When moved to end Outlet 4 (y_rel = -0.060 m), the brick spans y_rel = [-0.104, -0.050 m]
-    with CoM at y_rel = -0.077 m (21 mm inside the -0.098 m strip end) and 24 mm open clearance to Outlet 3!"""
+    """TP-Link T120150-2B1 12V 1.5A Class II 2-prong switching wall-wart (34 mm X x 62 mm Y x 38 mm Z, 105 g):
+    2-prong NEMA 1-15P blades sit near the +Y top end so y_wart spans [-0.048, +0.014 m]!
+    - In Outlet 3 (yc = -0.028 m): spans y_rel = [-0.076, -0.014 m], completely covering Outlet 4 (yc = -0.060 m)!
+    - In end Outlet 4 (yc = -0.060 m): spans y_rel = [-0.108, -0.046 m], overhanging 22 mm past the -0.086 m strip end
+      with CoM at y_rel = -0.077 m (9 mm inside the solid strip end!) and leaving Outlet 3 100% open!"""
     return (
-        *_nema_5_15p_prongs(),
-        box((0.0, -0.017, 0.020), (0.036, 0.054, 0.040), WART_WHITE),
-        # Upper molded finger-grip bezel lip prevents vertical/rotational slip during prong extraction!
-        box((0.0, -0.010, 0.0385), (0.042, 0.036, 0.003), WART_WHITE),
-        dataclasses.replace(box((0.0, -0.017, 0.0403), (0.026, 0.038, 0.0005), WART_LABEL), collide=False),
-        box((+0.023, -0.036, 0.019), (0.010, 0.008, 0.008), PLUG_BLACK),
+        *_nema_blades_2prong(),
+        box((0.0, -0.017, 0.019), (0.034, 0.062, 0.038), WART_WHITE),
+        # Upper 39 mm X bezel lip (<41 mm open jaws -> clean vertical extraction & zero slip!)
+        box((0.0, -0.010, 0.0365), (0.039, 0.036, 0.003), WART_WHITE),
+        dataclasses.replace(box((0.0, -0.017, 0.0383), (0.024, 0.042, 0.0005), WART_LABEL), collide=False),
+        # +X 22 AWG DC output cord strain-relief boot (visual cuff merging into +X cord guide)
+        dataclasses.replace(box((+0.022, -0.038, 0.014), (0.012, 0.007, 0.007), PLUG_BLACK), collide=False),
     )
 
 
@@ -294,18 +330,18 @@ NEW_PLUG = Mech(
     friction=1.35,
     shapes=(
         *_nema_5_15p_prongs(),
-        box((0.0, 0.0, 0.019), (0.036, 0.024, 0.038), PLUG_BLACK),
-        # Upper molded pull-cap lip above +/-18 mm X body so vertical lift never slips!
-        box((0.0, 0.0, 0.0365), (0.042, 0.024, 0.003), PLUG_BLACK),
-        dataclasses.replace(box((0.0, 0.0, 0.040), (0.009, 0.009, 0.006), PLUG_BLACK), collide=False),
+        box((0.0, 0.0, 0.019), (0.034, 0.024, 0.038), PLUG_BLACK),
+        # Upper 39 mm X molded pull-cap lip + +X 18 AWG SVT strain-relief boot (visual cuff clear of +X jaw descent!)
+        box((0.0, 0.0, 0.0365), (0.039, 0.024, 0.003), PLUG_BLACK),
+        dataclasses.replace(box((+0.022, 0.0, 0.010), (0.012, 0.009, 0.009), PLUG_BLACK), collide=False),
     ),
 )
 
-OBJECTS = [STRIP_MAT, CORD_MAT, CORD_HOLDER, POWER_STRIP, PLUG_1, PLUG_2, WALL_WART, NEW_PLUG]
+OBJECTS = [STRIP_MAT, CORD_MAT, CORD_HOLDER, CORD_ROUTING, POWER_STRIP, PLUG_1, PLUG_2, WALL_WART, NEW_PLUG]
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Live Electrical/Geometric Inspection & End-Step Scorer (zero permanent positive latches)
+# Live Flush-Seating (<= 1.5 mm, Zero Exposed Blade Metal) Inspection & End-Step Scorer (zero positive latches)
 _STATE: dict[str, Any] = {
     "existing_unplugged": False,
     "strip_tipped": False,
@@ -352,22 +388,25 @@ def _rel_yaw_deg(plug_st: MechState, strip_st: MechState) -> float:
     return math.degrees(math.atan2(float(rel[1, 0]), float(rel[0, 0])))
 
 
-def _plug_in_outlet(plug_st: MechState, strip_st: MechState, outlet_idx: int, face_gap_max: float = 0.0050) -> bool:
+def _plug_in_outlet(
+    plug_st: MechState, strip_st: MechState, outlet_idx: int, face_gap_max: float = FLUSH_FACE_GAP_MAX
+) -> bool:
+    """True iff plug sits coaxially in Outlet `outlet_idx` with <= 1.5 mm face gap (zero exposed blade metal)."""
     rs = _quat_to_rot(strip_st.quat_xyzw)
     rel_p = (np.asarray(plug_st.origin, dtype=float) - np.asarray(strip_st.origin, dtype=float)) @ rs
     dx = abs(float(rel_p[0]))
     dy = abs(float(rel_p[1]) - OUTLET_Y[outlet_idx])
-    dz_face = float(rel_p[2]) - STRIP_H  # 0.0 when flush on +30.0 mm strip top face!
+    dz_face = float(rel_p[2]) - STRIP_H  # 0.0 when molded plug underside rests flush on +35.0 mm strip top face!
     rel_tilt = math.degrees(
         math.acos(max(-1.0, min(1.0, float(np.dot(_quat_to_rot(plug_st.quat_xyzw)[:, 2], rs[:, 2])))))
     )
     rel_yaw = abs(_rel_yaw_deg(plug_st, strip_st))
     return (
-        dx <= 0.0055
-        and dy <= 0.0055
-        and (-0.0025 <= dz_face <= face_gap_max)
-        and rel_tilt <= 8.0
-        and rel_yaw <= 12.0
+        dx <= 0.0045
+        and dy <= 0.0045
+        and (-0.0015 <= dz_face <= face_gap_max)
+        and rel_tilt <= 5.0
+        and rel_yaw <= 8.0
     )
 
 
@@ -385,13 +424,13 @@ def evaluate_step_state(
     new_st: MechState,
     arms_released: bool = False,
 ) -> None:
-    # 1) Unplugging either active appliance (Outlet 1 monitor or Outlet 2 lamp, > 6 mm pulled out) fails!
-    if not _plug_in_outlet(p1_st, strip_st, 0, face_gap_max=0.0060) or not _plug_in_outlet(
-        p2_st, strip_st, 1, face_gap_max=0.0060
+    # 1) Unplugging or lifting (> 1.5 mm, exposing blade metal) either connected appliance (Outlet 1 or 2) fails permanently!
+    if not _plug_in_outlet(p1_st, strip_st, 0, face_gap_max=DISTURB_GAP_MAX) or not _plug_in_outlet(
+        p2_st, strip_st, 1, face_gap_max=DISTURB_GAP_MAX
     ):
         _STATE["existing_unplugged"] = True
 
-    # 2) Tipping (> 25 deg) or dragging (> 6 cm) the free-standing power strip fails!
+    # 2) Tipping (> 25 deg) or dragging (> 6 cm) the free-standing power strip fails permanently!
     sx, sy, sz = (float(v) for v in strip_st.origin)
     if _tilt_deg(strip_st.quat_xyzw) > 25.0 or math.hypot(sx - STRIP_XY[0], sy - STRIP_XY[1]) > 0.060 or sz < TOP - 0.005:
         _STATE["strip_tipped"] = True
@@ -464,7 +503,6 @@ def score(objects: dict[str, Any]) -> float:
     new_in_freed = _plug_in_outlet(new_st, strip_st, 2)
 
     if not wart_in_end and not new_in_freed:
-        # Check if wall-wart has been cleanly unplugged from Outlet 3 (clearing Outlet 3 & 4 without disturbing 1 & 2) -> 0.25
         rs = _quat_to_rot(strip_st.quat_xyzw)
         rel_w = (np.asarray(wart_st.origin, dtype=float) - np.asarray(strip_st.origin, dtype=float)) @ rs
         wart_cleared_3 = abs(float(rel_w[1]) - OUTLET_Y[2]) > 0.022 or (float(rel_w[2]) - STRIP_H) > 0.018
@@ -478,7 +516,6 @@ def score(objects: dict[str, Any]) -> float:
             return 1.00
         return 0.75
 
-    # If black plug was seated in 3 while leaving wall-wart unplugged -> 0.25 (since wall-wart was already plugged in!)
     return 0.25
 
 
@@ -491,9 +528,7 @@ task_success = success
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Bimanual Closed-Loop 6-DoF Demonstration (state_reads = 0).
-# Note: closedloop.py hooks YamScriptedPolicy at import time to execute demo_script(ctx) directly; placeholder_demo
-# satisfies yam_arena.task_file's legacy module attribute check.
+# Bimanual Closed-Loop 6-DoF Demonstration
 demo = placeholder_demo
 
 
@@ -503,10 +538,10 @@ def demo_script(ctx):
 
     PAD_TIP_BELOW_TCP = 0.0129
     YAW_L = -math.pi / 2.0  # Left arm jaws open along X (< 0.08 mm IK error!)
-    YAW_R = +math.pi / 2.0  # Right arm jaws open along X; hold_L_xy is >136 mm away so wrists stay >45 mm clear!
+    YAW_R = +math.pi / 2.0  # Right arm jaws open along X; hold_L_xy is >140 mm away so wrists stay >45 mm clear!
 
     if variant == "unplug_existing":
-        # Negative control: unplugs active monitor plug_1 from Outlet 1 -> latches existing_unplugged (0.00)!
+        # Negative control: lifts connected blue monitor plug_1 out of Outlet 1 -> latches existing_unplugged (0.00)!
         p1_xy = (STRIP_XY[0], STRIP_XY[1] + OUTLET_Y[0])
         hov1 = np.array([p1_xy[0], p1_xy[1], MAT_TOP + STRIP_H + 0.075], dtype=float)
         yield from L.move(tuple(hov1), 1.1, FINGER_OPEN, yaw=YAW_L)
@@ -519,13 +554,13 @@ def demo_script(ctx):
         yield from L.home(1.5)
         return
 
-    # 1) Left arm braces down on the left (+Y = +0.110 m) switch deck of the free-standing 340 g power strip with closed
-    #    rubber pads (zero jaw-pinch torque!) so blade withdrawal/insertion forces cannot lift or slide the strip!
-    hold_L_xy = (STRIP_XY[0], STRIP_XY[1] + 0.116)
-    hov_L = np.array([hold_L_xy[0], hold_L_xy[1], MAT_TOP + STRIP_H + 0.060], dtype=float)
+    # 1) Left arm braces down on the +Y/-X (+0.122 m) switch deck corner of the free-standing 380 g power strip
+    #    (>170 mm away from Outlet 3 so Left & Right wrist housings never touch!)
+    hold_L_xy = (STRIP_XY[0] - 0.012, STRIP_XY[1] + 0.122)
+    hov_L = np.array([hold_L_xy[0], hold_L_xy[1], MAT_TOP + STRIP_H + 0.055], dtype=float)
 
-    wart3_grip_y = STRIP_XY[1] + OUTLET_Y[2] - 0.010  # Centered right over prongs & under 42 mm top lip -> zero pitch!
-    hov_R_w3 = np.array([STRIP_XY[0], wart3_grip_y, MAT_TOP + STRIP_H + 0.085], dtype=float)
+    wart3_grip_y = STRIP_XY[1] + OUTLET_Y[2] - 0.010
+    hov_R_w3 = np.array([STRIP_XY[0], wart3_grip_y, MAT_TOP + STRIP_H + 0.080], dtype=float)
 
     yield from ctx.both(
         L.move(tuple(hov_L), 1.15, FINGER_CLOSED, yaw=YAW_L),
@@ -537,7 +572,7 @@ def demo_script(ctx):
     trim_R_strip = R.pos - hov_R_w3
 
     brace_L = np.array([hold_L_xy[0], hold_L_xy[1], MAT_TOP + STRIP_H - 0.0040 + PAD_TIP_BELOW_TCP], dtype=float)
-    pinch_R_w3 = np.array([STRIP_XY[0], wart3_grip_y, MAT_TOP + STRIP_H + 0.020 + PAD_TIP_BELOW_TCP], dtype=float)
+    pinch_R_w3 = np.array([STRIP_XY[0], wart3_grip_y, MAT_TOP + STRIP_H + 0.019 + PAD_TIP_BELOW_TCP], dtype=float)
     yield from ctx.both(
         L.move(tuple(brace_L + trim_L), 0.70, FINGER_CLOSED, yaw=YAW_L),
         R.move(tuple(pinch_R_w3 + trim_R_strip), 0.75, FINGER_OPEN, yaw=YAW_R),
@@ -545,12 +580,12 @@ def demo_script(ctx):
     yield from R.grip(FINGER_CLOSED, 0.65)
     yield from ctx.wait(0.15)
 
-    # 2) Right arm pulls WALL_WART straight up +52 mm out of Outlet 3 while Left arm holds POWER_STRIP flat on the mat!
-    lift_w3 = np.array([STRIP_XY[0], wart3_grip_y, MAT_TOP + STRIP_H + 0.072 + PAD_TIP_BELOW_TCP], dtype=float)
+    # 2) Right arm pulls WALL_WART straight up +52 mm out of Outlet 3 while Left arm keeps POWER_STRIP flat!
+    lift_w3 = np.array([STRIP_XY[0], wart3_grip_y, MAT_TOP + STRIP_H + 0.070 + PAD_TIP_BELOW_TCP], dtype=float)
     yield from R.move(tuple(lift_w3 + trim_R_strip), 0.80, FINGER_CLOSED, yaw=YAW_R)
 
     if variant == "unplug_wart_only":
-        park_w = np.array([STRIP_XY[0], STRIP_XY[1] - 0.125, MAT_TOP + 0.016 + PAD_TIP_BELOW_TCP], dtype=float)
+        park_w = np.array([STRIP_XY[0], STRIP_XY[1] - 0.135, MAT_TOP + 0.020 + PAD_TIP_BELOW_TCP], dtype=float)
         yield from R.move(tuple(park_w + trim_R_strip), 0.9, FINGER_CLOSED, yaw=YAW_R)
         yield from R.grip(FINGER_OPEN, 0.45)
         yield from L.move(tuple(hov_L + trim_L), 0.50, FINGER_CLOSED, yaw=YAW_L)
@@ -558,24 +593,28 @@ def demo_script(ctx):
         yield from ctx.wait(1.4)
         return
 
-    # 3) Shift WALL_WART -34.0 mm along -Y to end Outlet 4 (y_rel = -0.060 m), trim sag AT Outlet 4, and press flush!
+    # 3) Shift WALL_WART -32.0 mm along -Y to end Outlet 4 (y_rel = -0.060 m), align live XY & yaw, and press dead flush!
     s_xy = np.asarray(ctx.obj("power_strip").origin, dtype=float)[:2] if not ctx.offline else np.array(STRIP_XY, dtype=float)
     wart4_grip_y = float(s_xy[1]) + OUTLET_Y[3] - 0.010
-    over_w4 = np.array([float(s_xy[0]), wart4_grip_y, MAT_TOP + STRIP_H + 0.072 + PAD_TIP_BELOW_TCP], dtype=float)
+    over_w4 = np.array([float(s_xy[0]), wart4_grip_y, MAT_TOP + STRIP_H + 0.068 + PAD_TIP_BELOW_TCP], dtype=float)
     yield from R.move(tuple(over_w4), 0.80, FINGER_CLOSED, yaw=YAW_R)
     yield from R.trim_to_measured(tuple(over_w4), max_duration=0.65)
     trim_R_w4 = R.pos - over_w4
+
+    pre_w4 = np.array([float(s_xy[0]), wart4_grip_y, MAT_TOP + STRIP_H + 0.048 + PAD_TIP_BELOW_TCP], dtype=float)
+    yield from R.move(tuple(pre_w4 + trim_R_w4), 0.40, FINGER_CLOSED, yaw=YAW_R)
 
     corr_w4 = np.zeros(2, dtype=float)
     if not ctx.offline:
         w_xy = np.asarray(ctx.obj("wall_wart").origin, dtype=float)[:2]
         corr_w4 = np.array([float(s_xy[0] - w_xy[0]), float(s_xy[1] + OUTLET_Y[3] - w_xy[1])], dtype=float)
 
-    seat_w4 = np.array([float(s_xy[0] + corr_w4[0]), wart4_grip_y + float(corr_w4[1]), MAT_TOP + STRIP_H + 0.0175 + PAD_TIP_BELOW_TCP], dtype=float)
-    yield from R.move(tuple(seat_w4 + trim_R_w4), 0.95, FINGER_CLOSED, yaw=YAW_R)
+    seat_w4 = np.array([float(s_xy[0] + corr_w4[0]), wart4_grip_y + float(corr_w4[1]), MAT_TOP + STRIP_H + 0.0165 + PAD_TIP_BELOW_TCP], dtype=float)
+    yield from R.move(tuple(pre_w4 + trim_R_w4 + np.array([corr_w4[0], corr_w4[1], 0.0])), 0.35, FINGER_CLOSED, yaw=YAW_R)
+    yield from R.move(tuple(seat_w4 + trim_R_w4), 0.90, FINGER_CLOSED, yaw=YAW_R)
     yield from ctx.wait(0.15)
     yield from R.grip(FINGER_OPEN, 0.45)
-    yield from R.move(tuple(over_w4 + trim_R_w4), 0.60, FINGER_OPEN, yaw=YAW_R)
+    yield from R.move(tuple(over_w4 + trim_R_w4), 0.55, FINGER_OPEN, yaw=YAW_R)
 
     if variant == "move_wart_only":
         yield from L.move(tuple(hov_L + trim_L), 0.55, FINGER_CLOSED, yaw=YAW_L)
@@ -583,43 +622,50 @@ def demo_script(ctx):
         yield from ctx.wait(1.4)
         return
 
-    # 4) Left arm returns to READY while Right arm grasps NEW_PLUG right under its 42 mm top cap and seats into Outlet 3!
-    hov_new = np.array([NEW_PLUG_STOW_XY[0], NEW_PLUG_STOW_XY[1], NEW_PLUG_SPAWN_Z + 0.080], dtype=float)
-    yield from L.move(tuple(hov_L + trim_L), 0.50, FINGER_CLOSED, yaw=YAW_L)
+    # Retract Left arm to READY while Right arm approaches NEW_PLUG (strip is already seated inside 4.5 mm mat cleats
+    # and downward insertion into Outlet 3 presses the strip into the mat, giving unlimited overhead clearance at Outlet 3!)
+    hov_new = np.array([NEW_PLUG_STOW_XY[0], NEW_PLUG_STOW_XY[1], NEW_PLUG_SPAWN_Z + 0.075], dtype=float)
+    yield from L.move(tuple(hov_L + trim_L), 0.45, FINGER_CLOSED, yaw=YAW_L)
     yield from ctx.both(
-        L.home(duration=1.10),
-        R.move(tuple(hov_new), 1.00, FINGER_OPEN, yaw=YAW_R),
+        L.home(duration=1.2),
+        R.move(tuple(hov_new), 0.95, FINGER_OPEN, yaw=YAW_R),
     )
     yield from R.trim_to_measured(tuple(hov_new), max_duration=0.65)
     trim_R_new = R.pos - hov_new
 
-    grasp_new = np.array([NEW_PLUG_STOW_XY[0], NEW_PLUG_STOW_XY[1], NEW_PLUG_SPAWN_Z + 0.020 + PAD_TIP_BELOW_TCP], dtype=float)
-    yield from R.move(tuple(grasp_new + trim_R_new), 0.75, FINGER_OPEN, yaw=YAW_R)
+    grasp_new = np.array([NEW_PLUG_STOW_XY[0], NEW_PLUG_STOW_XY[1], NEW_PLUG_SPAWN_Z + 0.019 + PAD_TIP_BELOW_TCP], dtype=float)
+    yield from R.move(tuple(grasp_new + trim_R_new), 0.70, FINGER_OPEN, yaw=YAW_R)
     yield from R.grip(FINGER_CLOSED, 0.65)
     yield from ctx.wait(0.15)
-
-    lift_new = np.array([NEW_PLUG_STOW_XY[0], NEW_PLUG_STOW_XY[1], MAT_TOP + STRIP_H + 0.105 + PAD_TIP_BELOW_TCP], dtype=float)
-    yield from R.move(tuple(lift_new + trim_R_new), 0.75, FINGER_CLOSED, yaw=YAW_R)
+    yield from R.move((NEW_PLUG_STOW_XY[0] + trim_R_new[0], NEW_PLUG_STOW_XY[1] + trim_R_new[1], MAT_TOP + STRIP_H + 0.090), 0.70, FINGER_CLOSED, yaw=YAW_R)
 
     s_xy2 = np.asarray(ctx.obj("power_strip").origin, dtype=float)[:2] if not ctx.offline else np.array(STRIP_XY, dtype=float)
-    out3_xy = (float(s_xy2[0]), float(s_xy2[1]) + OUTLET_Y[2])
-    align_base = np.array([out3_xy[0], out3_xy[1], MAT_TOP + STRIP_H + 0.056 + PAD_TIP_BELOW_TCP], dtype=float)
-    yield from R.move(tuple(align_base), 1.05, FINGER_CLOSED, yaw=YAW_R)
-    yield from R.trim_to_measured(tuple(align_base), max_duration=0.65)
-    trim_R_out3 = R.pos - align_base
+    out3_xy = np.array([float(s_xy2[0]), float(s_xy2[1]) + OUTLET_Y[2]], dtype=float)
+    over_out3 = np.array([out3_xy[0], out3_xy[1], MAT_TOP + STRIP_H + 0.082 + PAD_TIP_BELOW_TCP], dtype=float)
+    yield from R.move(tuple(over_out3), 0.90, FINGER_CLOSED, yaw=YAW_R)
+    yield from R.trim_to_measured(tuple(over_out3), max_duration=0.65)
+    trim_R_o3 = R.pos - over_out3
+
+    align_base = np.array([out3_xy[0], out3_xy[1], MAT_TOP + STRIP_H + 0.052 + PAD_TIP_BELOW_TCP], dtype=float)
+    yield from R.move(tuple(align_base + trim_R_o3), 0.45, FINGER_CLOSED, yaw=YAW_R)
+
+    corr_yaw = 0.0
+    if not ctx.offline:
+        corr_yaw = -math.radians(_rel_yaw_deg(ctx.obj("new_plug"), ctx.obj("power_strip")))
+        yield from R.move(tuple(align_base + trim_R_o3), 0.30, FINGER_CLOSED, yaw=YAW_R + corr_yaw)
 
     corr_n3 = np.zeros(2, dtype=float)
     if not ctx.offline:
         n_xy = np.asarray(ctx.obj("new_plug").origin, dtype=float)[:2]
         corr_n3 = np.array([out3_xy[0] - float(n_xy[0]), out3_xy[1] - float(n_xy[1])], dtype=float)
-        yield from R.move((align_base[0] + corr_n3[0] + trim_R_out3[0], align_base[1] + corr_n3[1] + trim_R_out3[1], align_base[2] + trim_R_out3[2]), 0.45, FINGER_CLOSED, yaw=YAW_R)
 
-    seat_new = np.array([out3_xy[0] + corr_n3[0], out3_xy[1] + corr_n3[1], MAT_TOP + STRIP_H + 0.0165 + PAD_TIP_BELOW_TCP], dtype=float)
-    yield from R.move(tuple(seat_new + trim_R_out3), 0.85, FINGER_CLOSED, yaw=YAW_R)
+    seat_out3 = np.array([out3_xy[0] + corr_n3[0], out3_xy[1] + corr_n3[1], MAT_TOP + STRIP_H + 0.0165 + PAD_TIP_BELOW_TCP], dtype=float)
+    yield from R.move(tuple(align_base + trim_R_o3 + np.array([corr_n3[0], corr_n3[1], 0.0])), 0.35, FINGER_CLOSED, yaw=YAW_R + corr_yaw)
+    yield from R.move(tuple(seat_out3 + trim_R_o3), 0.95, FINGER_CLOSED, yaw=YAW_R + corr_yaw)
     yield from ctx.wait(0.15)
-
-    # 5) Release gripper cleanly, lift straight up clear of all 4 seated plugs, return to READY, and hold 1.4 s!
     yield from R.grip(FINGER_OPEN, 0.45)
-    yield from R.move((seat_new[0] + trim_R_out3[0], seat_new[1] + trim_R_out3[1], MAT_TOP + STRIP_H + 0.095 + PAD_TIP_BELOW_TCP), 0.60, FINGER_OPEN, yaw=YAW_R)
-    yield from R.home(duration=1.3)
-    yield from ctx.wait(1.4)
+    yield from R.move(tuple(over_out3 + trim_R_o3), 0.60, FINGER_OPEN, yaw=YAW_R)
+
+    # 5) Return Right arm cleanly to READY and hold 1.5 s continuous stillness
+    yield from R.home(duration=1.4)
+    yield from ctx.wait(1.5)
